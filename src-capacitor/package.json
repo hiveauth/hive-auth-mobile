@@ -1,0 +1,14 @@
+{
+  "name": "hive-auth-mobile",
+  "version": "0.0.1",
+  "description": "Hive Auth Signer",
+  "author": "Sagar <sagar.devices@gmail.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^5.2.0",
+    "@capacitor/app": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/ios": "^5.2.0"
+  }
+}
