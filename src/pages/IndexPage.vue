@@ -44,6 +44,26 @@
           Add your existing HIVE account to Keychain
         </div>
       </div>
+
+      <div class="row q-mt-lg">
+        <q-btn
+          class="col q-pt-sm q-pb-sm"
+          rounded
+          color="primary"
+          label="Read key"
+          @click="readKeys()"
+        />
+      </div>
+
+      <div class="row q-mt-lg">
+        <q-btn
+          class="col q-pt-sm q-pb-sm"
+          rounded
+          color="primary"
+          label="Delete key"
+          @click="deleteKeys()"
+        />
+      </div>
     </div>
   </q-page>
 </template>
@@ -52,6 +72,7 @@
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import dhiveClient from 'src/helper/dhive-client';
+import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -62,6 +83,54 @@ export default defineComponent({
       hiveusername: '',
       hiveuserkey: '',
     });
+
+    async function deleteKeys() {
+      try {
+        await SecureStorage.remove('private_key');
+        $q.notify({
+          color: 'positive',
+          position: 'bottom',
+          message: 'Key was deleted',
+          icon: 'delete',
+        });
+      } catch (e) {
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: `Error reading keys - ${e.message}`,
+          icon: 'report_problem',
+        });
+      }
+    }
+
+    async function readKeys() {
+      try {
+        const value = await SecureStorage.get('private_key', true, false);
+        if (value === null) {
+          $q.notify({
+            color: 'negative',
+            position: 'bottom',
+            message: 'No key found.',
+            icon: 'report_problem',
+          });
+          return;
+        }
+        $q.notify({
+          color: 'positive',
+          position: 'bottom',
+          message: `Key is stored ending with - ${value.slice(-5)}`,
+          icon: 'report_problem',
+        });
+      } catch (e) {
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: `Error reading keys - ${e.message}`,
+          icon: 'report_problem',
+        });
+      }
+    }
+
     async function validateKeys() {
       console.log('validating keys');
       $q.loading.show({ group: 'validating_keys' });
@@ -77,6 +146,22 @@ export default defineComponent({
           );
           const publicKey = dhiveClient.publicKeyFrom(privateKey);
           console.log(publicKey);
+          const prefix = await SecureStorage.getKeyPrefix();
+          console.log(prefix);
+          await SecureStorage.setSynchronize(false);
+          await SecureStorage.set(
+            'private_key',
+            data.value.hiveuserkey,
+            true,
+            false
+          );
+          $q.loading.hide('validating_keys');
+          $q.notify({
+            color: 'positive',
+            position: 'bottom',
+            message: 'Key securely saved',
+            icon: 'report_problem',
+          });
         } catch (e) {
           $q.notify({
             color: 'negative',
@@ -84,8 +169,8 @@ export default defineComponent({
             message: `Invalid private key - ${e.message}`,
             icon: 'report_problem',
           });
+          $q.loading.hide('validating_keys');
         }
-        $q.loading.hide('validating_keys');
       } catch (e) {
         $q.loading.hide('validating_keys');
         console.log(e);
@@ -97,7 +182,7 @@ export default defineComponent({
         });
       }
     }
-    return { data, validateKeys };
+    return { data, validateKeys, readKeys, deleteKeys };
   },
 });
 </script>
