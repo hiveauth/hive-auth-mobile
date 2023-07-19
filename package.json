@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^4.0.0",
+    "@capacitor-community/barcode-scanner": "^4.0.1",
     "@hiveio/dhive": "^1.2.7",
     "@quasar/extras": "^1.16.4",
     "pinia": "^2.0.11",

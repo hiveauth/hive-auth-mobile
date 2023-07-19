@@ -6,6 +6,7 @@
   "private": true,
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^4.0.0",
+    "@capacitor-community/barcode-scanner": "^4.0.1",
     "@capacitor/android": "^5.2.0",
     "@capacitor/app": "^5.0.0",
     "@capacitor/cli": "^5.0.0",
