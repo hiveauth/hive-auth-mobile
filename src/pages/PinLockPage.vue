@@ -5,13 +5,24 @@
         outlined
         rounded
         v-model="data.code"
-        type="password"
         label="6 Digit Passcode"
         placeholder="Enter six digit passcode here"
         class="q-pt-lg"
+        :type="data.isPasscodeVisible ? 'text' : 'password'"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="off"
+        maxlength="6"
       >
         <template v-slot:prepend>
           <q-icon name="pin" />
+        </template>
+        <template v-slot:append>
+          <q-icon
+            :name="data.isPasscodeVisible ? 'visibility_off' : 'visibility'"
+            class="cursor-pointer"
+            @click="data.isPasscodeVisible = !data.isPasscodeVisible"
+          />
         </template>
       </q-input>
 
@@ -19,14 +30,25 @@
         outlined
         rounded
         v-model="data.repeatCode"
-        type="password"
         label="Repeat Passcode"
         placeholder="Repeat passcode here"
         class="q-pt-lg"
+        :type="data.isPasscodeVisible ? 'text' : 'password'"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="off"
+        maxlength="6"
         v-if="!data.isSaved"
       >
         <template v-slot:prepend>
           <q-icon name="pin" />
+        </template>
+        <template v-slot:append>
+          <q-icon
+            :name="data.isPasscodeVisible ? 'visibility_off' : 'visibility'"
+            class="cursor-pointer"
+            @click="data.isPasscodeVisible = !data.isPasscodeVisible"
+          />
         </template>
       </q-input>
 
@@ -46,7 +68,7 @@
           rounded
           color="primary"
           label="Set Passcode"
-          :disable="data.code.length != 6 || data.code !== data.repeatCode"
+          :disable="data.code.length !== 6 || data.code !== data.repeatCode"
           @click="setPasscode()"
         />
       </div>
@@ -58,21 +80,33 @@
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
+  name: 'passcode-lock',
   components: {},
   setup() {
+    const router = useRouter();
     const $q = useQuasar();
     const data = ref({
       code: '',
       repeatCode: '',
       isSaved: false,
       savedPasscode: '',
+      isPasscodeVisible: false,
     });
 
     async function verifyCode() {
+      console.log(data.value.code);
+      console.log(data.value.savedPasscode);
       if (data.value.code === data.value.savedPasscode) {
-        console.log('Valid Pincode entered');
+        $q.notify({
+          color: 'positive',
+          position: 'bottom',
+          message: "Passcode is valid. You're Authorised",
+          icon: 'check',
+        });
+        router.push({ name: 'import-key' });
       } else {
         console.log('Invalid Pincode entered');
       }
@@ -81,13 +115,14 @@ export default defineComponent({
     async function setPasscode() {
       try {
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('passcode', data.value, true, false);
+        await SecureStorage.set('passcode', data.value.code, true, false);
         $q.notify({
           color: 'positive',
           position: 'bottom',
           message: 'Passcode is now set.',
           icon: 'check',
         });
+        router.push({ name: 'import-key' });
       } catch (e) {
         $q.notify({
           color: 'negative',
@@ -95,7 +130,6 @@ export default defineComponent({
           message: 'Error setting passcode',
           icon: 'report_problem',
         });
-        $q.loading.hide('validating_keys');
       }
     }
 

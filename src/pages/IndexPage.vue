@@ -75,7 +75,7 @@ import dhiveClient from 'src/helper/dhive-client';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 
 export default defineComponent({
-  name: 'IndexPage',
+  name: 'import-key',
   components: {},
   setup() {
     const $q = useQuasar();

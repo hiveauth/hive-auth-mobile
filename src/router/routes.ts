@@ -5,9 +5,21 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: 'index', component: () => import('pages/IndexPage.vue') },
-      { path: 'qr', component: () => import('pages/QRScannerPage.vue') },
-      { path: '', component: () => import('pages/PinLockPage.vue') },
+      {
+        path: 'index',
+        name: 'import-key',
+        component: () => import('pages/IndexPage.vue'),
+      },
+      {
+        path: 'qr',
+        name: 'qr-scanner',
+        component: () => import('pages/QRScannerPage.vue'),
+      },
+      {
+        path: '',
+        name: 'passcode-lock',
+        component: () => import('pages/PinLockPage.vue'),
+      },
     ],
   },
 
