@@ -38,7 +38,7 @@
         pattern="[0-9]*"
         autocomplete="off"
         maxlength="6"
-        v-if="!data.isSaved"
+        v-if="!hasAuthStore.hasPasscode"
       >
         <template v-slot:prepend>
           <q-icon name="pin" />
@@ -52,7 +52,7 @@
         </template>
       </q-input>
 
-      <div class="row q-mt-lg" v-if="data.isSaved">
+      <div class="row q-mt-lg" v-if="hasAuthStore.hasPasscode">
         <q-btn
           class="col q-pt-sm q-pb-sm"
           rounded
@@ -62,7 +62,7 @@
         />
       </div>
 
-      <div class="row q-mt-lg" v-if="!data.isSaved">
+      <div class="row q-mt-lg" v-if="!hasAuthStore.hasPasscode">
         <q-btn
           class="col q-pt-sm q-pb-sm"
           rounded
@@ -79,43 +79,47 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { useRouter } from 'vue-router';
+import { useHasPathStore } from 'src/stores/has-path';
+import { useHasAuthStore } from 'src/stores/has-auth';
 
 export default defineComponent({
   name: 'passcode-lock',
   components: {},
   setup() {
+    const hasAuthStore = useHasAuthStore();
     const router = useRouter();
     const $q = useQuasar();
     const data = ref({
       code: '',
       repeatCode: '',
-      isSaved: false,
-      savedPasscode: '',
       isPasscodeVisible: false,
     });
 
     async function verifyCode() {
-      console.log(data.value.code);
-      console.log(data.value.savedPasscode);
-      if (data.value.code === data.value.savedPasscode) {
+      if (hasAuthStore.isValidPasscode(data.value.code)) {
         $q.notify({
           color: 'positive',
           position: 'bottom',
           message: "Passcode is valid. You're Authorised",
           icon: 'check',
         });
+        hasAuthStore.unlockApp();
         router.push({ name: 'import-key' });
       } else {
-        console.log('Invalid Pincode entered');
+        console.log('Invalid Passcode entered');
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: 'Passcode is invalid.',
+          icon: 'dangerous',
+        });
       }
     }
 
     async function setPasscode() {
       try {
-        await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('passcode', data.value.code, true, false);
+        await hasAuthStore.setPasscode(data.value.code);
         $q.notify({
           color: 'positive',
           position: 'bottom',
@@ -133,26 +137,12 @@ export default defineComponent({
       }
     }
 
-    async function readKeys() {
-      try {
-        const value = (await SecureStorage.get(
-          'passcode',
-          true,
-          false
-        )) as string;
-        if (value === null) {
-          return;
-        }
-        data.value.savedPasscode = value;
-        data.value.isSaved = true;
-      } catch (e) {
-        console.log(`Probably not stored. Error reading keys - ${e.message}. `);
-      }
-    }
-    return { data, readKeys, verifyCode, setPasscode };
+    return { data, verifyCode, setPasscode, hasAuthStore };
   },
+
   mounted() {
-    this.readKeys();
+    const store = useHasPathStore();
+    store.updateTo('', 'Passcode');
   },
 });
 </script>

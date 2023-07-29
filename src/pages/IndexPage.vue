@@ -73,6 +73,7 @@ import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import dhiveClient from 'src/helper/dhive-client';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
+import { useHasPathStore } from 'src/stores/has-path';
 
 export default defineComponent({
   name: 'import-key',
@@ -183,6 +184,10 @@ export default defineComponent({
       }
     }
     return { data, validateKeys, readKeys, deleteKeys };
+  },
+  mounted() {
+    const store = useHasPathStore();
+    store.updateTo('index', 'Import Keys');
   },
 });
 </script>
