@@ -126,6 +126,7 @@ export default defineComponent({
           message: 'Passcode is now set.',
           icon: 'check',
         });
+        hasAuthStore.unlockApp();
         router.push({ name: 'import-key' });
       } catch (e) {
         $q.notify({
