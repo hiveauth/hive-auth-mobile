@@ -16,14 +16,20 @@
     "@aparajita/capacitor-secure-storage": "^4.0.0",
     "@capacitor-community/barcode-scanner": "^4.0.1",
     "@hiveio/dhive": "^1.2.7",
+    "@hiveio/hive-js": "^2.0.6",
     "@quasar/extras": "^1.16.4",
     "@weslink/vue-pincode": "^0.2.1",
+    "crypto-js": "^4.1.1",
     "pinia": "^2.0.11",
     "quasar": "^2.6.0",
+    "uuid": "^9.0.0",
     "vue": "^3.0.0",
+    "vue-cryptojs": "^2.4.3",
     "vue-i18n": "^9.2.2",
     "vue-pincode-input": "^0.4.0",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.0",
+    "vue-uuid": "^3.0.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",

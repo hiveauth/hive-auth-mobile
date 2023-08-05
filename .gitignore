@@ -1,3 +1,6 @@
+src/data/keys.json
+src/data/storage.json
+
 .DS_Store
 .thumbs.db
 node_modules
