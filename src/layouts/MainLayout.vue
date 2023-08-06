@@ -39,6 +39,14 @@
               <q-item-section> Manage Accounts </q-item-section>
             </q-item>
 
+            <q-item clickable v-ripple @click="navToPksaPage">
+              <q-item-section avatar>
+                <q-icon name="check_box" />
+              </q-item-section>
+
+              <q-item-section> PKSA </q-item-section>
+            </q-item>
+
             <q-item clickable v-ripple>
               <q-item-section avatar>
                 <q-icon name="qr_code_scanner" />
@@ -131,7 +139,11 @@ export default defineComponent({
       router.push({ name: 'passcode-lock' });
     }
 
-    return { data, hasPathStore, hasAuthStore, lockApp };
+    function navToPksaPage() {
+      router.push({ name: 'pksa' });
+    }
+
+    return { data, hasPathStore, hasAuthStore, lockApp, navToPksaPage };
   },
   mounted() {
     this.hasAuthStore.readKeys();
