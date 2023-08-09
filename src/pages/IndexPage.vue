@@ -188,6 +188,7 @@ export default defineComponent({
   mounted() {
     const store = useHasPathStore();
     store.updateTo('index', 'Import Keys');
+    console.log('At import keys page');
   },
 });
 </script>

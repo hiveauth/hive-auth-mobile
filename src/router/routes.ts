@@ -22,8 +22,13 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: '/pksa',
-        name: 'pksa',
+        name: 'pk-sa',
         component: () => import('pages/PKSAPage.vue'),
+      },
+      {
+        path: '/pksa-new',
+        name: 'pksa-new',
+        component: () => import('pages/NewPKSAPage.vue'),
       },
     ],
   },

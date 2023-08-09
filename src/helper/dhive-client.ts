@@ -1,4 +1,4 @@
-import { Client, PrivateKey, PublicKey, Transaction } from '@hiveio/dhive';
+import { Client, PrivateKey, PublicKey } from '@hiveio/dhive';
 
 const client = new Client([
   'https://api.hive.blog',

@@ -140,7 +140,7 @@ export default defineComponent({
     }
 
     function navToPksaPage() {
-      router.push({ name: 'pksa' });
+      router.push({ name: 'pksa-new' });
     }
 
     return { data, hasPathStore, hasAuthStore, lockApp, navToPksaPage };
