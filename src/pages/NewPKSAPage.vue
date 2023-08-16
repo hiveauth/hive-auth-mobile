@@ -34,6 +34,75 @@ export default defineComponent({
       wsClient?.send(message);
     }
 
+    async function processMessage(message: string) {
+      try {
+        const payload =
+          typeof message == 'string' ? JSON.parse(message) : message;
+        console.log(
+          payload.cmd &&
+            typeof payload.cmd == 'string' + 'invalid payload (cmd)'
+        );
+        if (payload.uuid) {
+          // validate APP request forwarded by HAS
+          console.log(
+            payload.uuid && typeof payload.uuid == 'string',
+            'invalid payload (uuid)'
+          );
+          console.log(
+            payload.expire && typeof payload.expire == 'number',
+            'invalid payload (expire)'
+          );
+          console.log(
+            payload.account && typeof payload.account == 'string',
+            'invalid payload (account)'
+          );
+          console.log(
+            Date.now() < payload.expire,
+            `request expired - now:${Date.now()} > expire:${payload.expire}}`
+          );
+        }
+        switch (payload.cmd) {
+          // Process HAS <-> PKSA protocol
+          case 'connected':
+            // connection confirmation from the HAS
+            hasProtocol = payload.protocol || 0;
+            return;
+          case 'error':
+            // error from the HAS
+            return;
+          case 'register_ack':
+            // registration confirmation from the HAS
+            return;
+          case 'key_ack':
+            // server public key received
+            key_server = payload.key;
+            if (key_server) {
+              // try {
+              //   const storage = JSON.parse(fs.readFileSync(STORAGE_FILE))
+              //   const request = {
+              //     cmd: "register_req",
+              //     app: storage.pksa_name,
+              //     accounts: []
+              //   }
+              //   const accounts = storage.accounts
+              //   for(const account of accounts) {
+              //     checkUsername(account.name,true)
+              //     // Add account and Proof of Key
+              //     request.accounts.push({name:account.name, pok:getPOK(account.name)})
+              //   }
+              //   // Register accounts on HAS server
+              //   HASSend(JSON.stringify(request))
+              // } catch(e) {
+              //   console.log(e.message)
+              // }
+            }
+            break;
+        }
+      } catch (e) {
+        HASSend(JSON.stringify({ cmd: 'error', error: e.message }));
+      }
+    }
+
     async function startWebsocket() {
       console.log(`PKSA started - protocol: ${HAS_PROTOCOL} `);
       //const wsClient = new WebSocket("ws://localhost:3000/")
@@ -60,10 +129,13 @@ export default defineComponent({
         }
       };
 
-      wsClient.onmessage = async function (event: any) {
+      wsClient.onmessage = async function (
+        this: WebSocket,
+        event: MessageEvent
+      ) {
         console.log(`[RECV] ${event.data}`);
         try {
-          // processMessage(event.data);
+          processMessage(event.data);
         } catch (e) {
           console.log(e.stack);
         }
