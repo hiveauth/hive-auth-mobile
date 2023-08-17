@@ -143,7 +143,13 @@ export default defineComponent({
       router.push({ name: 'pksa-new' });
     }
 
-    return { data, hasPathStore, hasAuthStore, lockApp, navToPksaPage };
+    return {
+      data,
+      hasPathStore,
+      hasAuthStore,
+      lockApp,
+      navToPksaPage,
+    };
   },
   mounted() {
     this.hasAuthStore.readKeys();
