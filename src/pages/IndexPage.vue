@@ -44,26 +44,6 @@
           Add your existing HIVE account to Keychain
         </div>
       </div>
-
-      <div class="row q-mt-lg">
-        <q-btn
-          class="col q-pt-sm q-pb-sm"
-          rounded
-          color="primary"
-          label="Read key"
-          @click="readKeys()"
-        />
-      </div>
-
-      <div class="row q-mt-lg">
-        <q-btn
-          class="col q-pt-sm q-pb-sm"
-          rounded
-          color="primary"
-          label="Delete key"
-          @click="deleteKeys()"
-        />
-      </div>
     </div>
   </q-page>
 </template>
@@ -74,72 +54,26 @@ import { useQuasar } from 'quasar';
 import dhiveClient from 'src/helper/dhive-client';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { useHasPathStore } from 'src/stores/has-path';
+import { useHasKeysStore } from 'src/stores/has-keys';
+import { KeysModel } from 'src/models/keys-model';
 
 export default defineComponent({
   name: 'import-key',
   components: {},
   setup() {
     const $q = useQuasar();
+    const hasKeysStore = useHasKeysStore();
     const data = ref({
       hiveusername: '',
       hiveuserkey: '',
     });
 
-    async function deleteKeys() {
-      try {
-        await SecureStorage.remove('private_key');
-        $q.notify({
-          color: 'positive',
-          position: 'bottom',
-          message: 'Key was deleted',
-          icon: 'delete',
-        });
-      } catch (e) {
-        $q.notify({
-          color: 'negative',
-          position: 'bottom',
-          message: `Error reading keys - ${e.message}`,
-          icon: 'report_problem',
-        });
-      }
-    }
-
-    async function readKeys() {
-      try {
-        const value = await SecureStorage.get('private_key', true, false);
-        if (value === null) {
-          $q.notify({
-            color: 'negative',
-            position: 'bottom',
-            message: 'No key found.',
-            icon: 'report_problem',
-          });
-          return;
-        }
-        $q.notify({
-          color: 'positive',
-          position: 'bottom',
-          message: `Key is stored ending with - ${value.slice(-5)}`,
-          icon: 'report_problem',
-        });
-      } catch (e) {
-        $q.notify({
-          color: 'negative',
-          position: 'bottom',
-          message: `Error reading keys - ${e.message}`,
-          icon: 'report_problem',
-        });
-      }
-    }
-
     async function validateKeys() {
       console.log('validating keys');
       $q.loading.show({ group: 'validating_keys' });
-      console.log('validating keys - showing loader');
       try {
-        const allPublicKeys = await dhiveClient.getUserPublicKeys(
-          data.value.hiveusername.toLowerCase().trim()
-        );
+        const username = data.value.hiveusername.toLowerCase().trim();
+        const allPublicKeys = await dhiveClient.getUserPublicKeys(username);
         console.log(JSON.stringify(allPublicKeys));
         try {
           const privateKey = dhiveClient.privateKeyFromString(
@@ -147,22 +81,65 @@ export default defineComponent({
           );
           const publicKey = dhiveClient.publicKeyFrom(privateKey);
           console.log(publicKey);
-          const prefix = await SecureStorage.getKeyPrefix();
-          console.log(prefix);
-          await SecureStorage.setSynchronize(false);
-          await SecureStorage.set(
-            'private_key',
-            data.value.hiveuserkey,
-            true,
-            false
+          let currentKeys = hasKeysStore.keysJson;
+          let accountFilter = currentKeys.filter(
+            (account) => account.name === username
           );
+          let noAccountFilter = currentKeys.filter(
+            (account) => account.name !== username
+          );
+          if (accountFilter.length === 0) {
+            // account is not added
+            let newAccount: KeysModel = { name: username };
+            let shouldSave = false;
+            if (publicKey === allPublicKeys.active) {
+              newAccount.active = data.value.hiveuserkey;
+              newAccount.activePublic = publicKey;
+              shouldSave = true;
+            } else if (publicKey === allPublicKeys.memo) {
+              newAccount.memo = data.value.hiveuserkey;
+              newAccount.memoPublic = publicKey;
+              shouldSave = true;
+            } else if (publicKey === allPublicKeys.posting) {
+              newAccount.posting = data.value.hiveuserkey;
+              newAccount.postingPublic = publicKey;
+              shouldSave = true;
+            }
+            if (shouldSave) {
+              currentKeys.push(newAccount);
+              await hasKeysStore.update(currentKeys);
+            }
+          } else {
+            // account is already added
+            let existingAccount: KeysModel = accountFilter[0];
+            let shouldSave = false;
+            if (publicKey === allPublicKeys.active) {
+              existingAccount.active = data.value.hiveuserkey;
+              existingAccount.activePublic = publicKey;
+              shouldSave = true;
+            } else if (publicKey === allPublicKeys.memo) {
+              existingAccount.memo = data.value.hiveuserkey;
+              existingAccount.memoPublic = publicKey;
+              shouldSave = true;
+            } else if (publicKey === allPublicKeys.posting) {
+              existingAccount.posting = data.value.hiveuserkey;
+              existingAccount.postingPublic = publicKey;
+              shouldSave = true;
+            }
+            if (shouldSave) {
+              currentKeys = [...noAccountFilter, existingAccount];
+              await hasKeysStore.update(currentKeys);
+            }
+          }
           $q.loading.hide('validating_keys');
           $q.notify({
             color: 'positive',
             position: 'bottom',
             message: 'Key securely saved',
-            icon: 'report_problem',
+            icon: 'check',
           });
+          data.value.hiveusername = '';
+          data.value.hiveuserkey = '';
         } catch (e) {
           $q.notify({
             color: 'negative',
@@ -183,7 +160,7 @@ export default defineComponent({
         });
       }
     }
-    return { data, validateKeys, readKeys, deleteKeys };
+    return { data, validateKeys };
   },
   mounted() {
     const store = useHasPathStore();

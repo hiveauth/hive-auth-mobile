@@ -8,7 +8,11 @@ export const useHasKeysStore = defineStore('has-keys', {
   }),
   getters: {
     keysJson: (state) => {
-      return JSON.parse(state.keys) as KeysModel[];
+      if (state.keys.length === 0) {
+        return [];
+      } else {
+        return JSON.parse(state.keys) as KeysModel[];
+      }
     },
   },
   actions: {

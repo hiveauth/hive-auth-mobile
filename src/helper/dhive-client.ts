@@ -1,5 +1,5 @@
 import { Client, PrivateKey, PublicKey } from '@hiveio/dhive';
-
+import { PublicKeysModel } from 'src/models/public-keys-model';
 const client = new Client([
   'https://api.hive.blog',
   'https://api.deathwing.me',
@@ -20,9 +20,7 @@ function publicKeyFrom(privateKey: PrivateKey): string {
   return privateKey.createPublic().toString();
 }
 
-async function getUserPublicKeys(
-  username: string
-): Promise<(string | PublicKey)[]> {
+async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
   try {
     console.log('Getting user public keys');
     const account = await client.database.getAccounts([username]);
@@ -30,11 +28,11 @@ async function getUserPublicKeys(
       throw new Error(`User '${username}' not found.`);
     }
     console.log('Got user info');
-    return [
-      ...account[0].active.key_auths.map(([key]) => key),
-      ...account[0].owner.key_auths.map(([key]) => key),
-      ...account[0].posting.key_auths.map(([key]) => key),
-    ];
+    return {
+      active: account[0].active.key_auths.map(([key]) => key)[0],
+      memo: account[0].owner.key_auths.map(([key]) => key)[0],
+      posting: account[0].posting.key_auths.map(([key]) => key)[0],
+    } as PublicKeysModel;
   } catch (error) {
     console.error('Error occurred while retrieving user public keys:', error);
     throw error;
