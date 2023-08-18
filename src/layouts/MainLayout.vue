@@ -152,7 +152,7 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.hasAuthStore.readKeys();
+    this.hasAuthStore.readCode();
   },
 });
 </script>

@@ -1,5 +1,6 @@
 src/data/keys.json
 src/data/storage.json
+.env
 
 .DS_Store
 .thumbs.db

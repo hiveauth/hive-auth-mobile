@@ -83,6 +83,7 @@ import { useRouter } from 'vue-router';
 import { useHasPathStore } from 'src/stores/has-path';
 import { useHasAuthStore } from 'src/stores/has-auth';
 import { useHasKeysStore } from 'src/stores/has-keys';
+import { useHasStorageStore } from 'src/stores/has-storage';
 
 export default defineComponent({
   name: 'passcode-lock',
@@ -90,6 +91,7 @@ export default defineComponent({
   setup() {
     const hasAuthStore = useHasAuthStore();
     const hasKeysStore = useHasKeysStore();
+    const hasStorageStore = useHasStorageStore();
     const router = useRouter();
     const $q = useQuasar();
     const data = ref({
@@ -108,6 +110,7 @@ export default defineComponent({
         });
         hasAuthStore.unlockApp();
         await hasKeysStore.readKeys();
+        await hasStorageStore.readStorage();
         router.push({ name: 'import-key' });
       } else {
         console.log('Invalid Passcode entered');
@@ -125,6 +128,7 @@ export default defineComponent({
         await hasAuthStore.setPasscode(data.value.code);
         hasAuthStore.unlockApp();
         await hasKeysStore.readKeys();
+        await hasStorageStore.readStorage();
         $q.notify({
           color: 'positive',
           position: 'bottom',

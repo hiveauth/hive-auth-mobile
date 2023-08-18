@@ -27,7 +27,7 @@ export const useHasAuthStore = defineStore('has-auth', {
       this.$state.isUnlocked = false;
     },
 
-    async readKeys() {
+    async readCode() {
       try {
         const value = (await SecureStorage.get(
           'passcode',
