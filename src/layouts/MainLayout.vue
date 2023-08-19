@@ -16,7 +16,7 @@
             </q-item-section>
 
             <q-item-section>
-              <q-item-label>Hive Auth Signer</q-item-label>
+              <q-item-label>Auth Signer</q-item-label>
               <q-item-label caption style="color: white">{{
                 hasPathStore.pathName
               }}</q-item-label>
@@ -128,7 +128,7 @@
                 </q-avatar>
               </div>
               <div class="col q-pt-sm">
-                <div class="text-weight-bold">Hive Auth Signer</div>
+                <div class="text-weight-bold">Auth Signer</div>
                 <div>@arcange, @sagarkothari88</div>
               </div>
             </div>
