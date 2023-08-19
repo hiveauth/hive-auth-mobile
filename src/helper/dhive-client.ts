@@ -1,4 +1,4 @@
-import { Client, PrivateKey, PublicKey } from '@hiveio/dhive';
+import { Client, PrivateKey } from '@hiveio/dhive';
 import { PublicKeysModel } from 'src/models/public-keys-model';
 const client = new Client([
   'https://api.hive.blog',
@@ -30,7 +30,7 @@ async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
     console.log('Got user info');
     return {
       active: account[0].active.key_auths.map(([key]) => key)[0],
-      memo: account[0].owner.key_auths.map(([key]) => key)[0],
+      memo: account[0].memo_key,
       posting: account[0].posting.key_auths.map(([key]) => key)[0],
     } as PublicKeysModel;
   } catch (error) {

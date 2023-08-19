@@ -31,12 +31,20 @@
               <q-item-section> Wallet </q-item-section>
             </q-item>
 
-            <q-item clickable v-ripple>
+            <q-item clickable v-ripple @click="navToManageAccounts">
               <q-item-section avatar>
                 <q-icon name="people" />
               </q-item-section>
 
               <q-item-section> Manage Accounts </q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple @click="navToImportKeys">
+              <q-item-section avatar>
+                <q-icon name="key" />
+              </q-item-section>
+
+              <q-item-section> Import Keys </q-item-section>
             </q-item>
 
             <q-item clickable v-ripple @click="navToPksaPage">
@@ -143,12 +151,22 @@ export default defineComponent({
       router.push({ name: 'pksa-new' });
     }
 
+    function navToManageAccounts() {
+      router.push({ name: 'manage-accounts' });
+    }
+
+    function navToImportKeys() {
+      router.push({ name: 'import-key' });
+    }
+
     return {
       data,
       hasPathStore,
       hasAuthStore,
       lockApp,
       navToPksaPage,
+      navToManageAccounts,
+      navToImportKeys,
     };
   },
   mounted() {

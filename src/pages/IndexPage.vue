@@ -52,7 +52,6 @@
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import dhiveClient from 'src/helper/dhive-client';
-import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { useHasPathStore } from 'src/stores/has-path';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import { KeysModel } from 'src/models/keys-model';
@@ -88,6 +87,7 @@ export default defineComponent({
           let noAccountFilter = currentKeys.filter(
             (account) => account.name !== username
           );
+          let keyType = 'Private Key';
           if (accountFilter.length === 0) {
             // account is not added
             let newAccount: KeysModel = { name: username };
@@ -96,14 +96,17 @@ export default defineComponent({
               newAccount.active = data.value.hiveuserkey;
               newAccount.activePublic = publicKey;
               shouldSave = true;
+              keyType = 'Private Active Key';
             } else if (publicKey === allPublicKeys.memo) {
               newAccount.memo = data.value.hiveuserkey;
               newAccount.memoPublic = publicKey;
               shouldSave = true;
+              keyType = 'Private Memo Key';
             } else if (publicKey === allPublicKeys.posting) {
               newAccount.posting = data.value.hiveuserkey;
               newAccount.postingPublic = publicKey;
               shouldSave = true;
+              keyType = 'Private Posting Key';
             }
             if (shouldSave) {
               currentKeys.push(newAccount);
@@ -117,14 +120,18 @@ export default defineComponent({
               existingAccount.active = data.value.hiveuserkey;
               existingAccount.activePublic = publicKey;
               shouldSave = true;
+              keyType = 'Private Active Key';
             } else if (publicKey === allPublicKeys.memo) {
+              console.log('in here - memo key writing');
               existingAccount.memo = data.value.hiveuserkey;
               existingAccount.memoPublic = publicKey;
               shouldSave = true;
+              keyType = 'Private Memo Key';
             } else if (publicKey === allPublicKeys.posting) {
               existingAccount.posting = data.value.hiveuserkey;
               existingAccount.postingPublic = publicKey;
               shouldSave = true;
+              keyType = 'Private Posting Key';
             }
             if (shouldSave) {
               currentKeys = [...noAccountFilter, existingAccount];
@@ -135,7 +142,7 @@ export default defineComponent({
           $q.notify({
             color: 'positive',
             position: 'bottom',
-            message: 'Key securely saved',
+            message: `${data.value.hiveusername}'s ${keyType} is securely saved`,
             icon: 'check',
           });
           data.value.hiveusername = '';
