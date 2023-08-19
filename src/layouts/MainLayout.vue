@@ -3,15 +3,35 @@
     <q-header>
       <q-toolbar>
         <q-toolbar-title>
-          <q-btn
-            flat
-            @click="data.isDrawerOpen = !data.isDrawerOpen"
-            round
-            dense
-            icon="menu"
-            v-if="hasAuthStore.isUnlocked"
-          />
-          Hive Auth - {{ hasPathStore.pathName }}
+          <q-item>
+            <q-item-section top avatar>
+              <q-btn
+                flat
+                @click="data.isDrawerOpen = !data.isDrawerOpen"
+                round
+                dense
+                icon="menu"
+                v-if="hasAuthStore.isUnlocked"
+              />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label>Hive Auth Signer</q-item-label>
+              <q-item-label caption style="color: white">{{
+                hasPathStore.pathName
+              }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-avatar size="40px" class="q-mb-sm">
+                <q-img
+                  class="iv-logo-color"
+                  src="src/icon/AppIcon.png"
+                  width="40px"
+                  height="40px"
+                />
+              </q-avatar>
+            </q-item-section>
+          </q-item>
         </q-toolbar-title>
       </q-toolbar>
 
