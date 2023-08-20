@@ -1,4 +1,5 @@
 src-capacitor/android/signing.properties
+src-capacitor/android/app/store
 
 src/data/keys.json
 src/data/storage.json

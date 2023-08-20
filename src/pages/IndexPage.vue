@@ -41,7 +41,7 @@
 
       <div class="row q-mt-lg">
         <div class="col text-subtitle1 text-center">
-          Add your existing HIVE account to Keychain
+          Add your existing HIVE account to AuthSigner
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@
           >
             <q-item-section avatar>
               <q-avatar>
-                <img
+                <q-img
                   :src="`https://images.hive.blog/u/${key.name}/avatar/small`"
                 />
               </q-avatar>
@@ -79,6 +79,7 @@ import { copyToClipboard } from 'quasar';
 import { useQuasar } from 'quasar';
 import { KeysModel } from 'src/models/keys-model';
 import { useRouter } from 'vue-router';
+import { Clipboard } from '@capacitor/clipboard';
 
 interface ManageAccountDisplay {
   id: string;
@@ -129,24 +130,25 @@ export default defineComponent({
       data.value.keys = keys;
     }
 
-    function copyKeyToClipboard() {
-      copyToClipboard(data.value.selectedData.private)
-        .then(() => {
-          $q.notify({
-            color: 'positive',
-            position: 'bottom',
-            message: `${data.value.selectedData.name}'s ${data.value.selectedData.type} is copied to clipboard`,
-            icon: 'assignment',
-          });
-        })
-        .catch((e) => {
-          $q.notify({
-            color: 'negative',
-            position: 'bottom',
-            message: `Key could not be copied - ${e.message}`,
-            icon: 'report_problem',
-          });
+    async function copyKeyToClipboard() {
+      try {
+        await Clipboard.write({
+          string: data.value.selectedData.private,
         });
+        $q.notify({
+          color: 'positive',
+          position: 'bottom',
+          message: `${data.value.selectedData.name}'s ${data.value.selectedData.type} is copied to clipboard`,
+          icon: 'assignment',
+        });
+      } catch (e) {
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: `Key could not be copied - ${e.message}`,
+          icon: 'report_problem',
+        });
+      }
     }
 
     async function deleteKey() {

@@ -24,10 +24,9 @@
             <q-item-section side>
               <q-avatar size="40px" class="q-mb-sm">
                 <q-img
-                  class="iv-logo-color"
-                  src="src/icon/AppIcon.png"
-                  width="40px"
+                  src="https://images.hive.blog/u/hiveauth/avatar/small"
                   height="40px"
+                  width="40px"
                 />
               </q-avatar>
             </q-item-section>
@@ -120,10 +119,9 @@
               <div class="q-pr-sm q-pt-sm">
                 <q-avatar size="40px" class="q-mb-sm">
                   <q-img
-                    class="iv-logo-color"
-                    src="src/icon/AppIcon.png"
-                    width="40px"
+                    src="https://images.hive.blog/u/hiveauth/avatar/small"
                     height="40px"
+                    width="40px"
                   />
                 </q-avatar>
               </div>
