@@ -5,6 +5,8 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (5.0.6):
     - Capacitor
+  - CapacitorClipboard (5.0.6):
+    - Capacitor
   - CapacitorCommunityBarcodeScanner (4.0.1):
     - Capacitor
   - CapacitorCordova (5.2.0)
@@ -13,6 +15,7 @@ DEPENDENCIES:
   - "AparajitaCapacitorSecureStorage (from `../../node_modules/@aparajita/capacitor-secure-storage`)"
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorClipboard (from `../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCommunityBarcodeScanner (from `../../node_modules/@capacitor-community/barcode-scanner`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
 
@@ -23,6 +26,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../node_modules/@capacitor/app"
+  CapacitorClipboard:
+    :path: "../../node_modules/@capacitor/clipboard"
   CapacitorCommunityBarcodeScanner:
     :path: "../../node_modules/@capacitor-community/barcode-scanner"
   CapacitorCordova:
@@ -32,9 +37,10 @@ SPEC CHECKSUMS:
   AparajitaCapacitorSecureStorage: 9bb3406cb4c3713979ca1885764032e557266242
   Capacitor: ee9a51af1f4b63e86c2c8b9938b1f8286c203e2c
   CapacitorApp: 024e1b1bea5f883d79f6330d309bc441c88ad04a
+  CapacitorClipboard: 77edf49827ea21da2a9c05c690a4a6a4d07199c4
   CapacitorCommunityBarcodeScanner: 7feb206489c8555a8ca0c74c57ddf49ead774eb8
   CapacitorCordova: 225d4817e9673b8dbcef8d9a3ccbd37f1f1c26cd
 
-PODFILE CHECKSUM: a5ac9054891fe0665aa53495478f58d1324d755d
+PODFILE CHECKSUM: e8dfba5a3ac262337489d7b95d961ffcc255479e
 
 COCOAPODS: 1.11.3

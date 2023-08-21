@@ -75,7 +75,6 @@ import { ref } from 'vue';
 import { defineComponent } from 'vue';
 import { useHasPathStore } from 'src/stores/has-path';
 import { useHasKeysStore } from 'src/stores/has-keys';
-import { copyToClipboard } from 'quasar';
 import { useQuasar } from 'quasar';
 import { KeysModel } from 'src/models/keys-model';
 import { useRouter } from 'vue-router';
