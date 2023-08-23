@@ -26,6 +26,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/PKSAPage.vue'),
       },
       {
+        path: 'new-pksa-page',
+        name: 'new-pksa-page',
+        component: () => import('pages/NewPKSAPage.vue'),
+      },
+      {
         path: 'manage-accounts',
         name: 'manage-accounts',
         component: () => import('pages/ManageAccounts.vue'),

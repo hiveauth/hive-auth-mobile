@@ -1,11 +1,9 @@
 <template>
-  <q-page> </q-page>
+  <q-page><div class="text-h3">Hello World!</div> </q-page>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { useQuasar } from 'quasar';
-import dhiveClient from 'src/helper/dhive-client';
 import { useHasPathStore } from 'src/stores/has-path';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import { KeysModel } from 'src/models/keys-model';
@@ -27,9 +25,9 @@ const HAS_PROTOCOL = 1; // supported HAS protocol version
 const PING_RATE = 60 * 1000; // 1 minute
 const PING_TIMEOUT = 5 * PING_RATE;
 let wsClient: WebSocket | undefined = undefined;
-let wsHeartbeat: any = undefined;
-let hasProtocol: any = undefined;
-let key_server: any = undefined;
+let wsHeartbeat: Date | undefined = undefined;
+let hasProtocol: number | undefined = undefined;
+let key_server: string | undefined = undefined;
 
 interface LowestPrivateKey {
   key_type: string;
@@ -39,7 +37,6 @@ interface LowestPrivateKey {
 export default defineComponent({
   name: 'pksa-page',
   setup() {
-    const $q = useQuasar();
     const hasKeysStore = useHasKeysStore();
     const hasStorageStore = useHasStorageStore();
     const data = ref({
@@ -761,6 +758,7 @@ export default defineComponent({
       validatePayload,
       heartbeat,
       startWebsocket,
+      processMessage,
     };
   },
   mounted() {

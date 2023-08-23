@@ -71,7 +71,7 @@
                 <q-icon name="check_box" />
               </q-item-section>
 
-              <q-item-section> PKSA </q-item-section>
+              <q-item-section> Authenticate Actions </q-item-section>
             </q-item>
 
             <q-item clickable v-ripple>
@@ -166,7 +166,7 @@ export default defineComponent({
     }
 
     function navToPksaPage() {
-      router.push({ name: 'pksa-new' });
+      router.push({ name: 'new-pksa-page' });
     }
 
     function navToManageAccounts() {
