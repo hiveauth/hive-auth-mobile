@@ -24,26 +24,27 @@ function publicKeyFrom(privateKey: PrivateKey): string {
 
 async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
   try {
-    const options = {
-      url: 'https://api.hive.blog',
-      headers: {
-        accept: 'application/json, text/plain, */*',
-        'content-type': 'application/json',
-      },
-      data: {
-        id: 4,
-        jsonrpc: '2.0',
-        method: 'condenser_api.get_accounts',
-        params: [[username]],
-      },
-    };
-    console.log('Getting user public keys');
-    const response = await CapacitorHttp.request({
-      ...options,
-      method: 'POST',
-    });
-    console.log('Response is - ' + JSON.stringify(response));
-    const account = response.data.result;
+    // const options = {
+    //   url: 'https://api.hive.blog',
+    //   headers: {
+    //     accept: 'application/json, text/plain, */*',
+    //     'content-type': 'application/json',
+    //   },
+    //   data: {
+    //     id: 4,
+    //     jsonrpc: '2.0',
+    //     method: 'condenser_api.get_accounts',
+    //     params: [[username]],
+    //   },
+    // };
+    // console.log('Getting user public keys');
+    // const response = await CapacitorHttp.request({
+    //   ...options,
+    //   method: 'POST',
+    // });
+    // console.log('Response is - ' + JSON.stringify(response));
+    // const account = response.data.result;
+    const account = await client.database.getAccounts([username]);
     if (account.length === 0) {
       throw new Error(`User '${username}' not found.`);
     }

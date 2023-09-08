@@ -97,15 +97,17 @@ export default defineComponent({
     }
 
     async function getPOK(name: string, value = Date.now()) {
+      console.log(value);
       const result = getLowestPrivateKey(name);
       const key_private = result?.key_private;
       assert(key_private, `No private available for ${name}`);
-      const response = await HASCustomPlugin.callPlugin(
-        'getProofOfKey',
-        key_private,
-        key_server,
-        `#${value}`
-      );
+      const response = await HASCustomPlugin.callPlugin({
+        callId: Date.now().toString(),
+        method: 'getProofOfKey',
+        privateKey: key_private,
+        publicKey: 'STM62ourfAJGoWjzs1uyhRtC9BbwmQGi1wse8Fw5CTrBvUBz6Wym3', //key_server,
+        memo: `#${value}`,
+      });
       console.log(response);
       return response;
     }
@@ -127,6 +129,7 @@ export default defineComponent({
     const store = useHasPathStore();
     store.updateTo('new-pksa-page', 'Authenticate Actions');
     this.loadData();
+    this.getPOK('shaktimaaan');
   },
 });
 </script>

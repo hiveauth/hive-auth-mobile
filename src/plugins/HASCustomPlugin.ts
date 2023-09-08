@@ -11,6 +11,7 @@ export interface HASCustomPluginResponse {
 
 export interface HASCustomPlugin {
   callPlugin(options: {
+    callId: string;
     method: string;
     privateKey: string;
     publicKey: string;

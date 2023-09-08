@@ -2,6 +2,7 @@ package com.hiveauth.authsigner
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
@@ -15,6 +16,7 @@ import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import java.lang.Exception
 
 @CapacitorPlugin(name = "HiveAuthSignerCustomPlugin")
 class HiveAuthSignerCustom : Plugin() {
@@ -38,25 +40,36 @@ class HiveAuthSignerCustom : Plugin() {
     val userKey = call.getString("userKey")
     val memo = call.getString("memo")
 
-    if (method == "getProofOfKey" && publicKey != null && privateKey != null && memo != null) {
-      webView?.evaluateJavascript("getProofOfKey('$privateKey', '$publicKey', '$memo');", null)
-    } else if (method == "validateHiveKey" && accountName != null && userKey != null) {
-      webView?.evaluateJavascript("validateHiveKey('$accountName', '$userKey');", null)
-    } else if (method == "decrypt" && data != null && key != null) {
-      webView?.evaluateJavascript("decrypt('$data', '$key');", null)
-    } else if (method == "encrypt" && data != null && key != null) {
-      webView?.evaluateJavascript("encrypt('$data', '$key');", null)
-    } else if (method == "signChallenge" && challenge != null && key != null) {
-      webView?.evaluateJavascript("signChallenge('$challenge', '$key');", null)
+    webView?.post {
+      try {
+        if (method == "getProofOfKey" && publicKey != null && privateKey != null && memo != null) {
+          webView?.evaluateJavascript(
+            "getProofOfKey('$privateKey', '$publicKey', '$memo');",
+            null
+          )
+        } else if (method == "validateHiveKey" && accountName != null && userKey != null) {
+          webView?.evaluateJavascript("validateHiveKey('$accountName', '$userKey');", null)
+        } else if (method == "decrypt" && data != null && key != null) {
+          webView?.evaluateJavascript("decrypt('$data', '$key');", null)
+        } else if (method == "encrypt" && data != null && key != null) {
+          webView?.evaluateJavascript("encrypt('$data', '$key');", null)
+        } else if (method == "signChallenge" && challenge != null && key != null) {
+          webView?.evaluateJavascript("signChallenge('$challenge', '$key');", null)
+        } else {
+          Log.d("Do", "Nothing");
+        }
+      } catch (e: Exception) {
+        Log.d("error", "Error - $e")
+      }
     }
   }
 
   fun replyWith(data: String) {
-    val callId = mostRecentCall?.getString("id") ?: return
+    val callId = mostRecentCall?.getString("callId") ?: return
     val returnObject = JSObject()
     returnObject.put("dataString", data)
     val info = JSObject()
-    info.put("id", callId)
+    info.put("callId", callId)
     returnObject.put("info", info)
     mostRecentCall?.resolve(returnObject)
   }
