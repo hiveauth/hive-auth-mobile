@@ -15,7 +15,8 @@ import CryptoJS from 'crypto-js';
 // const cryptojs = inject('cryptojs') as typeof CryptoJS;
 // ----
 
-import hivejs from '@hiveio/hive-js';
+// import { memo } from '@hiveio/hive-js';
+import HASCustomPlugin from '../plugins/HASCustomPlugin';
 
 const KEY_TYPES = ['memo', 'posting', 'active']; // Types sorted by permission level - do not change it
 
@@ -95,11 +96,18 @@ export default defineComponent({
       return undefined;
     }
 
-    function getPOK(name: string, value = Date.now()) {
+    async function getPOK(name: string, value = Date.now()) {
       const result = getLowestPrivateKey(name);
       const key_private = result?.key_private;
       assert(key_private, `No private available for ${name}`);
-      return hivejs.memo.encode(key_private, key_server, '#' + value);
+      const response = await HASCustomPlugin.callPlugin(
+        'getProofOfKey',
+        key_private,
+        key_server,
+        `#${value}`
+      );
+      console.log(response);
+      return response;
     }
 
     return {

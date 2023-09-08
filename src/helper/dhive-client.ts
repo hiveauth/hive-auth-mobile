@@ -1,5 +1,7 @@
 import { Client, PrivateKey } from '@hiveio/dhive';
 import { PublicKeysModel } from 'src/models/public-keys-model';
+import { CapacitorHttp } from '@capacitor/core';
+
 const client = new Client([
   'https://api.hive.blog',
   'https://api.deathwing.me',
@@ -22,16 +24,34 @@ function publicKeyFrom(privateKey: PrivateKey): string {
 
 async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
   try {
+    const options = {
+      url: 'https://api.hive.blog',
+      headers: {
+        accept: 'application/json, text/plain, */*',
+        'content-type': 'application/json',
+      },
+      data: {
+        id: 4,
+        jsonrpc: '2.0',
+        method: 'condenser_api.get_accounts',
+        params: [[username]],
+      },
+    };
     console.log('Getting user public keys');
-    const account = await client.database.getAccounts([username]);
+    const response = await CapacitorHttp.request({
+      ...options,
+      method: 'POST',
+    });
+    console.log('Response is - ' + JSON.stringify(response));
+    const account = response.data.result;
     if (account.length === 0) {
       throw new Error(`User '${username}' not found.`);
     }
     console.log('Got user info');
     return {
-      active: account[0].active.key_auths.map(([key]) => key)[0],
+      active: account[0].active.key_auths[0][0],
       memo: account[0].memo_key,
-      posting: account[0].posting.key_auths.map(([key]) => key)[0],
+      posting: account[0].posting.key_auths[0][0],
     } as PublicKeysModel;
   } catch (error) {
     console.error('Error occurred while retrieving user public keys:', error);
