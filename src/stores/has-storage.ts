@@ -8,7 +8,11 @@ export const useHasStorageStore = defineStore('has-storage', {
   }),
   getters: {
     accountsJson: (state) => {
-      return JSON.parse(state.accounts) as AccountAuthModel[];
+      if (state.accounts.length === 0) {
+        return [];
+      } else {
+        return JSON.parse(state.accounts) as AccountAuthModel[];
+      }
     },
     pksa_name: () => 'HiveAuthSignerApp',
     auth_req_secret: () => process.env.AUTH_REQ_SECRET,
