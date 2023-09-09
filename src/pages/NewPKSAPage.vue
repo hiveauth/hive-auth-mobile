@@ -319,7 +319,6 @@ export default defineComponent({
       datetoISO,
       log,
       logerror,
-      sleep,
       loadData,
       hideEncryptedData,
       getPrivateKey,

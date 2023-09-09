@@ -199,18 +199,6 @@ export default defineComponent({
       assert(name == name.toLowerCase(), `${err} (case)`);
     }
 
-    function hideEncryptedData(str: string) {
-      if (hasStorageStore.hideEncryptedData) {
-        while (str.includes('"data":"')) {
-          str = str.replace(/"data":"(.*?)"/, '"data":<...>');
-        }
-        while (str.includes('"pok":"')) {
-          str = str.replace(/"pok":"(.*?)"/, '"pok":<...>');
-        }
-      }
-      return str;
-    }
-
     function getPrivateKey(name: string, type: string, keys: KeysModel[]) {
       const account = keys.find((o) => o.name == name);
       switch (type) {
@@ -281,16 +269,12 @@ export default defineComponent({
           );
         }
         switch (payload.cmd) {
-          // Process HAS <-> PKSA protocol
           case 'connected':
-            // connection confirmation from the HAS
             data.value.hasProtocol = payload.protocol || 0;
             return;
           case 'error':
-            // error from the HAS
             return;
           case 'register_ack':
-            // registration confirmation from the HAS
             return;
           case 'key_ack':
             data.value.keyServer = payload.key;
@@ -403,7 +387,7 @@ export default defineComponent({
           startWebsocket();
         }
       }
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       frequentChecker();
     }
 
@@ -413,7 +397,6 @@ export default defineComponent({
       hasAuthStore,
       hasStorageStore,
       lockApp,
-      navToPksaPage,
       navToManageAccounts,
       navToImportKeys,
       frequentChecker,
