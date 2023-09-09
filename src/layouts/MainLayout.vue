@@ -129,6 +129,27 @@
 
     <q-page-container>
       <router-view />
+      <q-dialog v-model="data.showConfirmDialog" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <q-avatar color="primary" text-color="white">
+              <q-img
+                :src="data.confirmDialogAvatar"
+                spinner-color="white"
+                style="height: 80px; max-width: 80px"
+              />
+            </q-avatar>
+            <span class="q-ml-sm"
+              >You are currently not connected to any network.</span
+            >
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="Reject" color="primary" v-close-popup />
+            <q-btn flat label="Approve" color="primary" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-page-container>
   </q-layout>
 </template>
@@ -180,6 +201,10 @@ export default defineComponent({
       keyTypes: ['memo', 'posting', 'active'] as string[],
       hasServer: hasStorageStore.has_server,
       lastQRResultString: '',
+      approvalString: '',
+      rejectionString: '',
+      showConfirmDialog: false,
+      confirmDialogAvatar: 'https://images.hive.blog/u/hiveauth/avatar',
     });
 
     function lockApp() {
@@ -253,9 +278,9 @@ export default defineComponent({
       return undefined;
     }
 
-    async function getPOK(name: string, value: number, keys: KeysModel[]) {
-      if (value == 0) {
-        value = Date.now();
+    async function getPOK(name: string, value: string, keys: KeysModel[]) {
+      if (value.length === 0) {
+        value = Date.now().toString();
       }
       const result = getLowestPrivateKey(name, keys);
       const key_private = result?.key_private;
@@ -302,7 +327,7 @@ export default defineComponent({
             let accountsWithPOK = [];
             for await (const account of keys) {
               checkUsername(account.name);
-              const pokValue = await getPOK(account.name, 0, keys);
+              const pokValue = await getPOK(account.name, '', keys);
               accountsWithPOK.push({
                 name: account.name,
                 pok: pokValue,
@@ -395,6 +420,7 @@ export default defineComponent({
       const authReqData = JSON.parse(
         CryptoJS.AES.decrypt(payload.data, authKey).toString(CryptoJS.enc.Utf8)
       );
+      console.log(`Decrypted payload: ${JSON.stringify(authReqData)}`);
       if (storeAccountsOfUser.length > 0 && authKey !== null) {
         const storeAccountAuths = storeAccountsOfUser[0].auths.filter(
           (o) => o.key === authKey && o.expire > Date.now()
@@ -439,6 +465,31 @@ export default defineComponent({
           approve = false;
         }
       }
+
+      const encryptedAuthAckData = CryptoJS.AES.encrypt(
+        JSON.stringify(authAckData),
+        authKey
+      ).toString();
+      const pokValue = await getPOK(payload.name, payload.uuid, keys);
+      const approvalString = JSON.stringify({
+        cmd: 'auth_ack',
+        uuid: payload.uuid,
+        data: encryptedAuthAckData,
+        pok: pokValue,
+      });
+      const encryptedRejectionData = CryptoJS.AES.encrypt(
+        payload.uuid,
+        authKey
+      ).toString();
+      const rejectionString = JSON.stringify({
+        cmd: 'auth_nack',
+        uuid: payload.uuid,
+        data: encryptedRejectionData,
+        pok: pokValue,
+      });
+      data.value.approvalString = approvalString;
+      data.value.rejectionString = rejectionString;
+      data.value.showConfirmDialog = true;
     }
 
     async function processMessage(message: string) {
@@ -480,7 +531,7 @@ export default defineComponent({
             await handleKeyAck();
             break;
           case 'auth_req':
-            await handleAuthReq();
+            await handleAuthReq(payload);
             break;
         }
       } catch (e) {
