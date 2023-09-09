@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <div class="q-pa-lg">
-      <div class="text-h3" v-if="!data.scanning">This is QR Scanner page</div>
+      <div class="text-h6" v-if="!data.scanning">{{ data.scanResult }}</div>
       <div class="row q-mt-lg">
         <q-btn
           class="col q-pt-sm q-pb-sm"
@@ -20,12 +20,15 @@
 import { defineComponent, ref } from 'vue';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { useQuasar } from 'quasar';
+import { useQrResultStore } from 'src/stores/qr-result-store';
 
 export default defineComponent({
   setup() {
     const $q = useQuasar();
+    const hasQrResultStore = useQrResultStore();
     const data = ref({
       scanning: false,
+      scanResult: '',
     });
 
     const startScan = async () => {
@@ -49,6 +52,8 @@ export default defineComponent({
               icon: 'camera',
             });
             console.log(result.content); // log the raw scanned content
+            hasQrResultStore.rawQRString = result.content;
+            data.value.scanResult = result.content;
           } else {
             $q.notify({
               color: 'negative',

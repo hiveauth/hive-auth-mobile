@@ -66,7 +66,7 @@
               <q-item-section> Import Keys </q-item-section>
             </q-item>
 
-            <q-item clickable v-ripple>
+            <q-item clickable v-ripple @click="navToScanner">
               <q-item-section avatar>
                 <q-icon name="qr_code_scanner" />
               </q-item-section>
@@ -151,6 +151,13 @@ interface LowestPrivateKey {
   key_private: string;
 }
 
+interface QRAuthReqPayload {
+  account: string;
+  uuid: string;
+  key: string;
+  host: string;
+}
+
 export default defineComponent({
   name: 'MainLayout',
   components: {},
@@ -161,6 +168,7 @@ export default defineComponent({
     const hasQrResultStore = useQrResultStore();
     const hasKeysStore = useHasKeysStore();
     const router = useRouter();
+
     const data = ref({
       isDrawerOpen: false,
       wsClient: null as WebSocket | null,
@@ -171,6 +179,7 @@ export default defineComponent({
       hasProtocol: 1 as number,
       keyTypes: ['memo', 'posting', 'active'] as string[],
       hasServer: hasStorageStore.has_server,
+      lastQRResultString: '',
     });
 
     function lockApp() {
@@ -182,6 +191,10 @@ export default defineComponent({
       router.push({ name: 'manage-accounts' });
     }
 
+    function navToScanner() {
+      router.push({ name: 'qr-scanner' });
+    }
+
     function navToImportKeys() {
       router.push({ name: 'import-key' });
     }
@@ -189,6 +202,25 @@ export default defineComponent({
     function HASSend(message: string) {
       console.log(`[SEND] ${message}`);
       data.value.wsClient?.send(message);
+    }
+
+    function getLastQRResult() {
+      if (
+        data.value.lastQRResultString.length === 0 ||
+        data.value.lastQRResultString.includes('has://auth_req/') == false
+      ) {
+        return null;
+      }
+      const base64Data =
+        data.value.lastQRResultString.split('has://auth_req/')[1];
+      const base64DecodedString = atob(base64Data);
+      const result = JSON.parse(base64DecodedString);
+      return {
+        account: result.account,
+        uuid: result.uuid,
+        key: result.key,
+        host: result.host,
+      } as QRAuthReqPayload;
     }
 
     function checkUsername(name: string) {
@@ -242,6 +274,37 @@ export default defineComponent({
       return responseData.data;
     }
 
+    async function handleKeyAck() {
+      if (data.value.keyServer) {
+        try {
+          await hasKeysStore.readKeys();
+          const keys = hasKeysStore.keysJson;
+          if (keys.length > 0 && hasAuthStore.isUnlocked) {
+            let accountsWithPOK = [];
+            for await (const account of keys) {
+              checkUsername(account.name);
+              const pokValue = await getPOK(account.name, 0, keys);
+              accountsWithPOK.push({
+                name: account.name,
+                pok: pokValue,
+              });
+            }
+            console.log(JSON.stringify(accountsWithPOK));
+            if (accountsWithPOK.length > 0) {
+              const request = {
+                cmd: 'register_req',
+                app: hasStorageStore.pksa_name,
+                accounts: accountsWithPOK,
+              };
+              HASSend(JSON.stringify(request));
+            }
+          }
+        } catch (e) {
+          console.log(e.message);
+        }
+      }
+    }
+
     async function processMessage(message: string) {
       try {
         const payload =
@@ -278,34 +341,7 @@ export default defineComponent({
             return;
           case 'key_ack':
             data.value.keyServer = payload.key;
-            if (data.value.keyServer) {
-              try {
-                await hasKeysStore.readKeys();
-                const keys = hasKeysStore.keysJson;
-                if (keys.length > 0 && hasAuthStore.isUnlocked) {
-                  let accountsWithPOK = [];
-                  for await (const account of keys) {
-                    checkUsername(account.name);
-                    const pokValue = await getPOK(account.name, 0, keys);
-                    accountsWithPOK.push({
-                      name: account.name,
-                      pok: pokValue,
-                    });
-                  }
-                  console.log(JSON.stringify(accountsWithPOK));
-                  if (accountsWithPOK.length > 0) {
-                    const request = {
-                      cmd: 'register_req',
-                      app: hasStorageStore.pksa_name,
-                      accounts: accountsWithPOK,
-                    };
-                    HASSend(JSON.stringify(request));
-                  }
-                }
-              } catch (e) {
-                console.log(e.message);
-              }
-            }
+            await handleKeyAck();
             break;
         }
       } catch (e) {
@@ -314,6 +350,7 @@ export default defineComponent({
     }
 
     async function startWebsocket() {
+      console.log('Starting websocket with ' + data.value.hasServer);
       data.value.wsClient = new WebSocket(data.value.hasServer as string);
       data.value.wsClient.onopen = async function (e) {
         console.log('HAS connection established');
@@ -376,13 +413,16 @@ export default defineComponent({
         data.value.wsClient?.close();
         data.value.wsClient = null;
       } else {
-        const qrHasServer = hasQrResultStore.getQRAuthReqPayload;
-        if (qrHasServer !== null && qrHasServer.host !== data.value.hasServer) {
+        const qrHasServer = hasQrResultStore.rawQRString;
+        if (qrHasServer.length > 0) {
+          hasQrResultStore.rawQRString = '';
+          data.value.lastQRResultString = qrHasServer;
           data.value.wsClient?.close();
           data.value.wsClient = null;
         }
         if (data.value.wsClient === null) {
-          const hasServer = qrHasServer?.host ?? hasStorageStore.has_server;
+          const lastQRData = getLastQRResult();
+          const hasServer = lastQRData?.host ?? hasStorageStore.has_server;
           data.value.hasServer = hasServer;
           startWebsocket();
         }
@@ -399,6 +439,7 @@ export default defineComponent({
       lockApp,
       navToManageAccounts,
       navToImportKeys,
+      navToScanner,
       frequentChecker,
       heartbeat,
       HASSend,
