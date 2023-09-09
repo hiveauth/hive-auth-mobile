@@ -28,11 +28,6 @@ let wsHeartbeat: number | undefined = undefined;
 let hasProtocol: number | undefined = undefined;
 let key_server: string | undefined = undefined;
 
-interface LowestPrivateKey {
-  key_type: string;
-  key_private: string;
-}
-
 export default defineComponent({
   name: 'new-pksa-page',
   setup() {
@@ -56,10 +51,6 @@ export default defineComponent({
 
     function logerror(message: string) {
       console.error(`${datetoISO(new Date())} - ${hideEncryptedData(message)}`);
-    }
-
-    function sleep(ms: number) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     function hideEncryptedData(str: string) {

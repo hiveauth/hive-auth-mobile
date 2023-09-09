@@ -18,9 +18,11 @@ export interface HASCustomPlugin {
     memo: string;
     accountName: string;
     userKey: string;
-  }): Promise<HASCustomPluginResponseInfo>;
+  }): Promise<HASCustomPluginResponse>;
 }
 
-const hasCustomPlugin = registerPlugin('HiveAuthSignerCustomPlugin');
+const hasCustomPlugin = registerPlugin<HASCustomPlugin>(
+  'HiveAuthSignerCustomPlugin'
+);
 
 export default hasCustomPlugin;
