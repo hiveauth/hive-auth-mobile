@@ -132,21 +132,32 @@
       <q-dialog v-model="data.showConfirmDialog" persistent>
         <q-card>
           <q-card-section class="row items-center">
-            <q-avatar color="primary" text-color="white">
+            <q-avatar color="primary" text-color="white" size="80px">
               <q-img
                 :src="data.confirmDialogAvatar"
                 spinner-color="white"
                 style="height: 80px; max-width: 80px"
               />
             </q-avatar>
-            <span class="q-ml-sm"
-              >You are currently not connected to any network.</span
-            >
+            <span class="q-ml-md">{{ data.confirmDialogTitle }}</span>
+            <span class="q-ml-sm">{{ data.confirmDialogSubtitle }}</span>
           </q-card-section>
 
           <q-card-actions align="right">
-            <q-btn flat label="Reject" color="primary" v-close-popup />
-            <q-btn flat label="Approve" color="primary" v-close-popup />
+            <q-btn
+              flat
+              label="Reject"
+              color="primary"
+              v-close-popup
+              @click="rejectRequestButtonTapped"
+            />
+            <q-btn
+              flat
+              label="Approve"
+              color="primary"
+              v-close-popup
+              @click="approveRequestButtonTapped"
+            />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -205,6 +216,8 @@ export default defineComponent({
       rejectionString: '',
       showConfirmDialog: false,
       confirmDialogAvatar: 'https://images.hive.blog/u/hiveauth/avatar',
+      confirmDialogTitle: '',
+      confirmDialogSubtitle: '',
     });
 
     function lockApp() {
@@ -302,7 +315,6 @@ export default defineComponent({
     }
 
     async function getSignedChallenge(challenge: string, key: string) {
-      console.log(`Going to sign Challenge - ${challenge}`);
       const response = await HASCustomPlugin.callPlugin({
         callId: Date.now().toString(),
         method: 'signChallenge',
@@ -347,6 +359,30 @@ export default defineComponent({
           console.log(e.message);
         }
       }
+    }
+
+    function approveRequestButtonTapped() {
+      HASSend(data.value.approvalString);
+      data.value.showConfirmDialog = false;
+      data.value.approvalString = '';
+      data.value.rejectionString = '';
+      data.value.showConfirmDialog = false;
+      data.value.confirmDialogAvatar =
+        'https://images.hive.blog/u/hiveauth/avatar';
+      data.value.confirmDialogTitle = '';
+      data.value.confirmDialogSubtitle = '';
+    }
+
+    function rejectRequestButtonTapped() {
+      HASSend(data.value.rejectionString);
+      data.value.showConfirmDialog = false;
+      data.value.approvalString = '';
+      data.value.rejectionString = '';
+      data.value.showConfirmDialog = false;
+      data.value.confirmDialogAvatar =
+        'https://images.hive.blog/u/hiveauth/avatar';
+      data.value.confirmDialogTitle = '';
+      data.value.confirmDialogSubtitle = '';
     }
 
     async function handleAuthReq(payload: any) {
@@ -461,22 +497,25 @@ export default defineComponent({
             pubkey: challengeDataParts[0],
             challenge: challengeDataParts[1],
           };
+          console.log(`authAckData: ${JSON.stringify(authAckData)}`);
         } else {
           approve = false;
         }
       }
-
       const encryptedAuthAckData = CryptoJS.AES.encrypt(
         JSON.stringify(authAckData),
         authKey
       ).toString();
-      const pokValue = await getPOK(payload.name, payload.uuid, keys);
+      console.log(`payload account - ${payload.account}`);
+      console.log(`payload uuid - ${payload.uuid}`);
+      const pokValue = await getPOK(payload.account, payload.uuid, keys);
       const approvalString = JSON.stringify({
         cmd: 'auth_ack',
         uuid: payload.uuid,
         data: encryptedAuthAckData,
         pok: pokValue,
       });
+      console.log(`Approval string - ${approvalString}`);
       const encryptedRejectionData = CryptoJS.AES.encrypt(
         payload.uuid,
         authKey
@@ -487,9 +526,21 @@ export default defineComponent({
         data: encryptedRejectionData,
         pok: pokValue,
       });
+      console.log(`Rejection string - ${rejectionString}`);
       data.value.approvalString = approvalString;
       data.value.rejectionString = rejectionString;
       data.value.showConfirmDialog = true;
+      if (authReqData.app !== null) {
+        if (authReqData.app.icon !== null) {
+          data.value.confirmDialogAvatar = authReqData.app.icon;
+        }
+        if (authReqData.app.name !== null) {
+          data.value.confirmDialogTitle = authReqData.app.name;
+        }
+        if (authReqData.app.description !== null) {
+          data.value.confirmDialogSubtitle = authReqData.app.description;
+        }
+      }
     }
 
     async function processMessage(message: string) {
@@ -635,6 +686,8 @@ export default defineComponent({
       HASSend,
       startWebsocket,
       checkUsername,
+      approveRequestButtonTapped,
+      rejectRequestButtonTapped,
     };
   },
   mounted() {
