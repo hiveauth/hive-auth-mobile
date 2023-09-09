@@ -269,6 +269,25 @@ export default defineComponent({
         memo: `#${value}`,
         accountName: '',
         userKey: '',
+        challenge: '',
+        key: '',
+      });
+      const responseData = JSON.parse(response.dataString);
+      return responseData.data;
+    }
+
+    async function getSignedChallenge(challenge: string, key: string) {
+      console.log(`Going to sign Challenge - ${challenge}`);
+      const response = await HASCustomPlugin.callPlugin({
+        callId: Date.now().toString(),
+        method: 'signChallenge',
+        privateKey: '',
+        publicKey: '',
+        memo: '',
+        accountName: '',
+        userKey: '',
+        challenge: challenge,
+        key: key,
       });
       const responseData = JSON.parse(response.dataString);
       return responseData.data;
@@ -301,6 +320,123 @@ export default defineComponent({
           }
         } catch (e) {
           console.log(e.message);
+        }
+      }
+    }
+
+    async function handleAuthReq(payload: any) {
+      assert(
+        payload.account && typeof payload.account == 'string',
+        'invalid payload (account)'
+      );
+      assert(
+        payload.data && typeof payload.data == 'string',
+        'invalid payload (data)'
+      );
+      await hasKeysStore.readKeys();
+      const keys = hasKeysStore.keysJson;
+      const requestAccount = payload.account as string;
+      const accounts = keys.filter((a) => a.name == requestAccount);
+      const payloadData = payload.data as string;
+      if (
+        (payloadData.length > 0 &&
+          accounts.length > 0 &&
+          hasAuthStore.isUnlocked) == false
+      )
+        return;
+      const account = accounts[0];
+      let authKey: string | null = null;
+      // If the PKSA run in "service mode " or for debug purpose, the APP can pass the encryption key (auth_key) to the PKSA with the auth_req payload
+      if (payload.auth_key && hasStorageStore.auth_req_secret) {
+        // Decrypt the provided auth_key using the pre-shared PKSA secret
+        authKey = CryptoJS.AES.decrypt(
+          payload.auth_key,
+          hasStorageStore.auth_req_secret
+        ).toString(CryptoJS.enc.Utf8);
+      }
+      await hasStorageStore.readStorage();
+      var storeAccounts = hasStorageStore.accountsJson;
+      var storeAccountsOfUser = storeAccounts.filter(
+        (account) => account.name === payload.account
+      );
+      if (!authKey && storeAccountsOfUser.length > 0) {
+        for (const auth of storeAccountsOfUser[0].auths.filter(
+          (o) => o.expire > Date.now()
+        )) {
+          try {
+            const res = CryptoJS.AES.decrypt(payload.data, auth.key).toString(
+              CryptoJS.enc.Utf8
+            );
+            if (res != '') {
+              // decryption succedded - use this auth_key
+              authKey = auth.key;
+              break;
+            }
+          } catch (e) {}
+        }
+      }
+      var lastQRResult = getLastQRResult();
+      if (lastQRResult !== null) {
+        try {
+          const res = CryptoJS.AES.decrypt(
+            payload.data,
+            lastQRResult.key
+          ).toString(CryptoJS.enc.Utf8);
+          if (res != '') {
+            authKey = lastQRResult.key;
+          }
+        } catch (e) {}
+      }
+      if (authKey == null) return;
+      let approve = false;
+      let authAckData = {};
+      const timeout =
+        (hasStorageStore.auth_timeout_days || 1) * 24 * 60 * 60 * 1000;
+      const authReqData = JSON.parse(
+        CryptoJS.AES.decrypt(payload.data, authKey).toString(CryptoJS.enc.Utf8)
+      );
+      if (storeAccountsOfUser.length > 0 && authKey !== null) {
+        const storeAccountAuths = storeAccountsOfUser[0].auths.filter(
+          (o) => o.key === authKey && o.expire > Date.now()
+        );
+        if (storeAccountAuths.length > 0) {
+          approve = true;
+          authAckData.expire = storeAccountAuths[0].expire;
+        } else {
+          authAckData.expire = Date.now() + timeout;
+        }
+      } else {
+        authAckData.expire = Date.now() + timeout;
+      }
+      if (authReqData.challenge) {
+        const challengeData = authReqData.challenge;
+        assert(
+          challengeData.key_type &&
+            typeof challengeData.key_type == 'string' &&
+            data.value.keyTypes.includes(challengeData.key_type),
+          'invalid payload (challenge_data.key_type)'
+        );
+        assert(
+          challengeData.challenge && typeof challengeData.challenge == 'string',
+          'invalid payload (challenge_data.challenge)'
+        );
+        const keyPrivate = getPrivateKey(
+          payload.account,
+          challengeData.key_type,
+          keys
+        );
+        if (keyPrivate) {
+          const resultDataOfSignedChallenge = await getSignedChallenge(
+            challengeData.challenge,
+            keyPrivate
+          );
+          const challengeDataParts = resultDataOfSignedChallenge.split('___');
+          authAckData.challenge = {
+            pubkey: challengeDataParts[0],
+            challenge: challengeDataParts[1],
+          };
+        } else {
+          approve = false;
         }
       }
     }
@@ -342,6 +478,9 @@ export default defineComponent({
           case 'key_ack':
             data.value.keyServer = payload.key;
             await handleKeyAck();
+            break;
+          case 'auth_req':
+            await handleAuthReq();
             break;
         }
       } catch (e) {

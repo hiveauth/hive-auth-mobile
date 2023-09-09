@@ -18,6 +18,8 @@ export interface HASCustomPlugin {
     memo: string;
     accountName: string;
     userKey: string;
+    challenge: string;
+    key: string;
   }): Promise<HASCustomPluginResponse>;
 }
 

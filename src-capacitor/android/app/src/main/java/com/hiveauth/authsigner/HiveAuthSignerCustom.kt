@@ -42,18 +42,18 @@ class HiveAuthSignerCustom : Plugin() {
 
     webView?.post {
       try {
-        if (method == "getProofOfKey" && publicKey != null && privateKey != null && memo != null) {
+        if (method == "getProofOfKey" && !publicKey.isNullOrEmpty() && !privateKey.isNullOrEmpty() && !memo.isNullOrEmpty()) {
           webView?.evaluateJavascript(
             "getProofOfKey('$privateKey', '$publicKey', '$memo');",
             null
           )
-        } else if (method == "validateHiveKey" && accountName != null && userKey != null) {
+        } else if (method == "validateHiveKey" && !accountName.isNullOrEmpty() && !userKey.isNullOrEmpty()) {
           webView?.evaluateJavascript("validateHiveKey('$accountName', '$userKey');", null)
-        } else if (method == "decrypt" && data != null && key != null) {
+        } else if (method == "decrypt" && !data.isNullOrEmpty() && !key.isNullOrEmpty()) {
           webView?.evaluateJavascript("decrypt('$data', '$key');", null)
-        } else if (method == "encrypt" && data != null && key != null) {
+        } else if (method == "encrypt" && !data.isNullOrEmpty() && !key.isNullOrEmpty()) {
           webView?.evaluateJavascript("encrypt('$data', '$key');", null)
-        } else if (method == "signChallenge" && challenge != null && key != null) {
+        } else if (method == "signChallenge" && !challenge.isNullOrEmpty() && !key.isNullOrEmpty()) {
           webView?.evaluateJavascript("signChallenge('$challenge', '$key');", null)
         } else {
           Log.d("Do", "Nothing");
