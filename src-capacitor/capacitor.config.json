@@ -5,8 +5,7 @@
   "npmClient": "npm",
   "webDir": "www",
   "server": {
-    "androidScheme": "https",
-    "url": "http://192.168.1.6:9500"
+    "androidScheme": "https"
   },
   "plugins": {
     "CapacitorHttp": {
