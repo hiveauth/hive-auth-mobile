@@ -55,6 +55,10 @@ class HiveAuthSignerCustom : Plugin() {
           webView?.evaluateJavascript("encrypt('$data', '$key');", null)
         } else if (method == "signChallenge" && !challenge.isNullOrEmpty() && !key.isNullOrEmpty()) {
           webView?.evaluateJavascript("signChallenge('$challenge', '$key');", null)
+        } else if (method == "getDeepLinkData") {
+          val uri = (context as? MainActivity)?.deepLinkUri?.toString() ?: ""
+          replyWith(uri)
+          (context as? MainActivity)?.deepLinkUri = null
         } else {
           Log.d("Do", "Nothing");
         }

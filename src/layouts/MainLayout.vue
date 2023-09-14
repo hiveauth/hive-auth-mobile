@@ -658,8 +658,16 @@ export default defineComponent({
         if (qrHasServer.length > 0) {
           hasQrResultStore.rawQRString = '';
           data.value.lastQRResultString = qrHasServer;
-          data.value.wsClient?.close();
-          data.value.wsClient = null;
+          const lastQRData = getLastQRResult();
+          // Reconnect only if HAS Server is a different server
+          if (
+            lastQRData?.host !== null &&
+            lastQRData?.host !== undefined &&
+            lastQRData?.host !== data.value.hasServer
+          ) {
+            data.value.wsClient?.close();
+            data.value.wsClient = null;
+          }
         }
         if (data.value.wsClient === null) {
           const lastQRData = getLastQRResult();
@@ -668,6 +676,18 @@ export default defineComponent({
           startWebsocket();
         }
       }
+      const deepLinkResponse = await HASCustomPlugin.callPlugin({
+        callId: Date.now().toString(),
+        method: 'getDeepLinkData',
+        privateKey: '',
+        publicKey: '',
+        memo: '',
+        accountName: '',
+        userKey: '',
+        challenge: '',
+        key: '',
+      });
+      console.log(`DeepLinkResponse: ${deepLinkResponse.dataString}`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       frequentChecker();
     }
