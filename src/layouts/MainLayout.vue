@@ -650,21 +650,33 @@ export default defineComponent({
     }
 
     async function frequentChecker() {
+      console.log(
+        `Is unlocked state - ${hasAuthStore.isUnlocked ? 'true' : 'false'}`
+      );
       if (hasAuthStore.isUnlocked == false) {
         data.value.wsClient?.close();
         data.value.wsClient = null;
       } else {
+        const deepLinkResponse = await HASCustomPlugin.callPlugin({
+          callId: Date.now().toString(),
+          method: 'getDeepLinkData',
+          privateKey: '',
+          publicKey: '',
+          memo: '',
+          accountName: '',
+          userKey: '',
+          challenge: '',
+          key: '',
+        });
+        console.log(`DeepLinkResponse: ${deepLinkResponse.dataString}`);
         const qrHasServer = hasQrResultStore.rawQRString;
-        if (qrHasServer.length > 0) {
+        if (qrHasServer.length > 0 || deepLinkResponse.dataString.length > 0) {
           hasQrResultStore.rawQRString = '';
-          data.value.lastQRResultString = qrHasServer;
+          data.value.lastQRResultString =
+            qrHasServer.length > 0 ? qrHasServer : deepLinkResponse.dataString;
           const lastQRData = getLastQRResult();
           // Reconnect only if HAS Server is a different server
-          if (
-            lastQRData?.host !== null &&
-            lastQRData?.host !== undefined &&
-            lastQRData?.host !== data.value.hasServer
-          ) {
+          if (lastQRData?.host !== null && lastQRData?.host !== undefined) {
             data.value.wsClient?.close();
             data.value.wsClient = null;
           }
@@ -676,18 +688,6 @@ export default defineComponent({
           startWebsocket();
         }
       }
-      const deepLinkResponse = await HASCustomPlugin.callPlugin({
-        callId: Date.now().toString(),
-        method: 'getDeepLinkData',
-        privateKey: '',
-        publicKey: '',
-        memo: '',
-        accountName: '',
-        userKey: '',
-        challenge: '',
-        key: '',
-      });
-      console.log(`DeepLinkResponse: ${deepLinkResponse.dataString}`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       frequentChecker();
     }
