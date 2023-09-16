@@ -60,6 +60,12 @@
         </q-card>
       </q-dialog>
     </q-page-container>
+
+    <q-footer>
+      <q-toolbar>
+        {{ data.hasServer?.replaceAll('wss://', '') }}
+      </q-toolbar>
+    </q-footer>
   </q-layout>
 </template>
 
