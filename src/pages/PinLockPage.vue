@@ -111,7 +111,8 @@ export default defineComponent({
         hasAuthStore.unlockApp();
         await hasKeysStore.readKeys();
         await hasStorageStore.readStorage();
-        router.push({ name: 'import-key' });
+        // router.push({ name: 'import-key' });
+        router.replace({ name: 'main-menu' });
       } else {
         console.log('Invalid Passcode entered');
         $q.notify({
@@ -135,7 +136,8 @@ export default defineComponent({
           message: 'Passcode is now set.',
           icon: 'check',
         });
-        router.push({ name: 'import-key' });
+        // router.push({ name: 'main-menu' });
+        router.replace({ name: 'main-menu' });
       } catch (e) {
         $q.notify({
           color: 'negative',

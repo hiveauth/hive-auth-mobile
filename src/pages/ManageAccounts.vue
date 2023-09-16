@@ -28,7 +28,7 @@
     </q-dialog>
     <div>
       <div v-if="data.keys.length === 0" class="text-center q-pa-lg">
-        <div class="text-h5">No Accounts found</div>
+        <div class="text-h5">No Keys found</div>
         <br />
         <q-btn color="primary" label="Import Keys" @click="navToImportKeys" />
       </div>
@@ -218,7 +218,7 @@ export default defineComponent({
   },
   mounted() {
     const store = useHasPathStore();
-    store.updateTo('manage-accounts', 'Manage Accounts');
+    store.updateTo('manage-accounts', 'Manage Keys');
     console.log('At Manage Accounts page');
     this.loadKeys();
   },

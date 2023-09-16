@@ -5,23 +5,6 @@
         <q-toolbar-title>
           <q-item>
             <q-item-section top avatar>
-              <q-btn
-                flat
-                @click="data.isDrawerOpen = !data.isDrawerOpen"
-                round
-                dense
-                icon="menu"
-                v-if="hasAuthStore.isUnlocked"
-              />
-            </q-item-section>
-
-            <q-item-section>
-              <q-item-label>Auth Signer</q-item-label>
-              <q-item-label caption style="color: white">{{
-                hasPathStore.pathName
-              }}</q-item-label>
-            </q-item-section>
-            <q-item-section side>
               <q-avatar size="40px" class="q-mb-sm">
                 <q-img
                   src="https://images.hive.blog/u/hiveauth/avatar/small"
@@ -30,101 +13,16 @@
                 />
               </q-avatar>
             </q-item-section>
+
+            <q-item-section>
+              <q-item-label>Auth Signer</q-item-label>
+              <q-item-label caption style="color: white">{{
+                hasPathStore.pathName
+              }}</q-item-label>
+            </q-item-section>
           </q-item>
         </q-toolbar-title>
       </q-toolbar>
-
-      <q-drawer
-        v-model="data.isDrawerOpen"
-        show-if-above
-        class="bg-primary text-white"
-        v-if="hasAuthStore.isUnlocked"
-      >
-        <q-scroll-area style="height: calc(100% - 100px); margin-top: 100px">
-          <q-list padding>
-            <q-item clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon name="wallet" />
-              </q-item-section>
-
-              <q-item-section> Wallet </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="navToManageAccounts">
-              <q-item-section avatar>
-                <q-icon name="people" />
-              </q-item-section>
-
-              <q-item-section> Manage Accounts </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="navToImportKeys">
-              <q-item-section avatar>
-                <q-icon name="key" />
-              </q-item-section>
-
-              <q-item-section> Import Keys </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="navToScanner">
-              <q-item-section avatar>
-                <q-icon name="qr_code_scanner" />
-              </q-item-section>
-
-              <q-item-section> Scan QR </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon name="info" />
-              </q-item-section>
-
-              <q-item-section> About </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon name="settings" />
-              </q-item-section>
-
-              <q-item-section> Settings </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="lockApp">
-              <q-item-section avatar>
-                <q-icon name="lock" />
-              </q-item-section>
-
-              <q-item-section> Lock </q-item-section>
-            </q-item>
-          </q-list>
-        </q-scroll-area>
-
-        <q-img
-          class="absolute-top"
-          src="https://cdn.quasar.dev/img/material.png"
-          style="height: 100px; width: 100%"
-        >
-          <div class="bg-transparent">
-            <div class="q-mt-lg"></div>
-            <div class="row">
-              <div class="q-pr-sm q-pt-sm">
-                <q-avatar size="40px" class="q-mb-sm">
-                  <q-img
-                    src="https://images.hive.blog/u/hiveauth/avatar/small"
-                    height="40px"
-                    width="40px"
-                  />
-                </q-avatar>
-              </div>
-              <div class="col q-pt-sm">
-                <div class="text-weight-bold">Auth Signer</div>
-                <div>@arcange, @sagarkothari88</div>
-              </div>
-            </div>
-          </div>
-        </q-img>
-      </q-drawer>
     </q-header>
 
     <q-page-container>
@@ -177,6 +75,7 @@ import assert from 'assert';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
 import { KeysModel } from 'src/models/keys-model';
+import { useQuasar } from 'quasar';
 
 import {
   AccountAuth,
@@ -706,9 +605,6 @@ export default defineComponent({
     }
 
     async function frequentChecker() {
-      console.log(
-        `Is unlocked state - ${hasAuthStore.isUnlocked ? 'true' : 'false'}`
-      );
       if (hasAuthStore.isUnlocked == false) {
         data.value.wsClient?.close();
         data.value.wsClient = null;
@@ -769,6 +665,8 @@ export default defineComponent({
   mounted() {
     this.hasAuthStore.readCode();
     this.frequentChecker();
+    const $q = useQuasar();
+    $q.dark.set(true);
   },
 });
 </script>
