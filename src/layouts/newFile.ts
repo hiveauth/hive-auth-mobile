@@ -1,171 +1,3 @@
-<template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header>
-      <q-toolbar>
-        <q-toolbar-title>
-          <q-item>
-            <q-item-section top avatar>
-              <q-btn
-                flat
-                @click="data.isDrawerOpen = !data.isDrawerOpen"
-                round
-                dense
-                icon="menu"
-                v-if="hasAuthStore.isUnlocked"
-              />
-            </q-item-section>
-
-            <q-item-section>
-              <q-item-label>Auth Signer</q-item-label>
-              <q-item-label caption style="color: white">{{
-                hasPathStore.pathName
-              }}</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-avatar size="40px" class="q-mb-sm">
-                <q-img
-                  src="https://images.hive.blog/u/hiveauth/avatar/small"
-                  height="40px"
-                  width="40px"
-                />
-              </q-avatar>
-            </q-item-section>
-          </q-item>
-        </q-toolbar-title>
-      </q-toolbar>
-
-      <q-drawer
-        v-model="data.isDrawerOpen"
-        show-if-above
-        class="bg-primary text-white"
-        v-if="hasAuthStore.isUnlocked"
-      >
-        <q-scroll-area style="height: calc(100% - 100px); margin-top: 100px">
-          <q-list padding>
-            <q-item clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon name="wallet" />
-              </q-item-section>
-
-              <q-item-section> Wallet </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="navToManageAccounts">
-              <q-item-section avatar>
-                <q-icon name="people" />
-              </q-item-section>
-
-              <q-item-section> Manage Accounts </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="navToImportKeys">
-              <q-item-section avatar>
-                <q-icon name="key" />
-              </q-item-section>
-
-              <q-item-section> Import Keys </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="navToScanner">
-              <q-item-section avatar>
-                <q-icon name="qr_code_scanner" />
-              </q-item-section>
-
-              <q-item-section> Scan QR </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon name="info" />
-              </q-item-section>
-
-              <q-item-section> About </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon name="settings" />
-              </q-item-section>
-
-              <q-item-section> Settings </q-item-section>
-            </q-item>
-
-            <q-item clickable v-ripple @click="lockApp">
-              <q-item-section avatar>
-                <q-icon name="lock" />
-              </q-item-section>
-
-              <q-item-section> Lock </q-item-section>
-            </q-item>
-          </q-list>
-        </q-scroll-area>
-
-        <q-img
-          class="absolute-top"
-          src="https://cdn.quasar.dev/img/material.png"
-          style="height: 100px; width: 100%"
-        >
-          <div class="bg-transparent">
-            <div class="q-mt-lg"></div>
-            <div class="row">
-              <div class="q-pr-sm q-pt-sm">
-                <q-avatar size="40px" class="q-mb-sm">
-                  <q-img
-                    src="https://images.hive.blog/u/hiveauth/avatar/small"
-                    height="40px"
-                    width="40px"
-                  />
-                </q-avatar>
-              </div>
-              <div class="col q-pt-sm">
-                <div class="text-weight-bold">Auth Signer</div>
-                <div>@arcange, @sagarkothari88</div>
-              </div>
-            </div>
-          </div>
-        </q-img>
-      </q-drawer>
-    </q-header>
-
-    <q-page-container>
-      <router-view />
-      <q-dialog v-model="data.showConfirmDialog" persistent>
-        <q-card>
-          <q-card-section class="row items-center">
-            <q-avatar color="primary" text-color="white" size="80px">
-              <q-img
-                :src="data.confirmDialogAvatar"
-                spinner-color="white"
-                style="height: 80px; max-width: 80px"
-              />
-            </q-avatar>
-            <span class="q-ml-md">{{ data.confirmDialogTitle }}</span>
-            <span class="q-ml-sm">{{ data.confirmDialogSubtitle }}</span>
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn
-              flat
-              label="Reject"
-              color="primary"
-              v-close-popup
-              @click="rejectRequestButtonTapped"
-            />
-            <q-btn
-              flat
-              label="Approve"
-              color="primary"
-              v-close-popup
-              @click="approveRequestButtonTapped"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-    </q-page-container>
-  </q-layout>
-</template>
-
-<script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useHasPathStore } from 'src/stores/has-path';
 import { useHasAuthStore } from 'src/stores/has-auth';
@@ -177,24 +9,8 @@ import assert from 'assert';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
 import { KeysModel } from 'src/models/keys-model';
-
-import {
-  AccountAuth,
-  AccountAuthModel,
-  AccountAuthApp,
-} from 'src/models/account-auth-model';
-
-export interface LowestPrivateKey {
-  key_type: string;
-  key_private: string;
-}
-
-export interface QRAuthReqPayload {
-  account: string;
-  uuid: string;
-  key: string;
-  host: string;
-}
+import { AccountAuth, AccountAuthApp } from 'src/models/account-auth-model';
+import { QRAuthReqPayload, LowestPrivateKey } from './MainLayout.vue';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -380,6 +196,7 @@ export default defineComponent({
       data.value.confirmDialogTitle = '';
       data.value.confirmDialogSubtitle = '';
       if (data.value.confirmNewAccountAuth !== null) {
+        let auth = data.value.confirmNewAccountAuth;
         let name = data.value.confirmNewAccountName as string;
         await hasStorageStore.readStorage();
         let storeAccounts = hasStorageStore.accountsJson;
@@ -393,18 +210,10 @@ export default defineComponent({
           storeAccountsOfUser = [
             {
               name: name,
-              auths: [data.value.confirmNewAccountAuth],
-            } as AccountAuthModel,
-          ];
-        } else {
-          storeAccountsOfUser[0].auths = [
-            ...storeAccountsOfUser[0].auths,
-            data.value.confirmNewAccountAuth,
+              auths: [data.value.confirmNewAccountAuth!],
+            } as AccountAuth,
           ];
         }
-        await hasStorageStore.updateAsJsonString(
-          JSON.stringify([...storeAccountsOfUser, ...otherAccounts])
-        );
       }
       data.value.confirmNewAccountAuth = null;
       data.value.confirmNewAccountName = '';
@@ -580,7 +389,7 @@ export default defineComponent({
           data.value.confirmDialogSubtitle = authReqData.app.description;
         }
       }
-      if (authKeyFromStoreAccountsOfUser === false) {
+      if (authKeyFromStoreAccountsOfUser == false) {
         let newAuth = {
           expire: authAckData.expire,
           key: authKey,
@@ -771,11 +580,3 @@ export default defineComponent({
     this.frequentChecker();
   },
 });
-</script>
-
-<style scoped>
-.safe-area {
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-top: env(safe-area-inset-top);
-}
-</style>
