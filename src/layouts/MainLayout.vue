@@ -30,11 +30,11 @@
       <q-dialog v-model="data.showConfirmDialog" persistent>
         <q-card>
           <q-card-section class="row items-center">
-            <q-avatar color="primary" text-color="white" size="80px">
+            <q-avatar color="primary" text-color="white" size="40px">
               <q-img
                 :src="data.confirmDialogAvatar"
                 spinner-color="white"
-                style="height: 80px; max-width: 80px"
+                style="height: 40px; max-width: 40px"
               />
             </q-avatar>
             <span class="q-ml-md">{{ data.confirmDialogTitle }}</span>
@@ -55,6 +55,53 @@
               color="primary"
               v-close-popup
               @click="approveRequestButtonTapped"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="data.showSignRequestConfirmDialog" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <q-avatar color="primary" text-color="white" size="40px">
+              <q-img
+                :src="data.signRequestDialogAppData?.app.icon"
+                spinner-color="white"
+                style="height: 40px; max-width: 40px"
+              />
+            </q-avatar>
+            <span class="q-ml-md">{{
+              data.signRequestDialogAppData?.app.name
+            }}</span>
+            <span class="q-ml-sm">{{
+              data.signRequestDialogAppData?.app.description
+            }}</span>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section style="max-height: 50vh" class="scroll">
+            <p>
+              {{ JSON.stringify(data.signRequestApproveData.ops, null, 4) }}
+            </p>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn
+              flat
+              label="Reject"
+              color="primary"
+              v-close-popup
+              @click="rejectSignRequestTapped"
+            />
+            <q-btn
+              flat
+              label="Approve"
+              color="primary"
+              v-close-popup
+              @click="approveSignRequestTapped"
             />
           </q-card-actions>
         </q-card>
@@ -91,6 +138,7 @@ import HASCustomPlugin from '../plugins/HASCustomPlugin';
 import { KeysModel } from 'src/models/keys-model';
 import { useQuasar } from 'quasar';
 import { useHasLogsStore } from 'src/stores/has-logs';
+import dhiveClient from 'src/helper/dhive-client';
 
 import {
   AccountAuth,
@@ -141,6 +189,10 @@ export default defineComponent({
       confirmDialogSubtitle: '',
       confirmNewAccountName: '',
       confirmNewAccountAuth: null as AccountAuth | null,
+      showSignRequestConfirmDialog: false,
+      signRequestApproveData: null as any | null,
+      signRequestRejectData: null as any | null,
+      signRequestDialogAppData: null as AccountAuth | null,
     });
 
     function lockApp() {
@@ -521,6 +573,144 @@ export default defineComponent({
       }
     }
 
+    async function validatePayload(payload: any) {
+      await hasStorageStore.readStorage();
+      let storeAccounts = hasStorageStore.accountsJson;
+      let storeAccountsOfUser = storeAccounts.filter(
+        (account) => account.name === payload.account
+      );
+      let otherAccounts = storeAccounts.filter(
+        (account) => account.name !== payload.account
+      );
+      if ((storeAccountsOfUser.length > 0 && hasAuthStore.isUnlocked) == false)
+        return;
+      const account = storeAccountsOfUser[0];
+      if (account) {
+        for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
+          try {
+            let decoded;
+            try {
+              decoded = CryptoJS.AES.decrypt(payload.data, auth.key).toString(
+                CryptoJS.enc.Utf8
+              );
+            } catch (e) {
+              // ignore error
+            }
+            if (decoded && decoded !== '') {
+              const decodedData = JSON.parse(decoded);
+              if (decodedData !== '') {
+                auth.nonce = decodedData.nonce;
+                await hasStorageStore.updateAsJsonString(
+                  JSON.stringify([...storeAccountsOfUser, ...otherAccounts])
+                );
+                console.log(`decodedData is ${decoded}`);
+                return { auth: auth, signReqData: decodedData };
+              }
+            }
+          } catch (e) {
+            if (e.code == 'ERR_ASSERTION') {
+              // Invalid nonce expected error, rethrow it
+              throw e;
+            }
+            console.debug(e.stack);
+          }
+        }
+      }
+      return undefined;
+    }
+
+    async function approveSignRequestTapped() {
+      const res = await dhiveClient.client.broadcast.sendOperations(
+        data.value.signRequestApproveData.ops,
+        data.value.signRequestApproveData.privateKey
+      );
+      HASSend(
+        JSON.stringify({
+          cmd: 'sign_ack',
+          uuid: data.value.signRequestApproveData.uuid,
+          data: res.id,
+          pok: data.value.signRequestApproveData.pokValue,
+        })
+      );
+      data.value.signRequestApproveData = null;
+      data.value.signRequestRejectData = null;
+      data.value.showSignRequestConfirmDialog = false;
+      data.value.signRequestDialogAppData = null;
+    }
+
+    async function rejectSignRequestTapped() {
+      HASSend(
+        JSON.stringify({
+          cmd: 'sign_nack',
+          uuid: data.value.signRequestRejectData.uuid,
+          data: data.value.signRequestRejectData.data,
+          pok: data.value.signRequestRejectData.pok,
+        })
+      );
+      data.value.signRequestApproveData = null;
+      data.value.signRequestRejectData = null;
+      data.value.showSignRequestConfirmDialog = false;
+      data.value.signRequestDialogAppData = null;
+    }
+
+    async function handleSignReq(payload: any) {
+      assert(
+        payload.account && typeof payload.account == 'string',
+        'invalid payload (account)'
+      );
+      assert(
+        payload.data && typeof payload.data == 'string',
+        'invalid payload (data)'
+      );
+      const { auth, signReqData } = await validatePayload(payload);
+      if (auth === undefined || auth === null) return;
+      assert(
+        signReqData.key_type &&
+          typeof signReqData.key_type == 'string' &&
+          data.value.keyTypes.includes(signReqData.key_type),
+        'invalid data (key_type)'
+      );
+      assert(
+        signReqData.ops && signReqData.ops.length > 0,
+        'invalid data (ops)'
+      );
+      await hasKeysStore.readKeys();
+      const keys = hasKeysStore.keysJson;
+      const keyPrivate = getPrivateKey(
+        payload.account,
+        signReqData.key_type,
+        keys
+      );
+      const pokValue = await getPOK(payload.account, payload.uuid, keys);
+      if (
+        keyPrivate !== undefined &&
+        keyPrivate !== null &&
+        pokValue !== null &&
+        pokValue !== undefined
+      ) {
+        const signReqApprovalData = {
+          ops: signReqData.ops,
+          privateKey: dhiveClient.privateKeyFromString(keyPrivate),
+          uuid: payload.uuid,
+          pok: pokValue,
+        };
+        const encryptedRejectionData = CryptoJS.AES.encrypt(
+          payload.uuid,
+          auth.key
+        ).toString();
+        const signReqRejectionData = {
+          uuid: payload.uuid,
+          data: encryptedRejectionData,
+          pok: pokValue,
+        };
+        data.value.signRequestDialogAppData = auth as AccountAuth;
+        data.value.signRequestApproveData = signReqApprovalData;
+        data.value.signRequestRejectData = signReqRejectionData;
+
+        data.value.showSignRequestConfirmDialog = true;
+      }
+    }
+
     async function processMessage(message: string) {
       try {
         const payload =
@@ -563,6 +753,8 @@ export default defineComponent({
           case 'auth_req':
             await handleAuthReq(payload);
             break;
+          case 'sign_req':
+            await handleSignReq(payload);
         }
       } catch (e) {
         HASSend(JSON.stringify({ cmd: 'error', error: e.message }));
@@ -679,6 +871,9 @@ export default defineComponent({
       hasAuthStore,
       hasStorageStore,
       hasLogsStore,
+      validatePayload,
+      approveSignRequestTapped,
+      rejectSignRequestTapped,
       lockApp,
       navToManageAccounts,
       navToImportKeys,

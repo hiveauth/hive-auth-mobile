@@ -72,7 +72,6 @@ export default defineComponent({
 
     function getDateInTimeAgoFormat(date: string) {
       const value = moment(date).toNow(true);
-      console.log(`Returning value - ${value}`);
       return `Next - ${value}`;
     }
 
