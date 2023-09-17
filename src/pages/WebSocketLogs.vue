@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <q-list padding>
+    <q-list padding separator>
       <q-item
         v-for="logItem in data.logs"
         :key="logItem.id"

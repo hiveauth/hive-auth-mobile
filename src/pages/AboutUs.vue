@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <q-list padding>
+    <q-list padding separator>
       <q-item clickable v-ripple>
         <q-item-section top avatar>
           <q-avatar size="40px" class="q-mb-sm">
@@ -17,8 +17,6 @@
           <q-item-label caption>Hive Auth Signer Mobile App</q-item-label>
         </q-item-section>
       </q-item>
-
-      <q-separator spaced />
 
       <q-item
         clickable
@@ -41,8 +39,6 @@
         </q-item-section>
       </q-item>
 
-      <q-separator spaced />
-
       <q-item
         clickable
         v-ripple
@@ -64,8 +60,6 @@
         </q-item-section>
       </q-item>
 
-      <q-separator spaced />
-
       <q-item clickable v-ripple @click="openLink('https://hiveauth.com')">
         <q-item-section top avatar>
           <q-avatar size="40px" class="q-mb-sm">
@@ -78,8 +72,6 @@
           <q-item-label caption>Open Website</q-item-label>
         </q-item-section>
       </q-item>
-
-      <q-separator spaced />
 
       <q-item
         clickable
@@ -97,8 +89,6 @@
           <q-item-label caption>Open HiveAuth Blog on Hive</q-item-label>
         </q-item-section>
       </q-item>
-
-      <q-separator spaced />
 
       <q-item
         clickable
@@ -119,8 +109,6 @@
         </q-item-section>
       </q-item>
 
-      <q-separator spaced />
-
       <q-item
         clickable
         v-ripple
@@ -137,8 +125,6 @@
           <q-item-label caption>Join Us on Discord</q-item-label>
         </q-item-section>
       </q-item>
-
-      <q-separator spaced />
 
       <q-item
         clickable
@@ -157,8 +143,6 @@
         </q-item-section>
       </q-item>
 
-      <q-separator spaced />
-
       <q-item
         clickable
         v-ripple
@@ -175,8 +159,6 @@
           <q-item-label caption>Join Us on Telegram</q-item-label>
         </q-item-section>
       </q-item>
-
-      <q-separator spaced />
 
       <q-item
         clickable
@@ -195,8 +177,6 @@
         </q-item-section>
       </q-item>
 
-      <q-separator spaced />
-
       <q-item
         clickable
         v-ripple
@@ -213,8 +193,6 @@
           <q-item-label caption>HiveAuth Documentation</q-item-label>
         </q-item-section>
       </q-item>
-
-      <q-separator spaced />
     </q-list>
   </q-page>
 </template>
