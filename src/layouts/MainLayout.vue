@@ -61,7 +61,7 @@
       </q-dialog>
     </q-page-container>
 
-    <q-footer>
+    <q-footer v-if="hasAuthStore.isUnlocked">
       <q-toolbar>
         {{ data.hasServer?.replaceAll('wss://', '') }}
       </q-toolbar>
@@ -82,6 +82,7 @@ import { useHasKeysStore } from 'src/stores/has-keys';
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
 import { KeysModel } from 'src/models/keys-model';
 import { useQuasar } from 'quasar';
+import { useHasLogsStore } from 'src/stores/has-logs';
 
 import {
   AccountAuth,
@@ -110,6 +111,7 @@ export default defineComponent({
     const hasStorageStore = useHasStorageStore();
     const hasQrResultStore = useQrResultStore();
     const hasKeysStore = useHasKeysStore();
+    const hasLogsStore = useHasLogsStore();
     const router = useRouter();
 
     const data = ref({
@@ -152,6 +154,10 @@ export default defineComponent({
 
     function HASSend(message: string) {
       console.log(`[SEND] ${message}`);
+      hasLogsStore.logs.push({
+        id: new Date().toISOString(),
+        log: `SENT: ${message}`,
+      });
       data.value.wsClient?.send(message);
     }
 
@@ -561,6 +567,10 @@ export default defineComponent({
 
       data.value.wsClient.onmessage = async function (event) {
         console.log(`[RECV] ${event.data}`);
+        hasLogsStore.logs.push({
+          id: new Date().toISOString(),
+          log: `RECV: ${event.data}`,
+        });
         try {
           processMessage(event.data);
         } catch (e) {

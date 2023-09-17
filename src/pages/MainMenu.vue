@@ -41,6 +41,16 @@
 
       <q-separator spaced />
 
+      <q-item clickable v-ripple @click="navToWebSocketLogs">
+        <q-item-section avatar>
+          <q-icon name="history" />
+        </q-item-section>
+
+        <q-item-section> WebSocket Logs </q-item-section>
+      </q-item>
+
+      <q-separator spaced />
+
       <q-item clickable v-ripple @click="lockApp">
         <q-item-section avatar>
           <q-icon name="lock" />
@@ -78,11 +88,16 @@ export default defineComponent({
       router.push({ name: 'qr-scanner' });
     }
 
+    function navToWebSocketLogs() {
+      router.push({ name: 'websocket-logs' });
+    }
+
     function navToImportKeys() {
       router.push({ name: 'import-key' });
     }
     return {
       lockApp,
+      navToWebSocketLogs,
       navToManageAccounts,
       navToScanner,
       navToImportKeys,
