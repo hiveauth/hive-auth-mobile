@@ -63,9 +63,6 @@
 
     <q-footer v-if="hasAuthStore.isUnlocked">
       <q-toolbar>
-        <q-toolbar-title>{{
-          data.hasServer?.replaceAll('wss://', '')
-        }}</q-toolbar-title>
         <q-btn
           flat
           round
@@ -73,6 +70,8 @@
           icon="public"
           :color="hasLogsStore.isHasServerConnected ? 'green' : 'red'"
         />
+        <!-- <q-toolbar-title></q-toolbar-title> -->
+        <div>{{ data.hasServer?.replaceAll('wss://', '') }}</div>
       </q-toolbar>
     </q-footer>
   </q-layout>
@@ -290,16 +289,10 @@ export default defineComponent({
     }
 
     async function approveRequestButtonTapped() {
-      HASSend(data.value.approvalString);
-      data.value.showConfirmDialog = false;
-      data.value.approvalString = '';
-      data.value.rejectionString = '';
-      data.value.showConfirmDialog = false;
-      data.value.confirmDialogAvatar =
-        'https://images.hive.blog/u/hiveauth/avatar';
-      data.value.confirmDialogTitle = '';
-      data.value.confirmDialogSubtitle = '';
       if (data.value.confirmNewAccountAuth !== null) {
+        console.log(
+          `inside confirm new account auth condition check ${data.value.confirmNewAccountAuth}`
+        );
         let name = data.value.confirmNewAccountName as string;
         await hasStorageStore.readStorage();
         let storeAccounts = hasStorageStore.accountsJson;
@@ -326,6 +319,15 @@ export default defineComponent({
           JSON.stringify([...storeAccountsOfUser, ...otherAccounts])
         );
       }
+      HASSend(data.value.approvalString);
+      data.value.showConfirmDialog = false;
+      data.value.approvalString = '';
+      data.value.rejectionString = '';
+      data.value.showConfirmDialog = false;
+      data.value.confirmDialogAvatar =
+        'https://images.hive.blog/u/hiveauth/avatar';
+      data.value.confirmDialogTitle = '';
+      data.value.confirmDialogSubtitle = '';
       data.value.confirmNewAccountAuth = null;
       data.value.confirmNewAccountName = '';
     }
@@ -510,7 +512,7 @@ export default defineComponent({
             description: authReqData.app.description,
           } as AccountAuthApp,
           ts_create: new Date().toISOString(),
-          ts_expire: authAckData.expire.toISOString(),
+          ts_expire: new Date().toISOString(),
           ts_lastused: new Date().toISOString(),
           nonce: undefined,
         } as AccountAuth;

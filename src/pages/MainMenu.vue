@@ -31,6 +31,16 @@
 
       <q-separator spaced />
 
+      <q-item clickable v-ripple @click="navToActiveSessions">
+        <q-item-section avatar>
+          <q-icon name="people" />
+        </q-item-section>
+
+        <q-item-section> Active Sessions </q-item-section>
+      </q-item>
+
+      <q-separator spaced />
+
       <q-item clickable v-ripple @click="navToAboutUs">
         <q-item-section avatar>
           <q-icon name="info" />
@@ -92,6 +102,10 @@ export default defineComponent({
       router.push({ name: 'qr-scanner' });
     }
 
+    function navToActiveSessions() {
+      router.push({ name: 'active-sessions' });
+    }
+
     function navToWebSocketLogs() {
       router.push({ name: 'websocket-logs' });
     }
@@ -102,6 +116,7 @@ export default defineComponent({
     return {
       lockApp,
       navToAboutUs,
+      navToActiveSessions,
       navToWebSocketLogs,
       navToManageAccounts,
       navToScanner,
