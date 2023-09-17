@@ -31,12 +31,12 @@
 
       <q-separator spaced />
 
-      <q-item clickable v-ripple>
+      <q-item clickable v-ripple @click="navToAboutUs">
         <q-item-section avatar>
           <q-icon name="info" />
         </q-item-section>
 
-        <q-item-section> About </q-item-section>
+        <q-item-section> About Us </q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -84,6 +84,10 @@ export default defineComponent({
       router.push({ name: 'manage-accounts' });
     }
 
+    function navToAboutUs() {
+      router.push({ name: 'about-us' });
+    }
+
     function navToScanner() {
       router.push({ name: 'qr-scanner' });
     }
@@ -97,6 +101,7 @@ export default defineComponent({
     }
     return {
       lockApp,
+      navToAboutUs,
       navToWebSocketLogs,
       navToManageAccounts,
       navToScanner,

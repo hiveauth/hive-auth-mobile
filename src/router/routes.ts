@@ -45,6 +45,11 @@ const routes: RouteRecordRaw[] = [
         name: 'websocket-logs',
         component: () => import('pages/WebSocketLogs.vue'),
       },
+      {
+        path: 'about-us',
+        name: 'about-us',
+        component: () => import('pages/AboutUs.vue'),
+      },
     ],
   },
 
