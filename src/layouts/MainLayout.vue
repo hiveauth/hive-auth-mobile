@@ -693,7 +693,8 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.hasAuthStore.readCode();
+    // this.hasAuthStore.readCode();
+    this.hasAuthStore.readPasscodeFromBiometrics();
     this.frequentChecker();
     const $q = useQuasar();
     $q.dark.set(true);

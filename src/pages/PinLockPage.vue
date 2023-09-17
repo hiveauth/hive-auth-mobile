@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <div class="q-pa-lg">
+    <div class="q-pa-lg" v-if="data.doWeHaveDeviceBiometrics">
       <q-input
         outlined
         rounded
@@ -73,6 +73,9 @@
         />
       </div>
     </div>
+    <div class="q-pa-lg" v-if="data.doWeHaveDeviceBiometrics === false">
+      Device Biometrics not available. Please enable it & restart app.
+    </div>
   </q-page>
 </template>
 
@@ -98,10 +101,17 @@ export default defineComponent({
       code: '',
       repeatCode: '',
       isPasscodeVisible: false,
+      doWeHaveDeviceBiometrics: false,
     });
 
+    async function reloadBiometrics() {
+      let result = await hasAuthStore.doWeHaveNativeBiometrics();
+      data.value.doWeHaveDeviceBiometrics = result;
+    }
+
     async function verifyCode() {
-      if (hasAuthStore.isValidPasscode(data.value.code)) {
+      const biometricsResult = await hasAuthStore.performBiometrics();
+      if (biometricsResult && hasAuthStore.isValidPasscode(data.value.code)) {
         $q.notify({
           color: 'positive',
           position: 'bottom',
@@ -126,7 +136,8 @@ export default defineComponent({
 
     async function setPasscode() {
       try {
-        await hasAuthStore.setPasscode(data.value.code);
+        await hasAuthStore.setPasscodeToBiometrics(data.value.code);
+        await hasAuthStore.readPasscodeFromBiometrics();
         hasAuthStore.unlockApp();
         await hasKeysStore.readKeys();
         await hasStorageStore.readStorage();
@@ -148,14 +159,20 @@ export default defineComponent({
       }
     }
 
-    return { data, verifyCode, setPasscode, hasAuthStore, hasKeysStore };
+    return {
+      data,
+      verifyCode,
+      setPasscode,
+      reloadBiometrics,
+      hasAuthStore,
+      hasKeysStore,
+    };
   },
 
   mounted() {
     const store = useHasPathStore();
     store.updateTo('', 'Passcode');
+    this.reloadBiometrics();
   },
 });
 </script>
-
-<style scoped></style>
