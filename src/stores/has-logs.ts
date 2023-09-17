@@ -8,5 +8,6 @@ export interface HasStoreItem {
 export const useHasLogsStore = defineStore('has-logs', {
   state: () => ({
     logs: [] as HasStoreItem[],
+    isHasServerConnected: false,
   }),
 });

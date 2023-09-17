@@ -63,7 +63,16 @@
 
     <q-footer v-if="hasAuthStore.isUnlocked">
       <q-toolbar>
-        {{ data.hasServer?.replaceAll('wss://', '') }}
+        <q-toolbar-title>{{
+          data.hasServer?.replaceAll('wss://', '')
+        }}</q-toolbar-title>
+        <q-btn
+          flat
+          round
+          dense
+          icon="public"
+          :color="hasLogsStore.isHasServerConnected ? 'green' : 'red'"
+        />
       </q-toolbar>
     </q-footer>
   </q-layout>
@@ -546,6 +555,7 @@ export default defineComponent({
             return;
           case 'key_ack':
             data.value.keyServer = payload.key;
+            hasLogsStore.isHasServerConnected = true;
             await handleKeyAck();
             break;
           case 'auth_req':
@@ -558,6 +568,7 @@ export default defineComponent({
     }
 
     async function startWebsocket() {
+      hasLogsStore.isHasServerConnected = false;
       console.log('Starting websocket with ' + data.value.hasServer);
       data.value.wsClient = new WebSocket(data.value.hasServer as string);
       data.value.wsClient.onopen = async function (e) {
@@ -665,6 +676,7 @@ export default defineComponent({
       hasPathStore,
       hasAuthStore,
       hasStorageStore,
+      hasLogsStore,
       lockApp,
       navToManageAccounts,
       navToImportKeys,
