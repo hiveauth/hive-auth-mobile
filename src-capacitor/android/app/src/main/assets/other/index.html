@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HiveAuthSigner</title>
-</head>
-<body>
-HiveAuthSigner
-</body>
-<noscript>You need to enable JavaScript to run this app.</noscript>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.1.0/uuidv4.min.js"></script>
-<script
-  src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
-  integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer"
-></script>
-<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js@2.0.7/dist/hive.min.js"></script>
-<script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HiveAuthSigner</title>
+  </head>
+  <body>
+    HiveAuthSigner
+  </body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.1.0/uuidv4.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+    integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js@2.0.7/dist/hive.min.js"></script>
+  <script>
     function getProofOfKey(privateKey, publicKey, memo) {
-      console.log("In Here - in getProofOfKey of another html");
+      console.log('In Here - in getProofOfKey of another html');
       const proofOfKey = hive.memo.encode(privateKey, publicKey, `#${memo}`);
       replyToNative({
-        type: "getProofOfKey",
-        error: "",
+        type: 'getProofOfKey',
+        error: '',
         data: proofOfKey,
       });
     }
@@ -33,8 +33,8 @@ HiveAuthSigner
         CryptoJS.enc.Utf8
       );
       replyToNative({
-        type: "decrypt",
-        error: "",
+        type: 'decrypt',
+        error: '',
         data: result,
       });
     }
@@ -42,9 +42,18 @@ HiveAuthSigner
     function encrypt(data, key) {
       const result = CryptoJS.AES.encrypt(data, key).toString();
       replyToNative({
-        type: "encrypt",
-        error: "",
+        type: 'encrypt',
+        error: '',
         data: result,
+      });
+    }
+
+    function getPublicKey(key) {
+      const publicKey = hive.auth.wifToPublic(key);
+      replyToNative({
+        type: 'getPublicKey',
+        error: '',
+        data: publicKey,
       });
     }
 
@@ -52,19 +61,19 @@ HiveAuthSigner
       const publicKey = hive.auth.wifToPublic(key);
       const sigHex = hive.auth.signMessage(message, key);
       replyToNative({
-        type: "signChallenge",
-        error: "",
+        type: 'signChallenge',
+        error: '',
         data: `${publicKey}___${sigHex}`,
       });
     }
 
     function validateHiveKey(account, userKey) {
-      console.log("In here before async");
+      console.log('In here before async');
       hive.api
         .getAccountsAsync([account])
         .then(function (accounts) {
-          console.log("In here after async");
-          console.log("Accounts: ", accounts);
+          console.log('In here after async');
+          console.log('Accounts: ', accounts);
           const publicPosting = accounts[0].posting.key_auths[0][0];
           const publicActive = accounts[0].active.key_auths[0][0];
           const publicMemo = accounts[0].memo_key;
@@ -73,24 +82,24 @@ HiveAuthSigner
           const isItMemoKey = hive.auth.wifIsValid(userKey, publicMemo);
           const noKey = !isItPostingKey && !isItActiveKey && !isItMemoKey;
           const keyType = isItPostingKey
-            ? "posting"
+            ? 'posting'
             : isItActiveKey
-            ? "active"
+            ? 'active'
             : isItMemoKey
-            ? "memo"
-            : "";
+            ? 'memo'
+            : '';
           replyToNative({
-            type: "validateHiveKey",
-            error: noKey ? "Invalid Key" : "",
+            type: 'validateHiveKey',
+            error: noKey ? 'Invalid Key' : '',
             data: keyType,
           });
         })
         .catch(function (err) {
-          console.log("Error: ", err);
+          console.log('Error: ', err);
           replyToNative({
-            type: "validateHiveKey",
+            type: 'validateHiveKey',
             error: err.message,
-            data: "",
+            data: '',
           });
         });
     }

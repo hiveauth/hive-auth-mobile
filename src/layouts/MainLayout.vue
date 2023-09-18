@@ -106,6 +106,52 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
+
+      <q-dialog v-model="data.shouldShowSignChallengeDialog" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <q-avatar color="primary" text-color="white" size="40px">
+              <q-img
+                :src="data.signChallengeData?.auth?.app.icon"
+                spinner-color="white"
+                style="height: 40px; max-width: 40px"
+              />
+            </q-avatar>
+            <span class="q-ml-md">{{
+              data.signChallengeData?.auth?.app.name
+            }}</span>
+            <span class="q-ml-sm">{{
+              data.signChallengeData?.auth?.app.description
+            }}</span>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section>
+            {{ data.signChallengeData?.auth?.app.name }} would like to sign a
+            challenge to verify that you have the valid key.
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn
+              flat
+              label="Reject"
+              color="primary"
+              v-close-popup
+              @click="rejectSignChallenge"
+            />
+            <q-btn
+              flat
+              label="Approve"
+              color="primary"
+              v-close-popup
+              @click="approveSignChallenge"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-page-container>
 
     <q-footer v-if="hasAuthStore.isUnlocked">
@@ -158,6 +204,12 @@ export interface QRAuthReqPayload {
   host: string;
 }
 
+export interface SignChallengeData {
+  auth: AccountAuth;
+  approval: string;
+  rejection: string;
+}
+
 export default defineComponent({
   name: 'MainLayout',
   components: {},
@@ -193,6 +245,8 @@ export default defineComponent({
       signRequestApproveData: null as any | null,
       signRequestRejectData: null as any | null,
       signRequestDialogAppData: null as AccountAuth | null,
+      signChallengeData: null as SignChallengeData | null,
+      shouldShowSignChallengeDialog: false,
     });
 
     function lockApp() {
@@ -303,6 +357,38 @@ export default defineComponent({
         accountName: '',
         userKey: '',
         challenge: challenge,
+        key: key,
+      });
+      const responseData = JSON.parse(response.dataString);
+      return responseData.data;
+    }
+
+    async function getDecryptedChallenge(challenge: string, key: string) {
+      const response = await HASCustomPlugin.callPlugin({
+        callId: Date.now().toString(),
+        method: 'decrypt',
+        privateKey: key,
+        publicKey: '',
+        memo: '',
+        accountName: '',
+        userKey: '',
+        challenge: challenge,
+        key: key,
+      });
+      const responseData = JSON.parse(response.dataString);
+      return responseData.data;
+    }
+
+    async function getPublicKey(key: string) {
+      const response = await HASCustomPlugin.callPlugin({
+        callId: Date.now().toString(),
+        method: 'getPublicKey',
+        privateKey: key,
+        publicKey: '',
+        memo: '',
+        accountName: '',
+        userKey: '',
+        challenge: '',
         key: key,
       });
       const responseData = JSON.parse(response.dataString);
@@ -603,7 +689,6 @@ export default defineComponent({
                 await hasStorageStore.updateAsJsonString(
                   JSON.stringify([...storeAccountsOfUser, ...otherAccounts])
                 );
-                console.log(`decodedData is ${decoded}`);
                 return { auth: auth, signReqData: decodedData };
               }
             }
@@ -706,8 +791,104 @@ export default defineComponent({
         data.value.signRequestDialogAppData = auth as AccountAuth;
         data.value.signRequestApproveData = signReqApprovalData;
         data.value.signRequestRejectData = signReqRejectionData;
-
         data.value.showSignRequestConfirmDialog = true;
+      }
+    }
+
+    function approveSignChallenge() {
+      if (data.value.signChallengeData == null) return;
+      HASSend(data.value.signChallengeData.approval);
+      data.value.signChallengeData = null;
+      data.value.shouldShowSignChallengeDialog = false;
+    }
+
+    function rejectSignChallenge() {
+      if (data.value.signChallengeData == null) return;
+      HASSend(data.value.signChallengeData.rejection);
+      data.value.signChallengeData = null;
+      data.value.shouldShowSignChallengeDialog = false;
+    }
+
+    async function handleChallengeReq(payload: any) {
+      assert(
+        payload.account && typeof payload.account == 'string',
+        'invalid payload (account)'
+      );
+      assert(
+        payload.data && typeof payload.data == 'string',
+        'invalid payload (data)'
+      );
+      const { auth, signReqData } = await validatePayload(payload);
+      const challengeReqData = signReqData;
+      if (auth === undefined || auth === null) return;
+      assert(
+        challengeReqData.key_type &&
+          typeof challengeReqData.key_type == 'string' &&
+          data.value.keyTypes.includes(challengeReqData.key_type),
+        'invalid data (key_type)'
+      );
+      await hasKeysStore.readKeys();
+      const keys = hasKeysStore.keysJson;
+      const keyPrivate = getPrivateKey(
+        payload.account,
+        challengeReqData.key_type,
+        keys
+      );
+      const pokValue = await getPOK(payload.account, payload.uuid, keys);
+      console.log('Got POK');
+      if (
+        keyPrivate !== undefined &&
+        keyPrivate !== null &&
+        pokValue !== null &&
+        pokValue !== undefined
+      ) {
+        const publicKey = await getPublicKey(keyPrivate);
+        console.log('Got public key');
+        let challengeResponse = '';
+        if (challengeReqData.decrypt) {
+          challengeResponse = await getDecryptedChallenge(
+            challengeReqData.challenge,
+            keyPrivate
+          );
+        } else {
+          const resultDataOfSignedChallenge = await getSignedChallenge(
+            challengeReqData.challenge,
+            keyPrivate
+          );
+          const challengeDataParts = resultDataOfSignedChallenge.split('___');
+          challengeResponse = challengeDataParts[1];
+        }
+        console.log('Got challenge');
+        const challengeAckData = {
+          pubkey: publicKey,
+          challenge: challengeResponse,
+        };
+        const encryptedData = CryptoJS.AES.encrypt(
+          JSON.stringify(challengeAckData),
+          auth.key
+        ).toString();
+        const approvalString = JSON.stringify({
+          cmd: 'challenge_ack',
+          uuid: payload.uuid,
+          data: encryptedData,
+          pok: pokValue,
+        });
+        const encryptedRejectionData = CryptoJS.AES.encrypt(
+          payload.uuid,
+          auth.key
+        ).toString();
+        const rejectionString = JSON.stringify({
+          cmd: 'challenge_nack',
+          uuid: payload.uuid,
+          data: encryptedRejectionData,
+          pok: pokValue,
+        });
+        data.value.shouldShowSignChallengeDialog = true;
+        data.value.signChallengeData = {
+          auth: auth,
+          approval: approvalString,
+          rejection: rejectionString,
+        };
       }
     }
 
@@ -755,6 +936,10 @@ export default defineComponent({
             break;
           case 'sign_req':
             await handleSignReq(payload);
+            break;
+          case 'challenge_req':
+            await handleChallengeReq(payload);
+            break;
         }
       } catch (e) {
         HASSend(JSON.stringify({ cmd: 'error', error: e.message }));
@@ -872,6 +1057,8 @@ export default defineComponent({
       hasStorageStore,
       hasLogsStore,
       validatePayload,
+      getDecryptedChallenge,
+      getPublicKey,
       approveSignRequestTapped,
       rejectSignRequestTapped,
       lockApp,
@@ -885,6 +1072,8 @@ export default defineComponent({
       checkUsername,
       approveRequestButtonTapped,
       rejectRequestButtonTapped,
+      rejectSignChallenge,
+      approveSignChallenge,
     };
   },
   mounted() {

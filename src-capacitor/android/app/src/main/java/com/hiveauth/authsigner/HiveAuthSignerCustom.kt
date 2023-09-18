@@ -27,6 +27,7 @@ class HiveAuthSignerCustom : Plugin() {
   var mostRecentEncryptCall: PluginCall? = null
   var mostRecentSignChallengeCall: PluginCall? = null
   var mostRecentGetDeepLinkDataCall: PluginCall? = null
+  var mostRecentGetPublicKeyCall: PluginCall? = null
 
   @PluginMethod
   fun callPlugin(call: PluginCall) {
@@ -55,6 +56,9 @@ class HiveAuthSignerCustom : Plugin() {
         } else if (method == "validateHiveKey" && !accountName.isNullOrEmpty() && !userKey.isNullOrEmpty()) {
           mostRecentValidateHiveKeyCall = call
           webView?.evaluateJavascript("validateHiveKey('$accountName', '$userKey');", null)
+        } else if (method == "getPublicKey" && !key.isNullOrEmpty()) {
+          mostRecentGetPublicKeyCall = call
+          webView?.evaluateJavascript("getPublicKey('$key');", null)
         } else if (method == "decrypt" && !data.isNullOrEmpty() && !key.isNullOrEmpty()) {
           mostRecentDecryptCall = call
           webView?.evaluateJavascript("decrypt('$data', '$key');", null)
@@ -144,6 +148,8 @@ class WebAppInterface(private val pluginHandler: HiveAuthSignerCustom) {
       pluginHandler.replyWith(message, pluginHandler.mostRecentSignChallengeCall as PluginCall)
     } else if (message.contains("getDeepLinkData") && pluginHandler.mostRecentGetDeepLinkDataCall != null) {
       pluginHandler.replyWith(message, pluginHandler.mostRecentGetDeepLinkDataCall as PluginCall)
+    } else if (message.contains("getPublicKey") && pluginHandler.mostRecentGetPublicKeyCall != null) {
+      pluginHandler.replyWith(message, pluginHandler.mostRecentGetPublicKeyCall as PluginCall)
     }
   }
 }
