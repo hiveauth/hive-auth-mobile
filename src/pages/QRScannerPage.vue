@@ -21,6 +21,7 @@ import { defineComponent, ref } from 'vue';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { useQuasar } from 'quasar';
 import { useQrResultStore } from 'src/stores/qr-result-store';
+import { useHasPathStore } from 'src/stores/has-path';
 
 export default defineComponent({
   setup() {
@@ -87,6 +88,11 @@ export default defineComponent({
       data,
       startScan,
     };
+  },
+  mounted() {
+    const store = useHasPathStore();
+    store.updateTo('qr-scanner', 'Scan QR Code');
+    console.log('At QR Scanner page');
   },
 });
 </script>

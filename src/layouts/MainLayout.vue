@@ -136,7 +136,7 @@ import assert from 'assert';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
 import { KeysModel } from 'src/models/keys-model';
-import { useQuasar } from 'quasar';
+// import { useQuasar } from 'quasar';
 import { useHasLogsStore } from 'src/stores/has-logs';
 import dhiveClient from 'src/helper/dhive-client';
 
@@ -891,8 +891,8 @@ export default defineComponent({
     // this.hasAuthStore.readCode();
     this.hasAuthStore.readPasscodeFromBiometrics();
     this.frequentChecker();
-    const $q = useQuasar();
-    $q.dark.set(true);
+    // const $q = useQuasar();
+    // $q.dark.set(true);
   },
 });
 </script>
