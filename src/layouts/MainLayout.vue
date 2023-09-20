@@ -2,6 +2,17 @@
   <q-layout view="lHh Lpr lFf">
     <q-header>
       <q-toolbar>
+        <q-btn
+          flat
+          round
+          dense
+          icon="arrow_back_ios"
+          v-if="
+            hasPathStore.pathName !== 'Main Menu' &&
+            hasPathStore.pathName !== 'Passcode'
+          "
+          @click="goBack"
+        />
         <q-toolbar-title>
           <q-item>
             <q-item-section top avatar>
@@ -15,7 +26,7 @@
             </q-item-section>
 
             <q-item-section>
-              <q-item-label>Auth Signer</q-item-label>
+              <q-item-label>HiveAuth App</q-item-label>
               <q-item-label caption style="color: white">{{
                 hasPathStore.pathName
               }}</q-item-label>
@@ -163,7 +174,6 @@
           icon="public"
           :color="hasLogsStore.isHasServerConnected ? 'green' : 'red'"
         />
-        <!-- <q-toolbar-title></q-toolbar-title> -->
         <div>{{ data.hasServer?.replaceAll('wss://', '') }}</div>
       </q-toolbar>
     </q-footer>
@@ -248,6 +258,10 @@ export default defineComponent({
       signChallengeData: null as SignChallengeData | null,
       shouldShowSignChallengeDialog: false,
     });
+
+    function goBack() {
+      router.back();
+    }
 
     function lockApp() {
       hasAuthStore.lockApp();
@@ -1074,6 +1088,7 @@ export default defineComponent({
       rejectRequestButtonTapped,
       rejectSignChallenge,
       approveSignChallenge,
+      goBack,
     };
   },
   mounted() {

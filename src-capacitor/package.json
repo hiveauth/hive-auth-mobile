@@ -1,7 +1,7 @@
 {
   "name": "hive-auth-mobile",
   "version": "0.0.1",
-  "description": "Auth Signer",
+  "description": "HiveAuth App",
   "author": "Sagar <sagar.devices@gmail.com>",
   "private": true,
   "dependencies": {

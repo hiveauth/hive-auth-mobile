@@ -22,10 +22,12 @@ import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { useQuasar } from 'quasar';
 import { useQrResultStore } from 'src/stores/qr-result-store';
 import { useHasPathStore } from 'src/stores/has-path';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   setup() {
     const $q = useQuasar();
+    const router = useRouter();
     const hasQrResultStore = useQrResultStore();
     const data = ref({
       scanning: false,
@@ -55,6 +57,7 @@ export default defineComponent({
             console.log(result.content); // log the raw scanned content
             hasQrResultStore.rawQRString = result.content;
             data.value.scanResult = result.content;
+            router.back();
           } else {
             $q.notify({
               color: 'negative',

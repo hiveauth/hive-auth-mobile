@@ -1,6 +1,6 @@
-# AuthSigner (hive-auth-mobile)
+# HiveAuth (hive-auth-mobile)
 
-Auth Signer
+HiveAuth App
 
 ## Install the dependencies
 

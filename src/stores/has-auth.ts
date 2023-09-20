@@ -26,7 +26,6 @@ export const useHasAuthStore = defineStore('has-auth', {
 
     lockApp() {
       this.$state.isUnlocked = false;
-      this.$state.passcode = '';
       this.$state.hasPasscode = true;
     },
 
@@ -57,11 +56,11 @@ export const useHasAuthStore = defineStore('has-auth', {
 
     async performBiometrics() {
       const verified = await NativeBiometric.verifyIdentity({
-        reason: 'Allow Auth Signer App to use biometrics for App unlock',
+        reason: 'Allow HiveAuth App to use biometrics for App unlock',
         title: 'Unlock',
-        subtitle: 'Unlock Auth Signer with Biometrics',
+        subtitle: 'Unlock HiveAuth App with Biometrics',
         description:
-          'Provide your FaceID or Touch ID to unlock the Auth Signer Application',
+          'Provide your FaceID or Touch ID to unlock the HiveAuth App',
       })
         .then(() => true)
         .catch(() => false);

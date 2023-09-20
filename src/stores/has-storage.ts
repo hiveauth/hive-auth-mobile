@@ -14,7 +14,7 @@ export const useHasStorageStore = defineStore('has-storage', {
         return JSON.parse(state.accounts) as AccountAuthModel[];
       }
     },
-    pksa_name: () => 'HiveAuthSignerApp',
+    pksa_name: () => 'HiveAuth App',
     auth_req_secret: () => process.env.AUTH_REQ_SECRET,
     auth_timeout_days: () => 30,
     auth_req_approve: () => true,

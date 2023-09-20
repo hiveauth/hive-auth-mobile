@@ -30,7 +30,7 @@
       <div v-if="data.keys.length === 0" class="text-center q-pa-lg">
         <div class="text-h5">No Keys found</div>
         <br />
-        <q-btn color="primary" label="Import Keys" @click="navToImportKeys" />
+        <!-- <q-btn color="primary" label="Import Keys" @click="navToImportKeys" /> -->
       </div>
       <div v-if="data.keys.length !== 0" class="q-pa-xs">
         <q-list>
@@ -203,9 +203,9 @@ export default defineComponent({
       keys: [] as ManageAccountDisplay[],
     });
 
-    function navToImportKeys() {
-      router.push({ name: 'import-key' });
-    }
+    // function navToImportKeys() {
+    //   router.push({ name: 'import-key' });
+    // }
 
     return {
       data,
@@ -213,7 +213,7 @@ export default defineComponent({
       copyKeyToClipboard,
       deleteKey,
       loadKeys,
-      navToImportKeys,
+      // navToImportKeys,
     };
   },
   mounted() {

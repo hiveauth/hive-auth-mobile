@@ -13,8 +13,8 @@
         </q-item-section>
 
         <q-item-section>
-          <q-item-label>Auth Signer</q-item-label>
-          <q-item-label caption>Hive Auth Signer Mobile App</q-item-label>
+          <q-item-label>HiveAuth</q-item-label>
+          <q-item-label caption>HiveAuth Mobile App</q-item-label>
         </q-item-section>
       </q-item>
 
