@@ -13,6 +13,7 @@
         pattern="[0-9]*"
         autocomplete="off"
         maxlength="6"
+        @update:model-value="digitsChanged"
       >
         <template v-slot:prepend>
           <q-icon name="pin" />
@@ -104,6 +105,16 @@ export default defineComponent({
       doWeHaveDeviceBiometrics: false,
     });
 
+    function digitsChanged(newValue: string | number | null) {
+      if (
+        hasAuthStore.hasPasscode &&
+        typeof newValue === 'string' &&
+        newValue.length === 6
+      ) {
+        verifyCode();
+      }
+    }
+
     async function reloadBiometrics() {
       let result = await hasAuthStore.doWeHaveNativeBiometrics();
       data.value.doWeHaveDeviceBiometrics = result;
@@ -161,6 +172,7 @@ export default defineComponent({
 
     return {
       data,
+      digitsChanged,
       verifyCode,
       setPasscode,
       reloadBiometrics,
