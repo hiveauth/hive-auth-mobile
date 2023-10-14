@@ -490,6 +490,7 @@ export default defineComponent({
       data.value.confirmDialogSubtitle = '';
       data.value.confirmNewAccountAuth = null;
       data.value.confirmNewAccountName = '';
+      data.value.confirmNewAccountWhiteList = false;
     }
 
     function rejectRequestButtonTapped() {
@@ -818,12 +819,43 @@ export default defineComponent({
           data: encryptedRejectionData,
           pok: pokValue,
         };
-        data.value.signRequestDialogAppData = auth as AccountAuth;
-        data.value.signRequestApproveData = signReqApprovalData;
-        data.value.signRequestRejectData = signReqRejectionData;
-        data.value.showSignRequestConfirmDialog = true;
-        // data.value.shouldShowOptionToDoNotPromptAgain =
-        //   signReqData.key_type !== 'active';
+        let isWhiteListedApp = false;
+        await hasStorageStore.readStorage();
+        let storeAccounts = hasStorageStore.accountsJson;
+        let storeAccountsOfUser = storeAccounts.filter(
+          (account) => account.name === payload.account
+        );
+        if (storeAccountsOfUser.length > 0) {
+          let storeAccount = storeAccountsOfUser[0];
+          let storeAccountWhiteListAuths = storeAccount.auths.filter(
+            (a) =>
+              a.whitelistSignReq === true &&
+              a.app.name === auth.app.name &&
+              a.app.icon === auth.app.icon
+          );
+          if (storeAccountWhiteListAuths.length > 0) {
+            isWhiteListedApp = true;
+          }
+        }
+        if (isWhiteListedApp && signReqData.key_type !== 'active') {
+          const res = await dhiveClient.client.broadcast.sendOperations(
+            signReqApprovalData.ops,
+            signReqApprovalData.privateKey
+          );
+          HASSend(
+            JSON.stringify({
+              cmd: 'sign_ack',
+              uuid: signReqApprovalData.uuid,
+              data: res.id,
+              pok: pokValue,
+            })
+          );
+        } else {
+          data.value.signRequestDialogAppData = auth as AccountAuth;
+          data.value.signRequestApproveData = signReqApprovalData;
+          data.value.signRequestRejectData = signReqRejectionData;
+          data.value.showSignRequestConfirmDialog = true;
+        }
       }
     }
 
