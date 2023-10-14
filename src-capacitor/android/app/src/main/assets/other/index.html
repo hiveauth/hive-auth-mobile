@@ -19,7 +19,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js@2.0.7/dist/hive.min.js"></script>
   <script>
     function getProofOfKey(privateKey, publicKey, memo) {
-      console.log('In Here - in getProofOfKey of another html');
       const proofOfKey = hive.memo.encode(privateKey, publicKey, `#${memo}`);
       replyToNative({
         type: 'getProofOfKey',
@@ -68,11 +67,9 @@
     }
 
     function validateHiveKey(account, userKey) {
-      console.log('In here before async');
       hive.api
         .getAccountsAsync([account])
         .then(function (accounts) {
-          console.log('In here after async');
           console.log('Accounts: ', accounts);
           const publicPosting = accounts[0].posting.key_auths[0][0];
           const publicActive = accounts[0].active.key_auths[0][0];
@@ -105,7 +102,6 @@
     }
 
     function replyToNative(result) {
-      console.log(`Result is ${JSON.stringify(result)}`);
       // window.webkit.messageHandlers.hiveauthsigner.postMessage(result);
       Android.postMessage(JSON.stringify(result));
     }

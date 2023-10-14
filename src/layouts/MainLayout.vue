@@ -50,6 +50,13 @@
             </q-avatar>
             <span class="q-ml-md">{{ data.confirmDialogTitle }}</span>
             <span class="q-ml-sm">{{ data.confirmDialogSubtitle }}</span>
+            <text-h5
+              ><div class="q-gutter-sm">
+                <q-checkbox
+                  v-model="data.confirmNewAccountWhiteList"
+                  label="Do not prompt again to send post transactions"
+                /></div
+            ></text-h5>
           </q-card-section>
 
           <q-card-actions align="right">
@@ -251,6 +258,7 @@ export default defineComponent({
       confirmDialogSubtitle: '',
       confirmNewAccountName: '',
       confirmNewAccountAuth: null as AccountAuth | null,
+      confirmNewAccountWhiteList: false,
       showSignRequestConfirmDialog: false,
       signRequestApproveData: null as any | null,
       signRequestRejectData: null as any | null,
@@ -442,9 +450,9 @@ export default defineComponent({
 
     async function approveRequestButtonTapped() {
       if (data.value.confirmNewAccountAuth !== null) {
-        console.log(
-          `inside confirm new account auth condition check ${data.value.confirmNewAccountAuth}`
-        );
+        if (data.value.confirmNewAccountWhiteList === true) {
+          data.value.confirmNewAccountAuth.whitelistSignReq = true;
+        }
         let name = data.value.confirmNewAccountName as string;
         await hasStorageStore.readStorage();
         let storeAccounts = hasStorageStore.accountsJson;
@@ -667,9 +675,11 @@ export default defineComponent({
           ts_expire: new Date().toISOString(),
           ts_lastused: new Date().toISOString(),
           nonce: undefined,
+          whitelistSignReq: false,
         } as AccountAuth;
         data.value.confirmNewAccountName = account.name;
         data.value.confirmNewAccountAuth = newAuth;
+        data.value.confirmNewAccountWhiteList = false;
       }
     }
 
@@ -753,6 +763,7 @@ export default defineComponent({
     }
 
     async function handleSignReq(payload: any) {
+      console.log(`payload on sign request: ${payload}`);
       assert(
         payload.account && typeof payload.account == 'string',
         'invalid payload (account)'
@@ -762,6 +773,11 @@ export default defineComponent({
         'invalid payload (data)'
       );
       const { auth, signReqData } = await validatePayload(payload);
+      console.log(
+        `auth is ${JSON.stringify(
+          auth
+        )} and sign request data: ${JSON.stringify(signReqData)}`
+      );
       if (auth === undefined || auth === null) return;
       assert(
         signReqData.key_type &&
@@ -806,6 +822,8 @@ export default defineComponent({
         data.value.signRequestApproveData = signReqApprovalData;
         data.value.signRequestRejectData = signReqRejectionData;
         data.value.showSignRequestConfirmDialog = true;
+        // data.value.shouldShowOptionToDoNotPromptAgain =
+        //   signReqData.key_type !== 'active';
       }
     }
 
@@ -824,6 +842,7 @@ export default defineComponent({
     }
 
     async function handleChallengeReq(payload: any) {
+      console.log(`In handle challenge request: ${payload}`);
       assert(
         payload.account && typeof payload.account == 'string',
         'invalid payload (account)'
@@ -907,6 +926,7 @@ export default defineComponent({
     }
 
     async function processMessage(message: string) {
+      console.log(`processing message: ${message}`);
       try {
         const payload =
           typeof message == 'string' ? JSON.parse(message) : message;
@@ -934,24 +954,31 @@ export default defineComponent({
         }
         switch (payload.cmd) {
           case 'connected':
+            console.log(`In connected: ${message}`);
             data.value.hasProtocol = payload.protocol || 0;
             return;
           case 'error':
+            console.log(`In error: ${message}`);
             return;
           case 'register_ack':
+            console.log(`In register_ack: ${message}`);
             return;
           case 'key_ack':
+            console.log(`In key_ack: ${message}`);
             data.value.keyServer = payload.key;
             hasLogsStore.isHasServerConnected = true;
             await handleKeyAck();
             break;
           case 'auth_req':
+            console.log(`In auth_req: ${message}`);
             await handleAuthReq(payload);
             break;
           case 'sign_req':
+            console.log(`In sign_req: ${message}`);
             await handleSignReq(payload);
             break;
           case 'challenge_req':
+            console.log(`In challenge_req: ${message}`);
             await handleChallengeReq(payload);
             break;
         }
