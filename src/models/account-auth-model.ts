@@ -7,6 +7,7 @@ export interface AccountAuth {
   expire: number;
   key: string;
   app: AccountAuthApp;
+  whitelistSignReq: boolean;
   ts_create: string;
   ts_expire: string;
   ts_lastused?: string;

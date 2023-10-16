@@ -122,7 +122,6 @@ export default defineComponent({
               shouldSave = true;
               keyType = 'Private Active Key';
             } else if (publicKey === allPublicKeys.memo) {
-              console.log('in here - memo key writing');
               existingAccount.memo = data.value.hiveuserkey;
               existingAccount.memoPublic = publicKey;
               shouldSave = true;
