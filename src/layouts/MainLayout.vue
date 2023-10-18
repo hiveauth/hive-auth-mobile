@@ -50,13 +50,6 @@
             </q-avatar>
             <span class="q-ml-md">{{ data.confirmDialogTitle }}</span>
             <span class="q-ml-sm">{{ data.confirmDialogSubtitle }}</span>
-            <text-h5
-              ><div class="q-gutter-sm">
-                <q-checkbox
-                  v-model="data.confirmNewAccountWhiteList"
-                  label="Do not prompt again to send post transactions"
-                /></div
-            ></text-h5>
           </q-card-section>
 
           <q-card-actions align="right">
@@ -258,7 +251,6 @@ export default defineComponent({
       confirmDialogSubtitle: '',
       confirmNewAccountName: '',
       confirmNewAccountAuth: null as AccountAuth | null,
-      confirmNewAccountWhiteList: false,
       showSignRequestConfirmDialog: false,
       signRequestApproveData: null as any | null,
       signRequestRejectData: null as any | null,
@@ -433,9 +425,6 @@ export default defineComponent({
 
     async function approveRequestButtonTapped() {
       if (data.value.confirmNewAccountAuth !== null) {
-        if (data.value.confirmNewAccountWhiteList === true) {
-          data.value.confirmNewAccountAuth.whitelistSignReq = true;
-        }
         let name = data.value.confirmNewAccountName as string;
         await hasStorageStore.readStorage();
         let storeAccounts = hasStorageStore.accountsJson;
@@ -473,7 +462,6 @@ export default defineComponent({
       data.value.confirmDialogSubtitle = '';
       data.value.confirmNewAccountAuth = null;
       data.value.confirmNewAccountName = '';
-      data.value.confirmNewAccountWhiteList = false;
     }
 
     function rejectRequestButtonTapped() {
@@ -659,11 +647,9 @@ export default defineComponent({
           ts_expire: new Date().toISOString(),
           ts_lastused: new Date().toISOString(),
           nonce: undefined,
-          whitelistSignReq: false,
         } as AccountAuth;
         data.value.confirmNewAccountName = account.name;
         data.value.confirmNewAccountAuth = newAuth;
-        data.value.confirmNewAccountWhiteList = false;
       }
     }
 
@@ -802,43 +788,10 @@ export default defineComponent({
           data: encryptedRejectionData,
           pok: pokValue,
         };
-        let isWhiteListedApp = false;
-        await hasStorageStore.readStorage();
-        let storeAccounts = hasStorageStore.accountsJson;
-        let storeAccountsOfUser = storeAccounts.filter(
-          (account) => account.name === payload.account
-        );
-        if (storeAccountsOfUser.length > 0) {
-          let storeAccount = storeAccountsOfUser[0];
-          let storeAccountWhiteListAuths = storeAccount.auths.filter(
-            (a) =>
-              a.whitelistSignReq === true &&
-              a.app.name === auth.app.name &&
-              a.app.icon === auth.app.icon
-          );
-          if (storeAccountWhiteListAuths.length > 0) {
-            isWhiteListedApp = true;
-          }
-        }
-        if (isWhiteListedApp && signReqData.key_type !== 'active') {
-          const res = await dhiveClient.client.broadcast.sendOperations(
-            signReqApprovalData.ops,
-            signReqApprovalData.privateKey
-          );
-          HASSend(
-            JSON.stringify({
-              cmd: 'sign_ack',
-              uuid: signReqApprovalData.uuid,
-              data: res.id,
-              pok: pokValue,
-            })
-          );
-        } else {
-          data.value.signRequestDialogAppData = auth as AccountAuth;
-          data.value.signRequestApproveData = signReqApprovalData;
-          data.value.signRequestRejectData = signReqRejectionData;
-          data.value.showSignRequestConfirmDialog = true;
-        }
+        data.value.signRequestDialogAppData = auth as AccountAuth;
+        data.value.signRequestApproveData = signReqApprovalData;
+        data.value.signRequestRejectData = signReqRejectionData;
+        data.value.showSignRequestConfirmDialog = true;
       }
     }
 
