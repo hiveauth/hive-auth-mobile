@@ -268,24 +268,7 @@ export default defineComponent({
     });
 
     function goBack() {
-      router.back();
-    }
-
-    function lockApp() {
-      hasAuthStore.lockApp();
-      router.push({ name: 'passcode-lock' });
-    }
-
-    function navToManageAccounts() {
-      router.push({ name: 'manage-accounts' });
-    }
-
-    function navToScanner() {
-      router.push({ name: 'qr-scanner' });
-    }
-
-    function navToImportKeys() {
-      router.push({ name: 'import-key' });
+      router.replace({ name: 'main-menu' });
     }
 
     function HASSend(message: string) {
@@ -1134,10 +1117,6 @@ export default defineComponent({
       getPublicKey,
       approveSignRequestTapped,
       rejectSignRequestTapped,
-      lockApp,
-      navToManageAccounts,
-      navToImportKeys,
-      navToScanner,
       frequentChecker,
       heartbeat,
       HASSend,

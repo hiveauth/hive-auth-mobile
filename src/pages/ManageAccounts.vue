@@ -203,17 +203,12 @@ export default defineComponent({
       keys: [] as ManageAccountDisplay[],
     });
 
-    // function navToImportKeys() {
-    //   router.push({ name: 'import-key' });
-    // }
-
     return {
       data,
       confirm: ref(false),
       copyKeyToClipboard,
       deleteKey,
       loadKeys,
-      // navToImportKeys,
     };
   },
   mounted() {

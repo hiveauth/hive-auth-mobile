@@ -91,27 +91,27 @@ export default defineComponent({
     }
 
     function navToManageAccounts() {
-      router.push({ name: 'manage-accounts' });
+      router.replace({ name: 'manage-accounts' });
     }
 
     function navToAboutUs() {
-      router.push({ name: 'about-us' });
+      router.replace({ name: 'about-us' });
     }
 
     function navToScanner() {
-      router.push({ name: 'qr-scanner' });
+      router.replace({ name: 'qr-scanner' });
     }
 
     function navToActiveSessions() {
-      router.push({ name: 'active-sessions' });
+      router.replace({ name: 'active-sessions' });
     }
 
     function navToWebSocketLogs() {
-      router.push({ name: 'websocket-logs' });
+      router.replace({ name: 'websocket-logs' });
     }
 
     function navToImportKeys() {
-      router.push({ name: 'import-key' });
+      router.replace({ name: 'import-key' });
     }
     return {
       lockApp,

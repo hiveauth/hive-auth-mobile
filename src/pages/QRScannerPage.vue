@@ -57,7 +57,7 @@ export default defineComponent({
             console.log(result.content); // log the raw scanned content
             hasQrResultStore.rawQRString = result.content;
             data.value.scanResult = result.content;
-            router.back();
+            router.replace('main-menu');
           } else {
             $q.notify({
               color: 'negative',
