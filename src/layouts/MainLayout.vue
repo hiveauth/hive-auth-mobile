@@ -1100,6 +1100,11 @@ export default defineComponent({
           const hasServer = lastQRData?.host ?? hasStorageStore.has_server;
           data.value.hasServer = hasServer;
           startWebsocket();
+        } else if (hasKeysStore.didUpdate === true) {
+          data.value.wsClient?.close();
+          data.value.wsClient = null;
+          hasKeysStore.didUpdate = false;
+          startWebsocket();
         }
       }
       await new Promise((resolve) => setTimeout(resolve, 1000));

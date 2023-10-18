@@ -5,6 +5,7 @@ import { KeysModel } from 'src/models/keys-model';
 export const useHasKeysStore = defineStore('has-keys', {
   state: () => ({
     keys: '',
+    didUpdate: false,
   }),
   getters: {
     keysJson: (state) => {
@@ -29,6 +30,7 @@ export const useHasKeysStore = defineStore('has-keys', {
     async update(keys: KeysModel[]) {
       const string = JSON.stringify(keys);
       this.updateAsJsonString(string);
+      this.didUpdate = true;
     },
 
     async readKeys() {

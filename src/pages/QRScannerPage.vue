@@ -54,7 +54,6 @@ export default defineComponent({
               message: `QR Result - ${result.content}`,
               icon: 'camera',
             });
-            console.log(result.content); // log the raw scanned content
             hasQrResultStore.rawQRString = result.content;
             data.value.scanResult = result.content;
             router.replace('main-menu');
