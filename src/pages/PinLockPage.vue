@@ -66,7 +66,7 @@
       </div>
     </div>
     <div v-else class="q-pa-lg">
-      {{$t('biometrics_unavailable')}}
+      {{$t('unlock.biometrics_unavailable')}}
     </div>
   </q-page>
 </template>
