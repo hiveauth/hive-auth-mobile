@@ -200,6 +200,7 @@ import {
   AccountAuth,
   AccountAuthModel,
   AccountAuthApp,
+  AccountAuthWhitelistSettings,
 } from 'src/models/account-auth-model';
 
 export interface LowestPrivateKey {
@@ -647,6 +648,22 @@ export default defineComponent({
           ts_expire: new Date().toISOString(),
           ts_lastused: new Date().toISOString(),
           nonce: undefined,
+          settings: {
+            vote: false,
+            comment: false,
+            account_update2: false,
+            comment_options: false,
+            delete_comment: false,
+            custom_json: false,
+            custom_binary: false,
+            claim_reward_balance: false,
+            claim_reward_balance2: false,
+            create_proposal: false,
+            remove_proposal: false,
+            update_proposal: false,
+            update_proposal_votes: false,
+            vote2: false,
+          } as AccountAuthWhitelistSettings,
         } as AccountAuth;
         data.value.confirmNewAccountName = account.name;
         data.value.confirmNewAccountAuth = newAuth;
