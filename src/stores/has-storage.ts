@@ -2,6 +2,9 @@ import { defineStore } from 'pinia';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { AccountAuthModel } from 'src/models/account-auth-model';
 
+const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
+const DEFAULT_HIVE_API = 'https://api.hive.blog';
+
 export const useHasStorageStore = defineStore('has-storage', {
   state: () => ({
     accounts: '',
@@ -22,8 +25,8 @@ export const useHasStorageStore = defineStore('has-storage', {
     auth_req_reject: () => false,
     sign_req_reject: () => true,
     challenge_req_reject: () => false,
-    hive_api: () => process.env.HIVE_API,
-    has_server: () => process.env.HAS_SERVER,
+    hive_api: () => process.env.HIVE_API || DEFAULT_HIVE_API,
+    has_server: () => process.env.HAS_SERVER || DEFAULT_HAS_SERVER,
     hideEncryptedData: () => true,
   },
   actions: {
