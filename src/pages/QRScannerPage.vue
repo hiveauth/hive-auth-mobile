@@ -1,17 +1,15 @@
 <template>
   <q-page>
-    <div class="q-pa-lg">
-      <div class="text-h6" v-if="!data.scanning">{{ data.scanResult }}</div>
-      <div class="row q-mt-lg">
+    <div v-if="!data.scanning" class="q-pa-lg">
+      <!-- <div class="row q-mt-lg">
         <q-btn
           class="col q-pt-sm q-pb-sm"
           rounded
           color="primary"
           label="Scan QR Code"
           @click="startScan()"
-          v-if="!data.scanning"
         />
-      </div>
+      </div> -->
     </div>
   </q-page>
 </template>
@@ -95,6 +93,10 @@ export default defineComponent({
     const store = useHasPathStore();
     store.updateTo('qr-scanner', 'Scan QR Code');
     console.log('At QR Scanner page');
+    this.startScan();
+  },
+  unmounted() {
+    BarcodeScanner.stopScan()
   },
 });
 </script>

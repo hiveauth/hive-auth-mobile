@@ -25,7 +25,6 @@ import { defineComponent, ref } from 'vue';
 import { useHasLogsStore } from 'src/stores/has-logs';
 import { useHasPathStore } from 'src/stores/has-path';
 import { Clipboard } from '@capacitor/clipboard';
-import moment from 'moment';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -61,8 +60,6 @@ export default defineComponent({
 
     function getDateInTimeAgoFormat(date: string) {
       return dayjs(date).fromNow();
-      // const value = moment(date).toNow(true);
-      // return `${value} ago`;
     }
 
     return {
