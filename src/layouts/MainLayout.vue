@@ -263,11 +263,19 @@ export default defineComponent({
       router.replace({ name: 'main-menu' });
     }
 
+    function hideEncryptedData(str) {
+      if (/*config.hideEncryptedData*/ true) {
+        str = str.replaceAll(/"data":"(.*?)"/g, '"data":<...>');
+        str = str.replaceAll(/"pok":"(.*?)"/g, '"pok":<...>');
+      }
+      return str;
+    }
+
     function HASSend(message: string) {
-      console.log(`[SEND] ${message}`);
+      console.log(`[SEND] ${hideEncryptedData(message)}`);
       hasLogsStore.logs.push({
         id: new Date().toISOString(),
-        log: `SENT: ${message}`,
+        log: `SENT: ${hideEncryptedData(message)}`,
       });
       data.value.wsClient?.send(message);
     }
@@ -965,10 +973,10 @@ export default defineComponent({
       };
 
       data.value.wsClient.onmessage = async function (event) {
-        console.log(`[RECV] ${event.data}`);
+        console.log(`[RECV] ${hideEncryptedData(event.data)}`);
         hasLogsStore.logs.push({
           id: new Date().toISOString(),
-          log: `RECV: ${event.data}`,
+          log: `RECV: ${hideEncryptedData(event.data)}`,
         });
         try {
           processMessage(event.data);
