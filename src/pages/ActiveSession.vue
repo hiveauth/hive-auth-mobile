@@ -16,10 +16,7 @@
 
         <q-item-section>
           <q-item-label>{{ session.auth.app.name }}</q-item-label>
-          <q-item-label caption lines="1"
-            >{{ session.auth.app.description }}<br />Valid till:
-            {{ getDateInTimeAgoFormat(session.auth.expire) }}</q-item-label
-          >
+          <q-item-label caption lines="1">{{ session.auth.app.description }}<br />Valid till {{ getDateInTimeAgoFormat(session.auth.expire) }}</q-item-label>
         </q-item-section>
       </q-item></q-list
     >
@@ -38,7 +35,8 @@ import {
   AccountAuth,
   AccountAuthApp,
 } from 'src/models/account-auth-model';
-import moment from 'moment';
+import dayjs from 'dayjs';
+// import relativeTime from 'dayjs/plugin/relativeTime';
 
 interface ActiveSessionData {
   name: string;
@@ -71,8 +69,7 @@ export default defineComponent({
     }
 
     function getDateInTimeAgoFormat(date: string) {
-      const value = moment(date).toNow(true);
-      return `Next - ${value}`;
+      return dayjs(date).format('YYYY-MM-DD hh:mm:ss')
     }
 
     return {
