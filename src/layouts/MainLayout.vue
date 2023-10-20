@@ -364,7 +364,6 @@ export default defineComponent({
       const result = getLowestPrivateKey(name, keys);
       const key_private = result?.key_private;
       assert(key_private, `No private available for ${name}`);
-      console.log(`Going to get POK using plugin - ${name}`);
       const response = await HASCustomPlugin.callPlugin({
         callId: Date.now().toString(),
         method: 'getProofOfKey',
@@ -443,7 +442,6 @@ export default defineComponent({
                 pok: pokValue,
               });
             }
-            console.log(JSON.stringify(accountsWithPOK));
             if (accountsWithPOK.length > 0) {
               const request = {
                 cmd: 'register_req',
@@ -585,7 +583,6 @@ export default defineComponent({
       const authReqData = JSON.parse(
         CryptoJS.AES.decrypt(payload.data, authKey).toString(CryptoJS.enc.Utf8)
       );
-      console.log(`Decrypted payload: ${JSON.stringify(authReqData)}`);
       if (storeAccountsOfUser.length > 0 && authKey !== null) {
         const storeAccountAuths = storeAccountsOfUser[0].auths.filter(
           (o) => o.key === authKey && o.expire > Date.now()
@@ -626,7 +623,6 @@ export default defineComponent({
             pubkey: challengeDataParts[0],
             challenge: challengeDataParts[1],
           };
-          console.log(`authAckData: ${JSON.stringify(authAckData)}`);
         } else {
           approve = false;
         }
@@ -635,8 +631,6 @@ export default defineComponent({
         JSON.stringify(authAckData),
         authKey
       ).toString();
-      console.log(`payload account - ${payload.account}`);
-      console.log(`payload uuid - ${payload.uuid}`);
       const pokValue = await getPOK(payload.account, payload.uuid, keys);
       const approvalString = JSON.stringify({
         cmd: 'auth_ack',
@@ -644,7 +638,6 @@ export default defineComponent({
         data: encryptedAuthAckData,
         pok: pokValue,
       });
-      console.log(`Approval string - ${approvalString}`);
       const encryptedRejectionData = CryptoJS.AES.encrypt(
         payload.uuid,
         authKey
@@ -655,7 +648,6 @@ export default defineComponent({
         data: encryptedRejectionData,
         pok: pokValue,
       });
-      console.log(`Rejection string - ${rejectionString}`);
       data.value.approvalString = approvalString;
       data.value.rejectionString = rejectionString;
       data.value.showConfirmDialog = true;
@@ -737,33 +729,25 @@ export default defineComponent({
 
     async function approveSignRequestTapped() {
       await hasStorageStore.readStorage();
-      console.log('Done re-reading the storage');
       let storeAccounts = hasStorageStore.accountsJson;
       let storeAccountsOfUser = storeAccounts.filter(
         (account) => account.name === data.value.signRequestApproveData.username
       );
-      console.log(`Found user - ${JSON.stringify(storeAccountsOfUser)}`);
       let otherAccounts = storeAccounts.filter(
         (account) => account.name !== data.value.signRequestApproveData.username
       );
-      console.log('Done getting other accounts');
       if (storeAccountsOfUser.length > 0) {
         let storeAccount = storeAccountsOfUser[0];
-        console.log(`Have first account - ${JSON.stringify(storeAccount)}`);
         let storeAccountAuths = storeAccount.auths.filter(
           (a) =>
             a.app.name === data.value.signRequestApproveData.appName &&
             a.app.icon === data.value.signRequestApproveData.appIcon
         );
-        console.log(`Have store auths - ${JSON.stringify(storeAccountAuths)}`);
         if (storeAccountAuths.length > 0) {
           let storeAccountOtherAuths = storeAccount.auths.filter(
             (a) =>
               a.app.name !== data.value.signRequestApproveData.appName &&
               a.app.icon !== data.value.signRequestApproveData.appIcon
-          );
-          console.log(
-            `Have other auths - ${JSON.stringify(storeAccountOtherAuths)}`
           );
           // START - if user has updated the flag - re-write with new flag value
           if (data.value.signRequestWhiteListFlag === true) {
@@ -824,7 +808,6 @@ export default defineComponent({
     }
 
     async function handleSignReq(payload: any) {
-      console.log(`payload on sign request: ${payload}`);
       assert(
         payload.account && typeof payload.account == 'string',
         'invalid payload (account)'
@@ -884,56 +867,28 @@ export default defineComponent({
           data: encryptedRejectionData,
           pok: pokValue,
         };
-        console.log(
-          `Data is prepared - ${JSON.stringify(signReqApprovalData)}`
-        );
         let isWhiteListedOperation = false;
         if (whiteListOperationTypes.includes(opType)) {
           await hasStorageStore.readStorage();
-          console.log('done reading storage');
           let storeAccounts = hasStorageStore.accountsJson;
           let storeAccountsOfUser = storeAccounts.filter(
             (account) => account.name === payload.account
           );
-          console.log('done filtering accounts');
           if (storeAccountsOfUser.length > 0) {
             let storeAccount = storeAccountsOfUser[0];
-            console.log(`first account - ${JSON.stringify(storeAccount)}`);
-            let storeAccountWhiteListAuths = storeAccount.auths.filter((a) => {
-              let result = false;
-              console.log(`a value - ${JSON.stringify(a)}`);
-              console.log(`a settings value - ${JSON.stringify(a.settings)}`);
-              if (
+            let storeAccountWhiteListAuths = storeAccount.auths.filter(
+              (a) =>
                 a.settings !== undefined &&
                 a.settings != null &&
-                opType in a.settings
-              ) {
-                console.log(`we have ${opType} in ${a.settings}`);
-                if (a.settings[opType] === true) {
-                  console.log(`${opType} is set to true in ${a.settings}`);
-                  if (a.app.name === auth.app.name) {
-                    console.log(`a App name - ${a.app.name}`);
-                    console.log(`App name - ${auth.app.name}`);
-                    if (a.app.icon === auth.app.icon) {
-                      console.log(`a App icon - ${a.app.icon}`);
-                      console.log(`App icon - ${auth.app.icon}`);
-                      result = true;
-                    }
-                  }
-                }
-              }
-              return result;
-            });
-            console.log('done querying data');
+                opType in a.settings &&
+                a.settings[opType] === true &&
+                a.app.name === auth.app.name &&
+                a.app.icon === auth.app.icon
+            );
             if (storeAccountWhiteListAuths.length > 0) {
               isWhiteListedOperation = true;
             }
           }
-          console.log(
-            `isWhiteListedOperation - ${
-              isWhiteListedOperation ? 'true' : 'false'
-            }`
-          );
           if (isWhiteListedOperation) {
             const res = await dhiveClient.client.broadcast.sendOperations(
               signReqApprovalData.ops,
