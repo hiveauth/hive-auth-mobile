@@ -96,6 +96,13 @@
               {{ JSON.stringify(data.signRequestApproveData.ops, null, 4) }}
             </p>
           </q-card-section>
+          <q-separator />
+
+          <q-card-section>
+            <q-checkbox v-model="data.signRequestWhiteListFlag" label="" />
+            Do not prompt again for -
+            {{ data.signRequestApproveData.opType }}
+          </q-card-section>
 
           <q-separator />
 
@@ -200,8 +207,27 @@ import {
   AccountAuth,
   AccountAuthModel,
   AccountAuthApp,
-  AccountAuthWhitelistSettings,
+  AccountAuthSettings,
 } from 'src/models/account-auth-model';
+import { store } from 'quasar/wrappers';
+import { resourceLimits } from 'worker_threads';
+
+const whiteListOperationTypes = [
+  'vote',
+  'comment',
+  'account_update2',
+  'comment_options',
+  'delete_comment',
+  // 'custom_json',
+  'custom_binary',
+  'claim_reward_balance',
+  'claim_reward_balance2',
+  'create_proposal',
+  'remove_proposal',
+  'update_proposal',
+  'update_proposal_votes',
+  'vote2',
+];
 
 export interface LowestPrivateKey {
   key_type: string;
@@ -254,6 +280,7 @@ export default defineComponent({
       confirmNewAccountAuth: null as AccountAuth | null,
       showSignRequestConfirmDialog: false,
       signRequestApproveData: null as any | null,
+      signRequestWhiteListFlag: false,
       signRequestRejectData: null as any | null,
       signRequestDialogAppData: null as AccountAuth | null,
       signChallengeData: null as SignChallengeData | null,
@@ -656,22 +683,7 @@ export default defineComponent({
           ts_expire: new Date().toISOString(),
           ts_lastused: new Date().toISOString(),
           nonce: undefined,
-          settings: {
-            vote: false,
-            comment: false,
-            account_update2: false,
-            comment_options: false,
-            delete_comment: false,
-            custom_json: false,
-            custom_binary: false,
-            claim_reward_balance: false,
-            claim_reward_balance2: false,
-            create_proposal: false,
-            remove_proposal: false,
-            update_proposal: false,
-            update_proposal_votes: false,
-            vote2: false,
-          } as AccountAuthWhitelistSettings,
+          settings: {} as AccountAuthSettings,
         } as AccountAuth;
         data.value.confirmNewAccountName = account.name;
         data.value.confirmNewAccountAuth = newAuth;
@@ -724,22 +736,76 @@ export default defineComponent({
     }
 
     async function approveSignRequestTapped() {
-      const res = await dhiveClient.client.broadcast.sendOperations(
-        data.value.signRequestApproveData.ops,
-        data.value.signRequestApproveData.privateKey
+      await hasStorageStore.readStorage();
+      console.log('Done re-reading the storage');
+      let storeAccounts = hasStorageStore.accountsJson;
+      let storeAccountsOfUser = storeAccounts.filter(
+        (account) => account.name === data.value.signRequestApproveData.username
       );
-      HASSend(
-        JSON.stringify({
-          cmd: 'sign_ack',
-          uuid: data.value.signRequestApproveData.uuid,
-          data: res.id,
-          pok: data.value.signRequestApproveData.pokValue,
-        })
+      console.log(`Found user - ${JSON.stringify(storeAccountsOfUser)}`);
+      let otherAccounts = storeAccounts.filter(
+        (account) => account.name !== data.value.signRequestApproveData.username
       );
-      data.value.signRequestApproveData = null;
-      data.value.signRequestRejectData = null;
-      data.value.showSignRequestConfirmDialog = false;
-      data.value.signRequestDialogAppData = null;
+      console.log('Done getting other accounts');
+      if (storeAccountsOfUser.length > 0) {
+        let storeAccount = storeAccountsOfUser[0];
+        console.log(`Have first account - ${JSON.stringify(storeAccount)}`);
+        let storeAccountAuths = storeAccount.auths.filter(
+          (a) =>
+            a.app.name === data.value.signRequestApproveData.appName &&
+            a.app.icon === data.value.signRequestApproveData.appIcon
+        );
+        console.log(`Have store auths - ${JSON.stringify(storeAccountAuths)}`);
+        if (storeAccountAuths.length > 0) {
+          let storeAccountOtherAuths = storeAccount.auths.filter(
+            (a) =>
+              a.app.name !== data.value.signRequestApproveData.appName &&
+              a.app.icon !== data.value.signRequestApproveData.appIcon
+          );
+          console.log(
+            `Have other auths - ${JSON.stringify(storeAccountOtherAuths)}`
+          );
+          // START - if user has updated the flag - re-write with new flag value
+          if (data.value.signRequestWhiteListFlag === true) {
+            if (storeAccountAuths[0].settings !== undefined) {
+              storeAccountAuths[0].settings[
+                data.value.signRequestApproveData.opType
+              ] = true;
+            } else {
+              const operationType = data.value.signRequestApproveData
+                .opType as string;
+              storeAccountAuths[0].settings = {
+                [operationType]: true,
+              } as AccountAuthSettings;
+            }
+            storeAccountsOfUser[0].auths = [
+              ...storeAccountOtherAuths,
+              ...storeAccountAuths,
+            ];
+            const accountsToWrite = [...otherAccounts, ...storeAccountsOfUser];
+            await hasStorageStore.updateAsJsonString(
+              JSON.stringify(accountsToWrite)
+            );
+          }
+          // END - if user has updated the flag - re-write with new flag value
+          const res = await dhiveClient.client.broadcast.sendOperations(
+            data.value.signRequestApproveData.ops,
+            data.value.signRequestApproveData.privateKey
+          );
+          HASSend(
+            JSON.stringify({
+              cmd: 'sign_ack',
+              uuid: data.value.signRequestApproveData.uuid,
+              data: res.id,
+              pok: data.value.signRequestApproveData.pokValue,
+            })
+          );
+          data.value.signRequestApproveData = null;
+          data.value.signRequestRejectData = null;
+          data.value.showSignRequestConfirmDialog = false;
+          data.value.signRequestDialogAppData = null;
+        }
+      }
     }
 
     async function rejectSignRequestTapped() {
@@ -792,6 +858,7 @@ export default defineComponent({
         keys
       );
       const pokValue = await getPOK(payload.account, payload.uuid, keys);
+      const opType = signReqData.ops[0][0] as string;
       if (
         keyPrivate !== undefined &&
         keyPrivate !== null &&
@@ -803,6 +870,10 @@ export default defineComponent({
           privateKey: dhiveClient.privateKeyFromString(keyPrivate),
           uuid: payload.uuid,
           pok: pokValue,
+          username: payload.account,
+          appName: auth.app.name,
+          appIcon: auth.app.icon,
+          opType: opType,
         };
         const encryptedRejectionData = CryptoJS.AES.encrypt(
           payload.uuid,
@@ -813,10 +884,83 @@ export default defineComponent({
           data: encryptedRejectionData,
           pok: pokValue,
         };
-        data.value.signRequestDialogAppData = auth as AccountAuth;
-        data.value.signRequestApproveData = signReqApprovalData;
-        data.value.signRequestRejectData = signReqRejectionData;
-        data.value.showSignRequestConfirmDialog = true;
+        console.log(
+          `Data is prepared - ${JSON.stringify(signReqApprovalData)}`
+        );
+        let isWhiteListedOperation = false;
+        if (whiteListOperationTypes.includes(opType)) {
+          await hasStorageStore.readStorage();
+          console.log('done reading storage');
+          let storeAccounts = hasStorageStore.accountsJson;
+          let storeAccountsOfUser = storeAccounts.filter(
+            (account) => account.name === payload.account
+          );
+          console.log('done filtering accounts');
+          if (storeAccountsOfUser.length > 0) {
+            let storeAccount = storeAccountsOfUser[0];
+            console.log(`first account - ${JSON.stringify(storeAccount)}`);
+            let storeAccountWhiteListAuths = storeAccount.auths.filter((a) => {
+              let result = false;
+              console.log(`a value - ${JSON.stringify(a)}`);
+              console.log(`a settings value - ${JSON.stringify(a.settings)}`);
+              if (
+                a.settings !== undefined &&
+                a.settings != null &&
+                opType in a.settings
+              ) {
+                console.log(`we have ${opType} in ${a.settings}`);
+                if (a.settings[opType] === true) {
+                  console.log(`${opType} is set to true in ${a.settings}`);
+                  if (a.app.name === auth.app.name) {
+                    console.log(`a App name - ${a.app.name}`);
+                    console.log(`App name - ${auth.app.name}`);
+                    if (a.app.icon === auth.app.icon) {
+                      console.log(`a App icon - ${a.app.icon}`);
+                      console.log(`App icon - ${auth.app.icon}`);
+                      result = true;
+                    }
+                  }
+                }
+              }
+              return result;
+            });
+            console.log('done querying data');
+            if (storeAccountWhiteListAuths.length > 0) {
+              isWhiteListedOperation = true;
+            }
+          }
+          console.log(
+            `isWhiteListedOperation - ${
+              isWhiteListedOperation ? 'true' : 'false'
+            }`
+          );
+          if (isWhiteListedOperation) {
+            const res = await dhiveClient.client.broadcast.sendOperations(
+              signReqApprovalData.ops,
+              signReqApprovalData.privateKey
+            );
+            HASSend(
+              JSON.stringify({
+                cmd: 'sign_ack',
+                uuid: signReqApprovalData.uuid,
+                data: res.id,
+                pok: pokValue,
+              })
+            );
+          } else {
+            data.value.signRequestDialogAppData = auth as AccountAuth;
+            data.value.signRequestApproveData = signReqApprovalData;
+            data.value.signRequestRejectData = signReqRejectionData;
+            data.value.showSignRequestConfirmDialog = true;
+            data.value.signRequestWhiteListFlag = false;
+          }
+        } else {
+          data.value.signRequestDialogAppData = auth as AccountAuth;
+          data.value.signRequestApproveData = signReqApprovalData;
+          data.value.signRequestRejectData = signReqRejectionData;
+          data.value.showSignRequestConfirmDialog = true;
+          data.value.signRequestWhiteListFlag = false;
+        }
       }
     }
 

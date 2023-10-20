@@ -1,6 +1,5 @@
 import { Client, PrivateKey } from '@hiveio/dhive';
 import { PublicKeysModel } from 'src/models/public-keys-model';
-import { CapacitorHttp } from '@capacitor/core';
 
 const client = new Client([
   'https://api.hive.blog',
