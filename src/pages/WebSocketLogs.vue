@@ -2,7 +2,7 @@
   <q-page>
     <q-list padding separator>
       <q-item
-        v-for="logItem in data.logs"
+        v-for="logItem in logs"
         :key="logItem.id"
         class="q-mb-sm"
         clickable
@@ -20,8 +20,10 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useHasLogsStore } from 'src/stores/has-logs';
 import { useHasPathStore } from 'src/stores/has-path';
 import { Clipboard } from '@capacitor/clipboard';
@@ -30,50 +32,51 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
 
-export default defineComponent({
-  setup() {
-    const hasLogsStore = useHasLogsStore();
-    const data = ref({
-      logs: hasLogsStore.logs,
+const $q = useQuasar()
+const { t } = useI18n(), $t = t
+const storeHASLogs = useHasLogsStore();
+const storeHASPath = useHasPathStore();
+
+// data
+const logs = ref(storeHASLogs.logs)
+
+// functions
+async function copyKeyToClipboard(string: string) {
+  try {
+    await Clipboard.write({
+      string: string,
     });
+    $q.notify({
+      color: 'positive',
+      position: 'bottom',
+      message: $t('logs.success_copy_clipboard'),
+      icon: 'assignment',
+    });
+  } catch (e: any) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: `${$t('logs.error_copy_clipboard')} - ${e.message}`,
+      icon: 'report_problem',
+    });
+  }
+}
 
-    async function copyKeyToClipboard(string: string) {
-      try {
-        await Clipboard.write({
-          string: string,
-        });
-        $q.notify({
-          color: 'positive',
-          position: 'bottom',
-          message: 'Websocket log is copied to clipboard',
-          icon: 'assignment',
-        });
-      } catch (e) {
-        $q.notify({
-          color: 'negative',
-          position: 'bottom',
-          message: `Key could not be copied - ${e.message}`,
-          icon: 'report_problem',
-        });
-      }
-    }
+function getDateInTimeAgoFormat(date: string) {
+  return dayjs(date).fromNow();
+}
 
-    function getDateInTimeAgoFormat(date: string) {
-      return dayjs(date).fromNow();
-    }
+// hooks
+onMounted(() => {
+  storeHASPath.updateTo('websocket-logs', 'Websocket Logs');
+  console.log('At WebSocket Logs page');
+})
 
-    return {
-      data,
-      copyKeyToClipboard,
-      getDateInTimeAgoFormat,
-    };
-  },
-  mounted() {
-    const store = useHasPathStore();
-    store.updateTo('websocket-logs', 'Websocket Logs');
-    console.log('At WebSocket Logs page');
-  },
-});
 </script>
 
-<style scoped></style>
+<script lang="ts">
+
+export default defineComponent({
+  name: 'page-logs',
+});
+</script>

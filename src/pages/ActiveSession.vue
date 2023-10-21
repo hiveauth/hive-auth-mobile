@@ -1,8 +1,8 @@
 <template>
   <q-page>
-    <q-list padding v-if="data.sessions.length > 0">
+    <q-list padding v-if="sessions.length > 0">
       <q-item
-        v-for="session in data.sessions"
+        v-for="session in sessions"
         :key="`${session.name}-${session.auth.app}-${session.auth.key}`"
         class="q-mb-sm"
         clickable
@@ -16,25 +16,23 @@
 
         <q-item-section>
           <q-item-label>{{ session.auth.app.name }}</q-item-label>
-          <q-item-label caption lines="1">{{ session.auth.app.description }}<br />Valid till {{ getDateInTimeAgoFormat(session.auth.expire) }}</q-item-label>
+          <q-item-label caption lines="1">{{ session.auth.app.description }}<br />{{$t('sessions.valid')}} {{ formatDate(session.auth.expire) }}</q-item-label>
         </q-item-section>
       </q-item></q-list
     >
-    <div class="absolute-center" v-if="data.sessions.length === 0">
-      No active sessions found
+    <div class="absolute-center" v-if="sessions.length === 0">
+      {{$t('sessions.empty')}}
     </div>
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useHasStorageStore } from 'src/stores/has-storage';
 import { useHasPathStore } from 'src/stores/has-path';
-import {
-  AccountAuthModel,
-  AccountAuth,
-  AccountAuthApp,
-} from 'src/models/account-auth-model';
+import { AccountAuth } from 'src/models/account-auth-model';
 import dayjs from 'dayjs';
 // import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -43,47 +41,47 @@ interface ActiveSessionData {
   auth: AccountAuth;
 }
 
-export default defineComponent({
-  setup() {
-    const hasStorageStore = useHasStorageStore();
-    const hasPathStore = useHasPathStore();
-    const data = ref({
-      sessions: [] as ActiveSessionData[],
-    });
+const $q = useQuasar()
+const { t } = useI18n(), $t = t
+const storeHASStorage = useHasStorageStore();
+const storeHASPath = useHasPathStore();
 
-    async function reloadStorageSessions() {
-      await hasStorageStore.readStorage();
-      const accounts = hasStorageStore.accountsJson;
-      console.log(`Found ${accounts.length} accounts`);
-      let sessionData = [] as ActiveSessionData[];
-      accounts.forEach((account) => {
-        account.auths.forEach((auth) => {
-          sessionData.push({
-            name: account.name,
-            auth: auth,
-          });
-        });
+// data
+const sessions = ref([] as ActiveSessionData[]);
+
+// functions
+async function reloadStorageSessions() {
+  await storeHASStorage.readStorage();
+  const accounts = storeHASStorage.accountsJson;
+  console.log(`Found ${accounts.length} accounts`);
+  sessions.value = [] as ActiveSessionData[];
+  accounts.forEach((account) => {
+    account.auths.forEach((auth) => {
+      sessions.value.push({
+        name: account.name,
+        auth: auth,
       });
-      console.log(`Found ${sessionData.length} sessionData`);
-      data.value.sessions = sessionData;
-    }
+    });
+  });
+  console.log(`Found ${sessions.value.length} sessions`);
+}
 
-    function getDateInTimeAgoFormat(date: string) {
-      return dayjs(date).format('YYYY-MM-DD hh:mm:ss')
-    }
+function formatDate(timestamp: number) {
+  return dayjs(timestamp).format('YYYY-MM-DD hh:mm:ss')
+}
 
-    return {
-      data,
-      hasPathStore,
-      hasStorageStore,
-      getDateInTimeAgoFormat,
-      reloadStorageSessions,
-    };
-  },
-  mounted() {
-    this.hasPathStore.updateTo('active-sessions', 'Active Sessions');
-    console.log('At Active sessions Page');
-    this.reloadStorageSessions();
-  },
+// hooks
+onMounted(() => {
+  storeHASPath.updateTo('active-sessions', 'Active Sessions');
+  console.log('At Active sessions Page');
+  reloadStorageSessions();
+}
+
+</script>
+
+<script lang="ts">
+
+export default defineComponent({
+  name: 'page-sessions'
 });
 </script>

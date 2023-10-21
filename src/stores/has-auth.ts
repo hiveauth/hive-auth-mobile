@@ -2,23 +2,44 @@ import { defineStore } from 'pinia';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { NativeBiometric } from 'capacitor-native-biometric';
 
+import { createI18n } from 'vue-i18n'
+import messages from 'src/i18n'
+
+const i18n = createI18n({
+  locale: 'en-US',
+  messages
+}).global
+
+// TODO: Replace CREDENTIALS_SERVER
+//const CREDENTIALS_SERVER = 'hiveauth.mobile'
+const CREDENTIALS_SERVER = 'https:/hiveauth.com'
+
 export const useHasAuthStore = defineStore('has-auth', {
   state: () => ({
     isUnlocked: false,
     passcode: '',
     hasPasscode: false,
   }),
+
   getters: {
     isDeviceLocked: (state) => !state.isUnlocked,
-  },
-  actions: {
-    isValidPasscode(enteredPasscode: string): boolean {
-      return (
-        this.$state.hasPasscode &&
+    isValidPasscode: (state) => {
+      return ((enteredPasscode: string) => (
+        state.hasPasscode &&
         enteredPasscode.length === 6 &&
-        this.$state.passcode === enteredPasscode
-      );
+        enteredPasscode === state.passcode
+      ))
     },
+  },
+
+  actions: {
+    // isValidPasscode(enteredPasscode: string): boolean {
+    //   return (
+    //     this.$state.hasPasscode &&
+    //     enteredPasscode.length === 6 &&
+    //     this.$state.passcode === enteredPasscode
+    //   );
+    // },
 
     unlockApp() {
       this.$state.isUnlocked = true;
@@ -48,22 +69,19 @@ export const useHasAuthStore = defineStore('has-auth', {
         this.$state.hasPasscode = true;
         console.log('passcode is done reading');
       } catch (e) {
-        console.log(
-          `Probably not stored. Error reading passcode - ${e.message}. `
-        );
+        console.log(`Probably not stored. Error reading passcode - ${e.message}. `);
       }
     },
 
     async performBiometrics() {
       const verified = await NativeBiometric.verifyIdentity({
-        reason: 'Allow HiveAuth App to use biometrics for App unlock',
-        title: 'Unlock',
-        subtitle: 'Unlock HiveAuth App with Biometrics',
-        description:
-          'Provide your FaceID or Touch ID to unlock the HiveAuth App',
+        reason: i18n.t('store_auth.biometrics_reason'),
+        title: i18n.t('store_auth.biometrics_title'),
+        subtitle: i18n.t('store_auth.biometrics_subtitle'),
+        description: i18n.t('store_auth.biometrics_description'),
       })
-        .then(() => true)
-        .catch(() => false);
+      .then(() => true)
+      .catch(() => false);
 
       return verified;
     },
@@ -71,7 +89,7 @@ export const useHasAuthStore = defineStore('has-auth', {
     async readPasscodeFromBiometrics() {
       try {
         const credentials = await NativeBiometric.getCredentials({
-          server: 'https:/hiveauth.com',
+          server: CREDENTIALS_SERVER,
         });
         const passcode = credentials.password;
         if (passcode === null) {
@@ -91,7 +109,7 @@ export const useHasAuthStore = defineStore('has-auth', {
       await NativeBiometric.setCredentials({
         username: 'passcode',
         password: passcode,
-        server: 'https:/hiveauth.com',
+        server: CREDENTIALS_SERVER,
       });
     },
 
@@ -101,7 +119,7 @@ export const useHasAuthStore = defineStore('has-auth', {
         await SecureStorage.set('passcode', passcode, true, false);
         this.$state.passcode = passcode;
         this.$state.hasPasscode = true;
-      } catch (e) {
+      } catch (e: any) {
         console.log(`Error saving passcode - ${e.message}. `);
       }
     },
