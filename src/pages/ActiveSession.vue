@@ -16,12 +16,12 @@
 
         <q-item-section>
           <q-item-label>{{ session.auth.app.name }}</q-item-label>
-          <q-item-label caption lines="1">{{ session.auth.app.description }}<br />Valid till {{ getDateInTimeAgoFormat(session.auth.expire) }}</q-item-label>
+          <q-item-label caption lines="1">{{ session.auth.app.description }}<br />{{$t('sessions.valid')}} {{ formatDate(session.auth.expire) }}</q-item-label>
         </q-item-section>
       </q-item></q-list
     >
     <div class="absolute-center" v-if="sessions.length === 0">
-      No active sessions found
+      {{$t('sessions.empty')}}
     </div>
   </q-page>
 </template>
@@ -32,11 +32,7 @@ import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useHasStorageStore } from 'src/stores/has-storage';
 import { useHasPathStore } from 'src/stores/has-path';
-import {
-  AccountAuthModel,
-  AccountAuth,
-  AccountAuthApp,
-} from 'src/models/account-auth-model';
+import { AccountAuth } from 'src/models/account-auth-model';
 import dayjs from 'dayjs';
 // import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -58,21 +54,20 @@ async function reloadStorageSessions() {
   await storeHASStorage.readStorage();
   const accounts = storeHASStorage.accountsJson;
   console.log(`Found ${accounts.length} accounts`);
-  let sessionData = [] as ActiveSessionData[];
+  sessions.value = [] as ActiveSessionData[];
   accounts.forEach((account) => {
     account.auths.forEach((auth) => {
-      sessionData.push({
+      sessions.value.push({
         name: account.name,
         auth: auth,
       });
     });
   });
-  console.log(`Found ${sessionData.length} sessionData`);
-  sessions.value = sessionData;
+  console.log(`Found ${sessions.value.length} sessions`);
 }
 
-function getDateInTimeAgoFormat(date: string) {
-  return dayjs(date).format('YYYY-MM-DD hh:mm:ss')
+function formatDate(timestamp: number) {
+  return dayjs(timestamp).format('YYYY-MM-DD hh:mm:ss')
 }
 
 // hooks
