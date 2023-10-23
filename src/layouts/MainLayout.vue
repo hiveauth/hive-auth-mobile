@@ -221,10 +221,12 @@ interface SignChallengeData {
   rejection: string;
 }
 
+const PKSA_NAME = 'HiveAuth Mobile'
+
 const storeApp = useAppStore()
 const storeHASAuth = useHasAuthStore();
 const storeHASStorage = useHasStorageStore();
-const storeHASKeys = useHasKeysStore();
+const storeKeys = useHasKeysStore();
 const router = useRouter();
 
 const whiteListOperationTypes = [
@@ -410,23 +412,23 @@ async function getPublicKey(key: string) {
 async function handleKeyAck() {
   if (data.value.keyServer) {
     try {
-      await storeHASKeys.readKeys();
-      const keys = storeHASKeys.keysJson;
+      await storeKeys.readKeys();
+      const keys = storeKeys.keysJson;
       if (keys.length > 0 && storeHASAuth.isUnlocked) {
-        let accountsWithPOK = [];
+        let accounts = [];
         for await (const account of keys) {
           checkUsername(account.name);
           const pokValue = await getPOK(account.name, '', keys);
-          accountsWithPOK.push({
+          accounts.push({
             name: account.name,
             pok: pokValue,
           });
         }
-        if (accountsWithPOK.length > 0) {
+        if (accounts.length > 0) {
           const request = {
             cmd: 'register_req',
-            app: storeHASStorage.pksa_name,
-            accounts: accountsWithPOK,
+            app: PKSA_NAME,
+            accounts: accounts,
           };
           HASSend(JSON.stringify(request));
         }
@@ -489,8 +491,8 @@ function rejectRequestButtonTapped() {
 async function handleAuthReq(payload: any) {
   assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
   assert( payload.data && typeof payload.data == 'string', 'invalid payload (data)');
-  await storeHASKeys.readKeys();
-  const keys = storeHASKeys.keysJson;
+  await storeKeys.readKeys();
+  const keys = storeKeys.keysJson;
   const requestAccount = payload.account as string;
   const accounts = keys.filter((a) => a.name == requestAccount);
   const payloadData = payload.data as string;
@@ -744,8 +746,8 @@ async function handleSignReq(payload: any) {
   if (auth === undefined || auth === null) return;
   assert(signReqData.key_type && typeof signReqData.key_type == 'string' && data.value.keyTypes.includes(signReqData.key_type), 'invalid data (key_type)');
   assert(signReqData.ops && signReqData.ops.length > 0, 'invalid data (ops)');
-  await storeHASKeys.readKeys();
-  const keys = storeHASKeys.keysJson;
+  await storeKeys.readKeys();
+  const keys = storeKeys.keysJson;
   const keyPrivate = getPrivateKey(payload.account, signReqData.key_type, keys);
   const pokValue = await getPOK(payload.account, payload.uuid, keys);
   const opType = signReqData.ops[0][0] as string;
@@ -852,8 +854,8 @@ async function handleChallengeReq(payload: any) {
       data.value.keyTypes.includes(challengeReqData.key_type),
     'invalid data (key_type)'
   );
-  await storeHASKeys.readKeys();
-  const keys = storeHASKeys.keysJson;
+  await storeKeys.readKeys();
+  const keys = storeKeys.keysJson;
   const keyPrivate = getPrivateKey(payload.account, challengeReqData.key_type, keys);
   const pokValue = await getPOK(payload.account, payload.uuid, keys);
   console.log('Got POK');
@@ -1035,10 +1037,10 @@ async function frequentChecker() {
       const hasServer = lastQRData?.host ?? storeHASStorage.has_server;
       data.value.hasServer = hasServer;
       startWebsocket();
-    } else if (storeHASKeys.didUpdate === true) {
+    } else if (storeKeys.didUpdate === true) {
       data.value.wsClient?.close();
       data.value.wsClient = null;
-      storeHASKeys.didUpdate = false;
+      storeKeys.didUpdate = false;
       startWebsocket();
     }
   }

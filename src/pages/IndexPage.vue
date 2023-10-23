@@ -61,7 +61,7 @@ export default defineComponent({
   components: {},
   setup() {
     const $q = useQuasar();
-    const hasKeysStore = useHasKeysStore();
+    const storeKeys = useHasKeysStore();
     const data = ref({
       hiveusername: '',
       hiveuserkey: '',
@@ -75,18 +75,12 @@ export default defineComponent({
         const allPublicKeys = await dhiveClient.getUserPublicKeys(username);
         console.log(JSON.stringify(allPublicKeys));
         try {
-          const privateKey = dhiveClient.privateKeyFromString(
-            data.value.hiveuserkey
-          );
+          const privateKey = dhiveClient.privateKeyFromString(data.value.hiveuserkey);
           const publicKey = dhiveClient.publicKeyFrom(privateKey);
           console.log(publicKey);
-          let currentKeys = hasKeysStore.keysJson;
-          let accountFilter = currentKeys.filter(
-            (account) => account.name === username
-          );
-          let noAccountFilter = currentKeys.filter(
-            (account) => account.name !== username
-          );
+          let currentKeys = storeKeys.keysJson;
+          const accountFilter = currentKeys.filter((account) => account.name === username);
+          const noAccountFilter = currentKeys.filter((account) => account.name !== username);
           let keyType = 'Private Key';
           if (accountFilter.length === 0) {
             // account is not added
@@ -110,11 +104,11 @@ export default defineComponent({
             }
             if (shouldSave) {
               currentKeys.push(newAccount);
-              await hasKeysStore.update(currentKeys);
+              await storeKeys.update(currentKeys);
             }
           } else {
             // account is already added
-            let existingAccount: KeysModel = accountFilter[0];
+            const existingAccount: KeysModel = accountFilter[0];
             let shouldSave = false;
             if (publicKey === allPublicKeys.active) {
               existingAccount.active = data.value.hiveuserkey;
@@ -134,7 +128,7 @@ export default defineComponent({
             }
             if (shouldSave) {
               currentKeys = [...noAccountFilter, existingAccount];
-              await hasKeysStore.update(currentKeys);
+              await storeKeys.update(currentKeys);
             }
           }
           $q.loading.hide('validating_keys');

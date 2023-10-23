@@ -17,14 +17,8 @@ export const useHasStorageStore = defineStore('has-storage', {
         return JSON.parse(state.accounts) as AccountAuthModel[];
       }
     },
-    pksa_name: () => 'HiveAuth App',
     auth_req_secret: () => process.env.AUTH_REQ_SECRET,
     auth_timeout_days: () => 30,
-    auth_req_approve: () => true,
-    auto_approve_auth_req: () => true,
-    auth_req_reject: () => false,
-    sign_req_reject: () => true,
-    challenge_req_reject: () => false,
     hive_api: () => process.env.HIVE_API || DEFAULT_HIVE_API,
     has_server: () => process.env.HAS_SERVER || DEFAULT_HAS_SERVER,
     hideEncryptedData: () => true,
