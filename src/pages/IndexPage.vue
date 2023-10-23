@@ -52,7 +52,7 @@
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import dhiveClient from 'src/helper/dhive-client';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import { KeysModel } from 'src/models/keys-model';
 
@@ -169,9 +169,8 @@ export default defineComponent({
     return { data, validateKeys };
   },
   mounted() {
-    const store = useHasPathStore();
-    store.updateTo('index', 'Import Keys');
-    console.log('At import keys page');
+    const storeApp = useAppStore();
+    storeApp.path = 'Import Keys';
   },
 });
 </script>

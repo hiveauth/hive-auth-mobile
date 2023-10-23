@@ -31,7 +31,7 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useHasStorageStore } from 'src/stores/has-storage';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { AccountAuth } from 'src/models/account-auth-model';
 import dayjs from 'dayjs';
 // import relativeTime from 'dayjs/plugin/relativeTime';
@@ -44,7 +44,7 @@ interface ActiveSessionData {
 const $q = useQuasar()
 const { t } = useI18n(), $t = t
 const storeHASStorage = useHasStorageStore();
-const storeHASPath = useHasPathStore();
+const storeApp = useAppStore();
 
 // data
 const sessions = ref([] as ActiveSessionData[]);
@@ -72,10 +72,9 @@ function formatDate(timestamp: number) {
 
 // hooks
 onMounted(() => {
-  storeHASPath.updateTo('active-sessions', 'Active Sessions');
-  console.log('At Active sessions Page');
+  storeApp.path = 'Sessions';
   reloadStorageSessions();
-}
+})
 
 </script>
 

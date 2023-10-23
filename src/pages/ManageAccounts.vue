@@ -73,11 +73,10 @@
 <script lang="ts">
 import { ref } from 'vue';
 import { defineComponent } from 'vue';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import { useQuasar } from 'quasar';
 import { KeysModel } from 'src/models/keys-model';
-import { useRouter } from 'vue-router';
 import { Clipboard } from '@capacitor/clipboard';
 
 interface ManageAccountDisplay {
@@ -92,7 +91,6 @@ export default defineComponent({
   name: 'manage-accounts',
   setup() {
     const hasKeysStore = useHasKeysStore();
-    const router = useRouter();
 
     function loadKeys() {
       const keysJson = hasKeysStore.keysJson;
@@ -212,9 +210,8 @@ export default defineComponent({
     };
   },
   mounted() {
-    const store = useHasPathStore();
-    store.updateTo('manage-accounts', 'Manage Keys');
-    console.log('At Manage Accounts page');
+    const storeApp = useAppStore();
+    storeApp.path = 'Manage Keys';
     this.loadKeys();
   },
 });

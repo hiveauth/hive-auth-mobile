@@ -16,7 +16,7 @@
           <q-icon name="download" />
         </q-item-section>
 
-        <q-item-section> Import </q-item-section>
+        <q-item-section> Import Keys</q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -36,7 +36,7 @@
           <q-icon name="people" />
         </q-item-section>
 
-        <q-item-section> Active Sessions </q-item-section>
+        <q-item-section> Sessions </q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -46,7 +46,7 @@
           <q-icon name="info" />
         </q-item-section>
 
-        <q-item-section> About Us </q-item-section>
+        <q-item-section> About </q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -76,7 +76,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { useHasAuthStore } from 'src/stores/has-auth';
 import { useRouter } from 'vue-router';
 
@@ -124,11 +124,8 @@ export default defineComponent({
     };
   },
   mounted() {
-    const store = useHasPathStore();
-    store.updateTo('main-menu', 'Main Menu');
-    console.log('At Main Menu Page');
+    const storeApp = useAppStore();
+    storeApp.path = 'Menu';
   },
 });
 </script>
-
-<style scoped></style>

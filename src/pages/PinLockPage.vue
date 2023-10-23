@@ -76,7 +76,7 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { useHasAuthStore } from 'src/stores/has-auth';
 import { useHasKeysStore } from 'src/stores/has-keys';
 import { useHasStorageStore } from 'src/stores/has-storage';
@@ -87,7 +87,6 @@ const router = useRouter();
 const storeHASAuth = useHasAuthStore();
 const storeHASKeys = useHasKeysStore();
 const storeHASStorage = useHasStorageStore();
-const storeHASPath = useHasPathStore();
 
 // data
 const doWeHaveDeviceBiometrics = ref(false)
@@ -122,7 +121,7 @@ async function verifyCode() {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: $t("unlock.failed"),
+      message: $t('unlock.failed'),
       icon: 'dangerous',
     });
   }
@@ -154,7 +153,8 @@ async function setPasscode() {
 
 // hooks
 onMounted(() => {
-  storeHASPath.updateTo('', 'Passcode');
+  const storeApp = useAppStore();
+  storeApp.path = 'Passcode'
   reloadBiometrics();
 })
 
