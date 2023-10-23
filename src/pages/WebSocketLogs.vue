@@ -24,7 +24,6 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
-import { useHasLogsStore } from 'src/stores/has-logs';
 import { useAppStore } from 'src/stores/storeApp';
 import { Clipboard } from '@capacitor/clipboard';
 import dayjs from 'dayjs';
@@ -34,10 +33,10 @@ dayjs.extend(relativeTime);
 
 const $q = useQuasar()
 const { t } = useI18n(), $t = t
-const storeHASLogs = useHasLogsStore();
+const storeApp = useAppStore();
 
 // data
-const logs = ref(storeHASLogs.logs)
+const logs = ref(storeApp.logs)
 
 // functions
 async function copyKeyToClipboard(string: string) {
@@ -67,7 +66,6 @@ function getDateInTimeAgoFormat(date: string) {
 
 // hooks
 onMounted(() => {
-  const storeApp = useAppStore();
   storeApp.path = 'Logs';
 })
 
