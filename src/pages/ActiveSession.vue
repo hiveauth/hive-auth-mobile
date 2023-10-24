@@ -75,7 +75,7 @@ onMounted(() => {
   storeHASPath.updateTo('active-sessions', 'Active Sessions');
   console.log('At Active sessions Page');
   reloadStorageSessions();
-}
+});
 
 </script>
 

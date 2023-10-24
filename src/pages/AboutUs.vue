@@ -197,27 +197,28 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { defineComponent, onMounted } from 'vue';
 import { useHasPathStore } from 'src/stores/has-path';
 import { AppLauncher } from '@capacitor/app-launcher';
+import { _ } from 'app/src-capacitor/www/assets/index.0e17d104';
 
+async function openLink(string: string) {
+  await AppLauncher.openUrl({
+    url: string,
+  });
+}
+
+onMounted(() => {
+  const store = useHasPathStore();
+  store.updateTo('about-us', 'About Us');
+  console.log('At About Us Page');
+});
+</script>
+
+<script lang="ts">
 export default defineComponent({
-  setup() {
-    async function openLink(string: string) {
-      await AppLauncher.openUrl({
-        url: string,
-      });
-    }
-    return {
-      openLink,
-    };
-  },
-  mounted() {
-    const store = useHasPathStore();
-    store.updateTo('about-us', 'About Us');
-    console.log('At About Us Page');
-  },
+  name: 'about-us',
 });
 </script>
 
