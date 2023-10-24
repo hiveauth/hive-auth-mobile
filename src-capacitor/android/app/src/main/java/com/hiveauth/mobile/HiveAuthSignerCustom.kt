@@ -1,4 +1,4 @@
-package com.hiveauth.authsigner
+package com.hiveauth.mobile
 
 import android.annotation.SuppressLint
 import android.net.Uri
