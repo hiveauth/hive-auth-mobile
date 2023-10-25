@@ -16,7 +16,7 @@
           <q-icon name="download" />
         </q-item-section>
 
-        <q-item-section> Import </q-item-section>
+        <q-item-section> Import Keys</q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -36,7 +36,7 @@
           <q-icon name="people" />
         </q-item-section>
 
-        <q-item-section> Active Sessions </q-item-section>
+        <q-item-section> Sessions </q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -46,7 +46,7 @@
           <q-icon name="info" />
         </q-item-section>
 
-        <q-item-section> About Us </q-item-section>
+        <q-item-section> About </q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -74,61 +74,53 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { useHasPathStore } from 'src/stores/has-path';
-import { useHasAuthStore } from 'src/stores/has-auth';
+<script setup lang="ts">
+import { defineComponent, onMounted } from 'vue';
+import { useAppStore } from 'src/stores/storeApp';
 import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  setup() {
-    const hasAuthStore = useHasAuthStore();
-    const router = useRouter();
+const storeApp = useAppStore();
+const router = useRouter();
 
-    function lockApp() {
-      hasAuthStore.lockApp();
-      router.replace({ name: 'passcode-lock' });
-    }
+// functions
+function lockApp() {
+  storeApp.lockApp();
+  router.replace({ name: 'passcode-lock' });
+}
 
-    function navToManageAccounts() {
-      router.replace({ name: 'manage-accounts' });
-    }
+function navToManageAccounts() {
+  router.replace({ name: 'manage-accounts' });
+}
 
-    function navToAboutUs() {
-      router.replace({ name: 'about-us' });
-    }
+function navToAboutUs() {
+  router.replace({ name: 'about-us' });
+}
 
-    function navToScanner() {
-      router.replace({ name: 'qr-scanner' });
-    }
+function navToScanner() {
+  router.replace({ name: 'qr-scanner' });
+}
 
-    function navToActiveSessions() {
-      router.replace({ name: 'active-sessions' });
-    }
+function navToActiveSessions() {
+  router.replace({ name: 'active-sessions' });
+}
 
-    function navToWebSocketLogs() {
-      router.replace({ name: 'websocket-logs' });
-    }
+function navToWebSocketLogs() {
+  router.replace({ name: 'websocket-logs' });
+}
 
-    function navToImportKeys() {
-      router.replace({ name: 'import-key' });
-    }
-    return {
-      lockApp,
-      navToAboutUs,
-      navToActiveSessions,
-      navToWebSocketLogs,
-      navToManageAccounts,
-      navToScanner,
-      navToImportKeys,
-    };
-  },
-  mounted() {
-    const store = useHasPathStore();
-    store.updateTo('main-menu', 'Main Menu');
-    console.log('At Main Menu Page');
-  },
-});
+function navToImportKeys() {
+  router.replace({ name: 'import-key' });
+}
+
+// Hooks
+onMounted(() => {
+  storeApp.path = 'Menu';
+})
+
 </script>
 
-<style scoped></style>
+<script lang="ts">
+export default defineComponent({
+  name: 'mainMenu'
+});
+</script>

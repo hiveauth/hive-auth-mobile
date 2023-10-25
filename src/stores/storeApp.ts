@@ -5,17 +5,26 @@ import { NativeBiometric } from 'capacitor-native-biometric';
 import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
 
-const i18n = createI18n({
-  locale: 'en-US',
-  messages
-}).global
+const i18n = createI18n({locale: 'en-US', messages}).global
 
 // TODO: Replace CREDENTIALS_SERVER
 //const CREDENTIALS_SERVER = 'hiveauth.mobile'
 const CREDENTIALS_SERVER = 'https:/hiveauth.com'
 
-export const useHasAuthStore = defineStore('has-auth', {
+
+export interface logItem {
+  id: string;
+  log: string;
+
+}
+
+export const useAppStore = defineStore('storeApp', {
   state: () => ({
+    logs: [] as logItem[],
+    isHasServerConnected: false,
+    path: '',
+    scan_value: '',
+    // app authentication
     isUnlocked: false,
     passcode: '',
     hasPasscode: false,
@@ -33,21 +42,13 @@ export const useHasAuthStore = defineStore('has-auth', {
   },
 
   actions: {
-    // isValidPasscode(enteredPasscode: string): boolean {
-    //   return (
-    //     this.$state.hasPasscode &&
-    //     enteredPasscode.length === 6 &&
-    //     this.$state.passcode === enteredPasscode
-    //   );
-    // },
-
     unlockApp() {
-      this.$state.isUnlocked = true;
+      this.isUnlocked = true;
     },
 
     lockApp() {
-      this.$state.isUnlocked = false;
-      this.$state.hasPasscode = true;
+      this.isUnlocked = false;
+      this.hasPasscode = true;
     },
 
     async doWeHaveNativeBiometrics() {
@@ -65,8 +66,8 @@ export const useHasAuthStore = defineStore('has-auth', {
         if (value === null) {
           return;
         }
-        this.$state.passcode = value;
-        this.$state.hasPasscode = true;
+        this.passcode = value;
+        this.hasPasscode = true;
         console.log('passcode is done reading');
       } catch (e) {
         console.log(`Probably not stored. Error reading passcode - ${e.message}. `);
@@ -95,8 +96,8 @@ export const useHasAuthStore = defineStore('has-auth', {
         if (passcode === null) {
           return;
         }
-        this.$state.passcode = passcode;
-        this.$state.hasPasscode = true;
+        this.passcode = passcode;
+        this.hasPasscode = true;
         console.log('passcode is done reading');
       } catch (e) {
         console.log(
@@ -117,8 +118,8 @@ export const useHasAuthStore = defineStore('has-auth', {
       try {
         await SecureStorage.setSynchronize(false);
         await SecureStorage.set('passcode', passcode, true, false);
-        this.$state.passcode = passcode;
-        this.$state.hasPasscode = true;
+        this.passcode = passcode;
+        this.hasPasscode = true;
       } catch (e: any) {
         console.log(`Error saving passcode - ${e.message}. `);
       }

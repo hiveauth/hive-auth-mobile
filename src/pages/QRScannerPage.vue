@@ -1,15 +1,6 @@
 <template>
   <q-page>
     <div class="q-pa-lg">
-      <!-- <div class="row q-mt-lg">
-        <q-btn
-          class="col q-pt-sm q-pb-sm"
-          rounded
-          color="primary"
-          label="Scan QR Code"
-          @click="startScan()"
-        />
-      </div> -->
     </div>
   </q-page>
 </template>
@@ -19,15 +10,13 @@ import { defineComponent, onMounted, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
-import { useQrResultStore } from 'src/stores/qr-result-store';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 const $q = useQuasar()
 const { t } = useI18n(), $t = t
 const router = useRouter();
-const storeQRResult = useQrResultStore();
-const storeHASPath = useHasPathStore();
+const storeApp = useAppStore();
 
 // functions
 async function startScan() {
@@ -43,13 +32,13 @@ async function startScan() {
           message: `QR Result - ${result.content}`,
           icon: 'camera',
         });
-        storeQRResult.rawQRString = result.content;
+        storeApp.scan_value = result.content;
         router.replace('main-menu');
       } else {
         $q.notify({
           color: 'negative',
           position: 'bottom',
-          message: $t("scan.error_scan"),
+          message: $t('scan.error_scan'),
           icon: 'camera',
         });
       }
@@ -57,7 +46,7 @@ async function startScan() {
       $q.notify({
         color: 'negative',
         position: 'bottom',
-        message: $t("scan.error_permission_denied"),
+        message: $t('scan.error_permission_denied'),
         icon: 'camera',
       });
     }
@@ -65,7 +54,7 @@ async function startScan() {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: $t("scan.error_start_scan"),
+      message: $t('scan.error_start_scan'),
       icon: 'camera',
     });
   }
@@ -73,8 +62,7 @@ async function startScan() {
 
 // hooks
 onMounted(() => {
-  storeHASPath.updateTo('qr-scanner', 'Scan QR Code');
-  console.log('At QR Scanner page');
+  storeApp.path = 'Scan QR Code'
   startScan();
 })
 
@@ -86,6 +74,6 @@ onUnmounted(() => {
 
 <script lang="ts">
 export default defineComponent({
-  name: 'page_scanner'
+  name: 'page_scan'
 });
 </script>

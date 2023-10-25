@@ -24,8 +24,7 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
-import { useHasLogsStore } from 'src/stores/has-logs';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useAppStore } from 'src/stores/storeApp';
 import { Clipboard } from '@capacitor/clipboard';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -34,11 +33,10 @@ dayjs.extend(relativeTime);
 
 const $q = useQuasar()
 const { t } = useI18n(), $t = t
-const storeHASLogs = useHasLogsStore();
-const storeHASPath = useHasPathStore();
+const storeApp = useAppStore();
 
 // data
-const logs = ref(storeHASLogs.logs)
+const logs = ref(storeApp.logs)
 
 // functions
 async function copyKeyToClipboard(string: string) {
@@ -68,8 +66,7 @@ function getDateInTimeAgoFormat(date: string) {
 
 // hooks
 onMounted(() => {
-  storeHASPath.updateTo('websocket-logs', 'Websocket Logs');
-  console.log('At WebSocket Logs page');
+  storeApp.path = 'Logs';
 })
 
 </script>
