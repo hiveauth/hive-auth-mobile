@@ -6,9 +6,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
-        path: 'index',
+        path: 'import-key',
         name: 'import-key',
-        component: () => import('pages/IndexPage.vue'),
+        component: () => import('pages/ImportKey.vue'),
       },
       {
         path: 'qr',
