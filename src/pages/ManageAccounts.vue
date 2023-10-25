@@ -98,16 +98,11 @@ const selectedData = ref({
 
 // computed
 const count = computed(() => {
-  console.log("count:",storeAccounts.accounts.length)
   return storeAccounts.accounts.length
 })
 
 // functions
 async function loadKeys() {
-  // TODO: move to app initialization
-  await storeAccounts.read()
-  console.log("Loading keys",JSON.stringify(storeAccounts.accounts))
-
   for(const account of storeAccounts.accounts) {
     if (account.keys.active) {
       keys.value.push({

@@ -49,10 +49,6 @@ const storeApp = useAppStore();
 const sessions = ref([] as ISessionData[]);
 
 // functions
-async function loadSessions() {
-  console.log(`Found ${sessions.value.length} sessions`);
-}
-
 function formatDate(timestamp: number) {
   return dayjs(timestamp).format('YYYY-MM-DD hh:mm:ss')
 }

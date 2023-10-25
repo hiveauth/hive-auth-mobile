@@ -68,9 +68,8 @@ export const useAppStore = defineStore('storeApp', {
         }
         this.passcode = value;
         this.hasPasscode = true;
-        console.log('passcode is done reading');
       } catch (e) {
-        console.log(`Probably not stored. Error reading passcode - ${e.message}. `);
+        console.error(`storeApp.readCode failed - ${e.message}. `);
       }
     },
 
@@ -98,10 +97,8 @@ export const useAppStore = defineStore('storeApp', {
         }
         this.passcode = passcode;
         this.hasPasscode = true;
-        console.log('passcode is done reading');
       } catch (e) {
-        console.log(
-          `Probably not stored. Error reading passcode - ${e.message}. `
+        console.error(`storeApp.readPasscodeFromBiometrics failed - ${e.message}`
         );
       }
     },
@@ -121,7 +118,7 @@ export const useAppStore = defineStore('storeApp', {
         this.passcode = passcode;
         this.hasPasscode = true;
       } catch (e: any) {
-        console.log(`Error saving passcode - ${e.message}. `);
+        console.error(`Error saving passcode - ${e.message}. `);
       }
     },
   },

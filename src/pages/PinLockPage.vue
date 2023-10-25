@@ -79,15 +79,11 @@ import { useRouter } from 'vue-router';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 
-import { useHasStorageStore } from 'src/stores/has-storage';
-
 const $q = useQuasar();
 const { t } = useI18n(), $t = t
 const router = useRouter();
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
-
-const storeHASStorage = useHasStorageStore();
 
 // data
 const doWeHaveDeviceBiometrics = ref(false)
@@ -110,9 +106,7 @@ async function verifyCode() {
   const biometricsResult = await storeApp.performBiometrics();
   if (biometricsResult && storeApp.isValidPasscode(PIN.value)) {
     storeApp.unlockApp();
-    console.log("call storeAccount.read")
     await storeAccounts.read();
-    await storeHASStorage.readStorage();
     router.replace({ name: 'main-menu' });
   } else {
     PIN.value=''
@@ -131,7 +125,6 @@ async function setPasscode() {
     await storeApp.readPasscodeFromBiometrics();
     storeApp.unlockApp();
     await storeAccounts.read();
-    await storeHASStorage.readStorage();
     $q.notify({
       color: 'positive',
       position: 'bottom',

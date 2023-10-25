@@ -77,11 +77,6 @@ function onOK () {
 function onCancel() {
   onDialogCancel()
 }
-
-// Hooks
-onMounted(() => {
-  console.log('onMounted')
-})
 </script>
 
 <script lang="ts">

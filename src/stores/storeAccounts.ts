@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
-// import { KeysModel } from 'src/models/keys-model';
 
 await SecureStorage.setSynchronize(false);
 
@@ -62,7 +61,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
           this.accounts = JSON.parse(value);
         }
       } catch (e) {
-        console.log(`storeAccounts.read failed - ${e.message}`);
+        console.error(`storeAccounts.read failed - ${e.message}`);
       }
       return this.accounts
     },
@@ -83,7 +82,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
         await SecureStorage.set('accounts', JSON.stringify(this.accounts));
         this.didUpdate = true;
       } catch (e) {
-        console.log(`storeAccounts.update failed - ${e.message}. `);
+        console.error(`storeAccounts.update failed - ${e.message}. `);
       }
     },
   },

@@ -84,10 +84,6 @@
     onDialogCancel()
   }
   
-  // Hooks
-  onMounted(() => {
-    console.log('onMounted', JSON.stringify(props.auth))
-  })
   </script>
   
   <script lang="ts">

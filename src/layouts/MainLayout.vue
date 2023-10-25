@@ -53,16 +53,12 @@ import { defineComponent, ref , onMounted} from 'vue';
 import { useQuasar } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
-
-import { useHasStorageStore } from 'src/stores/has-storage';
 import { useRouter } from 'vue-router';
+
 import CryptoJS from 'crypto-js';
 import assert from 'assert';
-
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
 import dhiveClient from 'src/helper/dhive-client';
-
-import {AccountAuth, AccountAuthSettings } from 'src/models/account-auth-model';
 
 import DialogAuthReq from 'components/DialogAuthReq.vue';
 import DialogSignReq from 'components/DialogSignReq.vue';
@@ -83,29 +79,12 @@ interface IAuthReqPayload {
 const PKSA_NAME = 'HiveAuth Mobile'
 const KEYS_MPA = ["memo","posting","active"] // Types sorted by permission level - do not change it
 const KEYS_PA = ["posting","active"] // Types sorted by permission level - do not change it
+const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
 
 const $q = useQuasar();
 const storeApp = useAppStore()
 const storeAccounts = useAccountsStore();
-const storeHASStorage = useHasStorageStore();
 const router = useRouter();
-
-const whitelistOperationTypes = [
-  'vote',
-  'comment',
-  'account_update2',
-  'comment_options',
-  'delete_comment',
-  'custom_json',
-  'custom_binary',
-  'claim_reward_balance',
-  'claim_reward_balance2',
-  'create_proposal',
-  'remove_proposal',
-  'update_proposal',
-  'update_proposal_votes',
-  'vote2',
-];
 
 const operations = [
   { type:'account_create', key:'active'},
@@ -179,7 +158,7 @@ const data = ref({
   pingRate: (60 * 1000) as number,
   pingTimeout: (5 * 60 * 1000) as number,
   hasProtocol: 1 as number,
-  hasServer: storeHASStorage.has_server,
+  hasServer: DEFAULT_HAS_SERVER,
   lastQRDL: '',
 });
 
@@ -358,7 +337,7 @@ async function handleKeyAck() {
         HASSend(JSON.stringify(request));
       }
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
     }
   }
 }
@@ -549,7 +528,6 @@ function checkTransaction(sign_req_data: any, auth: IAccountAuth) {
   const opSet = new Set()
 
   for(const op of sign_req_data.ops) {
-    console.log("op",JSON.stringify(op))
     const opType = op[0]
     const opInfo = operations.find(o => o.type == opType)
     assert(opInfo, `Unknown operation ${opType}`)
@@ -597,8 +575,6 @@ async function handleSignReq(payload: any) {
     assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
 
     const { auth, data: sign_req_data } = await validatePayload(payload);
-
-    console.log(`auth: ${JSON.stringify(auth)} sign_req_data: ${JSON.stringify(sign_req_data)}`);
 
     if (!auth) return;
     // validate decrypted sign_req_data (nonce has already been validated by validatePayload)
@@ -715,7 +691,6 @@ async function handleChallengeReq(payload: any) {
 }
 
 async function processMessage(message: string) {
-  console.log(`processing message: ${message}`);
   try {
     const payload = typeof message == 'string' ? JSON.parse(message) : message;
     assert(payload.cmd && typeof payload.cmd == 'string', 'invalid payload (cmd)');
@@ -755,10 +730,10 @@ async function processMessage(message: string) {
 
 async function startWebsocket() {
   storeApp.isHasServerConnected = false;
-  console.log('Starting websocket with ' + data.value.hasServer);
+  console.log('Websocket - Connecting  to ' + data.value.hasServer);
   data.value.wsClient = new WebSocket(data.value.hasServer as string);
   data.value.wsClient.onopen = async function (e) {
-    console.log('HAS connection established');
+    console.log('Websocket - Connected');
     HASSend(JSON.stringify({ cmd: 'key_req' }));
   };
 
@@ -771,7 +746,7 @@ async function startWebsocket() {
     try {
       processMessage(event.data);
     } catch (e) {
-      console.log(e.stack);
+      console.error(e.stack);
     }
   };
 
@@ -779,10 +754,10 @@ async function startWebsocket() {
     // connection closed, discard the old websocket
     data.value.wsClient = null;
     if (event.wasClean) {
-      console.log('HAS Connection closed');
+      console.log('Websocket - Connection closed');
     } else {
       // e.g. server process killed or network down
-      console.log('HAS Connection died');
+      console.log('Websocket - Connection died');
       // Wait 1 second before trying to reconnect
       await new Promise((resolve) => setTimeout(resolve, 1000));
       // restart a new websocket
@@ -791,7 +766,7 @@ async function startWebsocket() {
   };
 
   data.value.wsClient.onerror = function (error) {
-    console.log(`[error] ${error.message}`);
+    console.error(`[error] ${error.message}`);
   };
 
   data.value.wsClient?.on('pong', () => {
@@ -806,7 +781,7 @@ function heartbeat() {
     data.value.wsHeartbeat + data.value.pingTimeout < Date.now()
   ) {
     // HAS server no more responding - try to reconnect
-    console.log('HAS Connection lost');
+    console.log('Websocket - Connection lost');
     data.value.wsClient = null;
     startWebsocket();
   } else {
@@ -847,7 +822,7 @@ async function frequentChecker() {
     }
     if (data.value.wsClient === null) {
       const lastQRData = getLastQRDL();
-      const hasServer = lastQRData?.host ?? storeHASStorage.has_server;
+      const hasServer = lastQRData?.host ?? DEFAULT_HAS_SERVER;
       data.value.hasServer = hasServer;
       startWebsocket();
     } else if (storeAccounts.didUpdate === true) {
