@@ -11,7 +11,7 @@
         </q-item-section>
         <q-item-section>
           <q-item-label>More info</q-item-label>
-          <q-item-label caption>HiveAuth  Website</q-item-label>
+          <q-item-label caption>HiveAuth Website</q-item-label>
         </q-item-section>
       </q-item>
 
