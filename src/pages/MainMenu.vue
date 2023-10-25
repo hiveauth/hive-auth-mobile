@@ -74,58 +74,53 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { defineComponent, onMounted } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
-import { useHasAuthStore } from 'src/stores/has-auth';
 import { useRouter } from 'vue-router';
 
+const storeApp = useAppStore();
+const router = useRouter();
+
+// functions
+function lockApp() {
+  storeApp.lockApp();
+  router.replace({ name: 'passcode-lock' });
+}
+
+function navToManageAccounts() {
+  router.replace({ name: 'manage-accounts' });
+}
+
+function navToAboutUs() {
+  router.replace({ name: 'about-us' });
+}
+
+function navToScanner() {
+  router.replace({ name: 'qr-scanner' });
+}
+
+function navToActiveSessions() {
+  router.replace({ name: 'active-sessions' });
+}
+
+function navToWebSocketLogs() {
+  router.replace({ name: 'websocket-logs' });
+}
+
+function navToImportKeys() {
+  router.replace({ name: 'import-key' });
+}
+
+// Hooks
+onMounted(() => {
+  storeApp.path = 'Menu';
+})
+
+</script>
+
+<script lang="ts">
 export default defineComponent({
-  setup() {
-    const hasAuthStore = useHasAuthStore();
-    const router = useRouter();
-
-    function lockApp() {
-      hasAuthStore.lockApp();
-      router.replace({ name: 'passcode-lock' });
-    }
-
-    function navToManageAccounts() {
-      router.replace({ name: 'manage-accounts' });
-    }
-
-    function navToAboutUs() {
-      router.replace({ name: 'about-us' });
-    }
-
-    function navToScanner() {
-      router.replace({ name: 'qr-scanner' });
-    }
-
-    function navToActiveSessions() {
-      router.replace({ name: 'active-sessions' });
-    }
-
-    function navToWebSocketLogs() {
-      router.replace({ name: 'websocket-logs' });
-    }
-
-    function navToImportKeys() {
-      router.replace({ name: 'import-key' });
-    }
-    return {
-      lockApp,
-      navToAboutUs,
-      navToActiveSessions,
-      navToWebSocketLogs,
-      navToManageAccounts,
-      navToScanner,
-      navToImportKeys,
-    };
-  },
-  mounted() {
-    const storeApp = useAppStore();
-    storeApp.path = 'Menu';
-  },
+  name: 'mainMenu'
 });
 </script>

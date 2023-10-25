@@ -30,39 +30,26 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
-import { useHasStorageStore } from 'src/stores/has-storage';
 import { useAppStore } from 'src/stores/storeApp';
-import { AccountAuth } from 'src/models/account-auth-model';
+import { useAccountsStore, IAccountAuth } from 'src/stores/storeAccounts';
 import dayjs from 'dayjs';
 // import relativeTime from 'dayjs/plugin/relativeTime';
 
-interface ActiveSessionData {
+interface ISessionData {
   name: string;
-  auth: AccountAuth;
+  auth: IAccountAuth;
 }
 
 const $q = useQuasar()
 const { t } = useI18n(), $t = t
-const storeHASStorage = useHasStorageStore();
+const storeAccounts = useAccountsStore();
 const storeApp = useAppStore();
 
 // data
-const sessions = ref([] as ActiveSessionData[]);
+const sessions = ref([] as ISessionData[]);
 
 // functions
-async function reloadStorageSessions() {
-  await storeHASStorage.readStorage();
-  const accounts = storeHASStorage.accountsJson;
-  console.log(`Found ${accounts.length} accounts`);
-  sessions.value = [] as ActiveSessionData[];
-  accounts.forEach((account) => {
-    account.auths.forEach((auth) => {
-      sessions.value.push({
-        name: account.name,
-        auth: auth,
-      });
-    });
-  });
+async function loadSessions() {
   console.log(`Found ${sessions.value.length} sessions`);
 }
 
@@ -73,7 +60,15 @@ function formatDate(timestamp: number) {
 // hooks
 onMounted(() => {
   storeApp.path = 'Sessions';
-  reloadStorageSessions();
+  sessions.value = []
+  storeAccounts.accounts.forEach((account) => {
+    account.auths.forEach((auth) => {
+      sessions.value.push({
+        name: account.name,
+        auth: auth,
+      });
+    });
+  });
 })
 
 </script>

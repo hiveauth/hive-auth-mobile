@@ -31,141 +31,9 @@
 
     <q-page-container>
       <router-view />
-      <q-dialog v-model="data.showConfirmDialog" persistent>
-        <q-card>
-          <q-card-section class="row items-center">
-            <q-avatar color="primary" text-color="white" size="40px">
-              <q-img
-                :src="data.confirmDialogAvatar"
-                spinner-color="white"
-                style="height: 40px; max-width: 40px"
-              />
-            </q-avatar>
-            <span class="q-ml-md">{{ data.confirmDialogTitle }}</span>
-            <span class="q-ml-sm">{{ data.confirmDialogSubtitle }}</span>
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn
-              flat
-              label="Reject"
-              color="primary"
-              v-close-popup
-              @click="rejectRequestButtonTapped"
-            />
-            <q-btn
-              flat
-              label="Approve"
-              color="primary"
-              v-close-popup
-              @click="approveRequestButtonTapped"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <q-dialog v-model="data.showSignRequestConfirmDialog" persistent>
-        <q-card>
-          <q-card-section class="row items-center">
-            <q-avatar color="primary" text-color="white" size="40px">
-              <q-img
-                :src="data.signRequestDialogAppData?.app.icon"
-                spinner-color="white"
-                style="height: 40px; max-width: 40px"
-              />
-            </q-avatar>
-            <span class="q-ml-md">{{
-              data.signRequestDialogAppData?.app.name
-            }}</span>
-            <span class="q-ml-sm">{{
-              data.signRequestDialogAppData?.app.description
-            }}</span>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-section style="max-height: 50vh" class="scroll">
-            <p>
-              {{ JSON.stringify(data.signRequestApproveData.ops, null, 4) }}
-            </p>
-          </q-card-section>
-          <q-separator />
-
-          <q-card-section>
-            <q-checkbox v-model="data.signRequestWhiteListFlag" label="" />
-            Do not prompt again for -
-            {{ data.signRequestApproveData.opType }}
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-actions align="right">
-            <q-btn
-              flat
-              label="Reject"
-              color="primary"
-              v-close-popup
-              @click="rejectSignRequestTapped"
-            />
-            <q-btn
-              flat
-              label="Approve"
-              color="primary"
-              v-close-popup
-              @click="approveSignRequestTapped"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <q-dialog v-model="data.shouldShowSignChallengeDialog" persistent>
-        <q-card>
-          <q-card-section class="row items-center">
-            <q-avatar color="primary" text-color="white" size="40px">
-              <q-img
-                :src="data.signChallengeData?.auth?.app.icon"
-                spinner-color="white"
-                style="height: 40px; max-width: 40px"
-              />
-            </q-avatar>
-            <span class="q-ml-md">{{
-              data.signChallengeData?.auth?.app.name
-            }}</span>
-            <span class="q-ml-sm">{{
-              data.signChallengeData?.auth?.app.description
-            }}</span>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-section>
-            {{ data.signChallengeData?.auth?.app.name }} would like to sign a
-            challenge to verify that you have the valid key.
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-actions align="right">
-            <q-btn
-              flat
-              label="Reject"
-              color="primary"
-              v-close-popup
-              @click="rejectSignChallenge"
-            />
-            <q-btn
-              flat
-              label="Approve"
-              color="primary"
-              v-close-popup
-              @click="approveSignChallenge"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
     </q-page-container>
 
-    <q-footer v-if="storeHASAuth.isUnlocked">
+    <q-footer v-if="storeApp.isUnlocked">
       <q-toolbar>
         <q-btn
           flat
@@ -182,60 +50,53 @@
 
 <script setup lang="ts">
 import { defineComponent, ref , onMounted} from 'vue';
+import { useQuasar } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
-import { useHasAuthStore } from 'src/stores/has-auth';
+import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
+
 import { useHasStorageStore } from 'src/stores/has-storage';
 import { useRouter } from 'vue-router';
 import CryptoJS from 'crypto-js';
 import assert from 'assert';
-import { useHasKeysStore } from 'src/stores/has-keys';
+
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
-import { KeysModel } from 'src/models/keys-model';
-// import { useQuasar } from 'quasar';
 import dhiveClient from 'src/helper/dhive-client';
 
-import {
-  AccountAuth,
-  AccountAuthModel,
-  AccountAuthApp,
-  AccountAuthSettings,
-} from 'src/models/account-auth-model';
-import { store } from 'quasar/wrappers';
-import { resourceLimits } from 'worker_threads';
+import {AccountAuth, AccountAuthSettings } from 'src/models/account-auth-model';
+
+import DialogAuthReq from 'components/DialogAuthReq.vue';
+import DialogSignReq from 'components/DialogSignReq.vue';
+import DialogChallengeReq from 'components/DialogChallengeReq.vue';
 
 interface PrivateKey {
   key_type: string;
   key_private: string;
 }
 
-interface QRAuthReqPayload {
+interface IAuthReqPayload {
   account: string;
   uuid: string;
   key: string;
   host: string;
 }
 
-interface SignChallengeData {
-  auth: AccountAuth;
-  approval: string;
-  rejection: string;
-}
-
 const PKSA_NAME = 'HiveAuth Mobile'
+const KEYS_MPA = ["memo","posting","active"] // Types sorted by permission level - do not change it
+const KEYS_PA = ["posting","active"] // Types sorted by permission level - do not change it
 
+const $q = useQuasar();
 const storeApp = useAppStore()
-const storeHASAuth = useHasAuthStore();
+const storeAccounts = useAccountsStore();
 const storeHASStorage = useHasStorageStore();
-const storeKeys = useHasKeysStore();
 const router = useRouter();
 
-const whiteListOperationTypes = [
+const whitelistOperationTypes = [
   'vote',
   'comment',
   'account_update2',
   'comment_options',
   'delete_comment',
-  // 'custom_json',
+  'custom_json',
   'custom_binary',
   'claim_reward_balance',
   'claim_reward_balance2',
@@ -246,6 +107,70 @@ const whiteListOperationTypes = [
   'vote2',
 ];
 
+const operations = [
+  { type:'account_create', key:'active'},
+  { type:'account_create_with_delegation', key:'active'},
+  { type:'account_update', key:'active'},
+  { type:'account_update2', key:'active'},
+  { type:'account_witness_proxy', key:'active'},
+  { type:'account_witness_vote', key:'active'},
+  { type:'cancel_transfer_from_savings', key:'active'},
+  { type:'challenge_authority', key:'active'},
+  { type:'change_recovery_account', key:'owner'},
+  { type:'claim_account', key:'active'},
+  { type:'claim_reward_balance', key:'posting'},
+  { type:'claim_reward_balance2', key:'posting'},
+  { type:'collateralized_convert', key:'active'},
+  { type:'comment', key:'posting'},
+  { type:'comment_options', key:'posting'},
+  { type:'convert', key:'active'},
+  { type:'create_claimed_account', key:'active'},
+  { type:'create_proposal', key:'posting'},
+  { type:'custom', key:'active'},
+  { type:'custom_binary', key:'posting'},
+  { type:'custom_json', key:'posting'},
+  { type:'decline_voting_rights', key:'owner'},
+  { type:'delegate_vesting_shares', key:'active'},
+  { type:'delete_comment', key:'posting'},
+  { type:'escrow_approve', key:'active'},
+  { type:'escrow_dispute', key:'active'},
+  { type:'escrow_release', key:'active'},
+  { type:'escrow_transfer', key:'active'},
+  { type:'feed_publish', key:'active'},
+  { type:'limit_order_cancel', key:'active'},
+  { type:'limit_order_create', key:'active'},
+  { type:'limit_order_create2', key:'active'},
+  { type:'pow', key:'active'},
+  { type:'pow2', key:'active'},
+  { type:'price', key:'active'},
+  { type:'prove_authority', key:'active'},
+  { type:'recover_account', key:'owner'},
+  { type:'recurrent_transfer', key:'active'},
+  { type:'remove_proposal', key:'posting'},
+  { type:'report_over_production', key:'active'},
+  { type:'request_account_recovery', key:'active'},
+  { type:'reset_account', key:'active'},
+  { type:'set_reset_account', key:'owner'},
+  { type:'set_withdraw_vesting_route', key:'active'},
+  { type:'smt_contribute', key:'active'},
+  { type:'smt_create', key:'active'},
+  { type:'smt_set_runtime_parameters', key:'active'},
+  { type:'smt_set_setup_parameters', key:'active'},
+  { type:'smt_setup', key:'active'},
+  { type:'smt_setup_emissions', key:'active'},
+  { type:'transfer', key:'active'},
+  { type:'transfer_from_savings', key:'active'},
+  { type:'transfer_to_savings', key:'active'},
+  { type:'transfer_to_vesting', key:'active'},
+  { type:'update_proposal', key:'posting'},
+  { type:'update_proposal_votes', key:'posting'},
+  { type:'vote', key:'posting'},
+  { type:'vote2', key:'posting'},
+  { type:'withdraw_vesting', key:'active'},
+  { type:'witness_set_properties', key:'active'},
+  { type:'witness_update', key:'active'},
+]
+
 const data = ref({
   isDrawerOpen: false,
   wsClient: null as WebSocket | null,
@@ -254,31 +179,19 @@ const data = ref({
   pingRate: (60 * 1000) as number,
   pingTimeout: (5 * 60 * 1000) as number,
   hasProtocol: 1 as number,
-  keyTypes: ['memo', 'posting', 'active'] as string[],
   hasServer: storeHASStorage.has_server,
-  lastQRResultString: '',
-  approvalString: '',
-  rejectionString: '',
-  showConfirmDialog: false,
-  confirmDialogAvatar: 'https://images.hive.blog/u/hiveauth/avatar',
-  confirmDialogTitle: '',
-  confirmDialogSubtitle: '',
-  confirmNewAccountName: '',
-  confirmNewAccountAuth: null as AccountAuth | null,
-  showSignRequestConfirmDialog: false,
-  signRequestApproveData: null as any | null,
-  signRequestWhiteListFlag: false,
-  signRequestRejectData: null as any | null,
-  signRequestDialogAppData: null as AccountAuth | null,
-  signChallengeData: null as SignChallengeData | null,
-  shouldShowSignChallengeDialog: false,
+  lastQRDL: '',
 });
 
 function goBack() {
   router.replace({ name: 'main-menu' });
 }
 
-function hideEncryptedData(str) {
+function datetoISO(date: Date) {
+  return date.toISOString().replace(/T|Z/g," ")
+}
+
+function hideEncryptedData(str: string) {
   if (/*config.hideEncryptedData*/ true) {
     str = str.replaceAll(/"data":"(.*?)"/g, '"data":<...>');
     str = str.replaceAll(/"pok":"(.*?)"/g, '"pok":<...>');
@@ -295,14 +208,17 @@ function HASSend(message: string) {
   data.value.wsClient?.send(message);
 }
 
-function getLastQRResult() {
+/**
+ * Return the payload from the last QRCode or DeepLink processed
+ */
+function getLastQRDL(): IAuthReqPayload | null{
   if (
-    data.value.lastQRResultString.length === 0 ||
-    data.value.lastQRResultString.includes('has://auth_req/') == false
+    data.value.lastQRDL.length === 0 ||
+    data.value.lastQRDL.includes('has://auth_req/') == false
   ) {
     return null;
   }
-  const base64Data = data.value.lastQRResultString.split('has://auth_req/')[1];
+  const base64Data = data.value.lastQRDL.split('has://auth_req/')[1];
   const base64DecodedString = atob(base64Data);
   const result = JSON.parse(base64DecodedString);
   return {
@@ -310,7 +226,7 @@ function getLastQRResult() {
     uuid: result.uuid,
     key: result.key,
     host: result.host,
-  } as QRAuthReqPayload;
+  } as IAuthReqPayload;
 }
 
 function checkUsername(name: string) {
@@ -321,35 +237,45 @@ function checkUsername(name: string) {
   assert(name == name.toLowerCase(), `${err} (case)`);
 }
 
-function getPrivateKey(name: string, type: string, keys: KeysModel[]) {
-  const account = keys.find((o) => o.name == name);
+/**
+ * Get an account private key from the store
+ * 
+ * @param name Hive username
+ * @param type name of private key requested
+ * @returns the account's private key
+ * @throws {Error} if no account key is stored or if type is invalid
+ */
+function getPrivateKey(name: string, type: string) {
+  const account = storeAccounts.accounts.find(o => o.name === name)
+  assert(account, `Unknown account ${name}`)
+
   switch (type) {
     case 'posting':
-      return account?.posting;
+      return account.keys.posting;
     case 'active':
-      return account?.active;
+      return account.keys.active;
     case 'memo':
-      return account?.memo;
+      return account.keys.memo;
     default:
-      throw new Error(`invalid key type ${type}`);
+      throw new Error(`Invalid key type ${type}`);
   }
 }
 
-function getLowestPrivateKey(name: string, keys: KeysModel[]) {
-  for (const key_type of data.value.keyTypes) {
-    const key_private = getPrivateKey(name, key_type, keys);
+function getLowestPrivateKey(name: string) {
+  for (const key_type of KEYS_MPA) {
+    const key_private = getPrivateKey(name, key_type);
     if (key_private) return { key_type, key_private } as PrivateKey;
   }
   return undefined;
 }
 
-async function getPOK(name: string, value: string, keys: KeysModel[]) {
+async function getPOK(name: string, value: string) {
   if (value.length === 0) {
     value = Date.now().toString();
   }
-  const result = getLowestPrivateKey(name, keys);
+  const result = getLowestPrivateKey(name);
   const key_private = result?.key_private;
-  assert(key_private, `No private available for ${name}`);
+  assert(key_private, `No private key available for ${name}`);
   const response = await HASCustomPlugin.callPlugin({
     callId: Date.now().toString(),
     method: 'getProofOfKey',
@@ -409,29 +335,27 @@ async function getPublicKey(key: string) {
   return JSON.parse(response.dataString).data;
 }
 
+interface IRequestAccount {
+  name: string,
+  pok: any
+}
+
 async function handleKeyAck() {
-  if (data.value.keyServer) {
+  if (data.value.keyServer && storeApp.isUnlocked) {
     try {
-      await storeKeys.readKeys();
-      const keys = storeKeys.keysJson;
-      if (keys.length > 0 && storeHASAuth.isUnlocked) {
-        let accounts = [];
-        for await (const account of keys) {
-          checkUsername(account.name);
-          const pokValue = await getPOK(account.name, '', keys);
-          accounts.push({
-            name: account.name,
-            pok: pokValue,
-          });
-        }
-        if (accounts.length > 0) {
-          const request = {
-            cmd: 'register_req',
-            app: PKSA_NAME,
-            accounts: accounts,
-          };
-          HASSend(JSON.stringify(request));
-        }
+      const request = {
+        cmd: 'register_req',
+        app: PKSA_NAME,
+        accounts: [] as IRequestAccount[],
+      };
+
+      for await (const account of storeAccounts.accounts) {
+        checkUsername(account.name);
+        const pokValue = await getPOK(account.name, '');
+        request.accounts.push({name: account.name, pok: pokValue});
+      }
+      if (request.accounts.length > 0) {
+        HASSend(JSON.stringify(request));
       }
     } catch (e) {
       console.log(e.message);
@@ -439,211 +363,155 @@ async function handleKeyAck() {
   }
 }
 
-async function approveRequestButtonTapped() {
-  if (data.value.confirmNewAccountAuth !== null) {
-    let name = data.value.confirmNewAccountName as string;
-    await storeHASStorage.readStorage();
-    let storeAccounts = storeHASStorage.accountsJson;
-    let storeAccountsOfUser = storeAccounts.filter(
-      (account) => account.name === name
-    );
-    let otherAccounts = storeAccounts.filter(
-      (account) => account.name !== name
-    );
-    if (storeAccountsOfUser.length === 0) {
-      storeAccountsOfUser = [
-        {
-          name: name,
-          auths: [data.value.confirmNewAccountAuth],
-        } as AccountAuthModel,
-      ];
-    } else {
-      storeAccountsOfUser[0].auths = [
-        ...storeAccountsOfUser[0].auths,
-        data.value.confirmNewAccountAuth,
-      ];
+function tryDecrypt(data: any, key: any): string | null {
+  try {
+    const res = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+    if (res !== '') {
+      // decryption succedded
+      return res
     }
-    await storeHASStorage.updateAsJsonString(JSON.stringify([...storeAccountsOfUser, ...otherAccounts]));
+  } catch(e) {
+    // expected decryption failure - nothing to do
   }
-  HASSend(data.value.approvalString);
-  data.value.showConfirmDialog = false;
-  data.value.approvalString = '';
-  data.value.rejectionString = '';
-  data.value.showConfirmDialog = false;
-  data.value.confirmDialogAvatar = 'https://images.hive.blog/u/hiveauth/avatar';
-  data.value.confirmDialogTitle = '';
-  data.value.confirmDialogSubtitle = '';
-  data.value.confirmNewAccountAuth = null;
-  data.value.confirmNewAccountName = '';
+  return null
 }
 
-function rejectRequestButtonTapped() {
-  HASSend(data.value.rejectionString);
-  data.value.showConfirmDialog = false;
-  data.value.approvalString = '';
-  data.value.rejectionString = '';
-  data.value.showConfirmDialog = false;
-  data.value.confirmDialogAvatar = 'https://images.hive.blog/u/hiveauth/avatar';
-  data.value.confirmDialogTitle = '';
-  data.value.confirmDialogSubtitle = '';
+async function approveAuthRequest(payload: any, account: IAccount, auth_key: string, timeout?: number | undefined) {
+  // Prepare reply
+  const auth_ack_data = {}
+  // Decrypt data received with encryption key received offline from the app
+  const auth_req_data = JSON.parse(CryptoJS.AES.decrypt(payload.data, auth_key).toString(CryptoJS.enc.Utf8))
+  // clean storage from expired auths
+  account.auths = account.auths.filter(o => o.expire > Date.now()) 
+  // Check if the matching auth it's still valid
+  const validAuth = account.auths.find(o => o.key==auth_key && o.expire > Date.now())
+  if(validAuth) {
+    // auth is valid, reuse it and approve auth_req
+    auth_ack_data.expire = validAuth.expire
+  } else {
+    // If not provided, the default expiration time for an auth_key is 24 hours
+    auth_ack_data.expire = Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000))
+  }
+  // Check if the app also requires the PKSA to sign a challenge
+  if(auth_req_data.challenge) {
+    const challenge_data = auth_req_data.challenge
+    assert(challenge_data.key_type && typeof(challenge_data.key_type)=="string" && KEYS_MPA.includes(challenge_data.key_type), `invalid payload (challenge_data.key_type)`)
+    assert(challenge_data.challenge && typeof(challenge_data.challenge)=="string", `invalid payload (challenge_data.challenge)`)
+    // Check if the PKSA stores the requested private key
+    const key_private = getPrivateKey(payload.account,challenge_data.key_type)
+    if(key_private)  {
+      // const pubKey = ecc.PrivateKey.fromWif(key_private).toPublic().toString()
+      // const sigHex = ecc.Signature.signBuffer(challenge_data.challenge,key_private).toHex()
+
+      const res = await getSignedChallenge(challenge_data.challenge,key_private);
+      const challengeDataParts = res.split('___');
+      const pubKey = challengeDataParts[0]
+      const sigHex = challengeDataParts[1]
+      auth_ack_data.challenge = { pubkey:pubKey, challenge:sigHex }
+    }
+  }
+  // Encrypt auth_ack_data before sending it to the HAS server
+  const data = CryptoJS.AES.encrypt(JSON.stringify(auth_ack_data), auth_key).toString()
+  HASSend(JSON.stringify({cmd:"auth_ack", uuid:payload.uuid, data:data, pok:getPOK(payload.account, payload.uuid) }))
+  if(!validAuth) {
+    // Add new auth into storage
+    account.auths.push({
+      expire:auth_ack_data.expire,
+      key:auth_key,
+      app:auth_req_data.app,
+      whitelists: [],
+      ts_create: datetoISO(new Date()),
+      ts_lastused: datetoISO(new Date()),
+      ts_expire: datetoISO(new Date(auth_ack_data.expire)) 
+    })
+  } else {
+    validAuth.ts_lastused = datetoISO(new Date())
+  }
+  // Update storage
+  storeAccounts.updateAccount(account)
 }
 
 async function handleAuthReq(payload: any) {
-  assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
-  assert( payload.data && typeof payload.data == 'string', 'invalid payload (data)');
-  await storeKeys.readKeys();
-  const keys = storeKeys.keysJson;
-  const requestAccount = payload.account as string;
-  const accounts = keys.filter((a) => a.name == requestAccount);
-  const payloadData = payload.data as string;
-  if (
-    (payloadData.length > 0 &&
-      accounts.length > 0 &&
-      storeHASAuth.isUnlocked) == false
-  )
-    return;
-  const account = accounts[0];
-  let authKey: string | null = null;
+  try {
+    // Do not process auth_req when app is locked
+    if (!storeApp.isUnlocked) return;
 
-  // TODO: remove code
-  // If the PKSA run in "service mode " or for debug purpose, the APP can pass the encryption key (auth_key) to the PKSA with the auth_req payload
-  if (payload.auth_key && storeHASStorage.auth_req_secret) {
-    // Decrypt the provided auth_key using the pre-shared PKSA secret
-    authKey = CryptoJS.AES.decrypt(payload.auth_key, storeHASStorage.auth_req_secret).toString(CryptoJS.enc.Utf8);
-  }
-  // TODO: end of
+    assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
+    assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
 
-  await storeHASStorage.readStorage();
-  var storeAccounts = storeHASStorage.accountsJson;
-  var storeAccountsOfUser = storeAccounts.filter(
-    (account) => account.name === payload.account
-  );
-  let authKeyFromStoreAccountsOfUser = false;
-  if (!authKey && storeAccountsOfUser.length > 0) {
-    for (const auth of storeAccountsOfUser[0].auths.filter(
-      (o) => o.expire > Date.now()
-    )) {
-      try {
-        const res = CryptoJS.AES.decrypt(payload.data, auth.key).toString(
-          CryptoJS.enc.Utf8
-        );
-        if (res !== '') {
-          // decryption succedded - use this auth_key
-          authKey = auth.key;
-          authKeyFromStoreAccountsOfUser = true;
-          break;
+    const account = storeAccounts.accounts.find(o => o.name === payload.account);
+    if(!account) return // account is no more managed by PKSA
+
+    let auth_key: string | null = null;
+
+    // TODO: remove code
+    const AUTH_REQ_SECRET = "sHSQaahP9v8V8P86EnMqkGD2QgGsNF2w8MDxE6MFDCmevKfwMa"
+    // If the PKSA run in "service mode " or for debug purpose, the APP can pass the encryption key (auth_key) to the PKSA with the auth_req payload
+    if (payload.auth_key && AUTH_REQ_SECRET) {
+      // Decrypt the provided auth_key using the pre-shared PKSA secret
+      auth_key = tryDecrypt(payload.auth_key, AUTH_REQ_SECRET)
+    }
+    // TODO: end of
+
+    if (!auth_key) {
+      // check if the account store any non-expired auth_key that can decrypt the auth_req_data
+      for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
+        if (tryDecrypt(payload.data, auth.key)) {
+          // decryption succedded - automaticaly approve request
+          approveAuthRequest(payload, account, auth.key);
+          return
         }
-      } catch (e) {}
-    }
-  }
-  var lastQRResult = getLastQRResult();
-  if (lastQRResult !== null) {
-    try {
-      const res = CryptoJS.AES.decrypt(payload.data, lastQRResult.key).toString(CryptoJS.enc.Utf8);
-      if (res != '') {
-        authKey = lastQRResult.key;
       }
-    } catch (e) {}
-  }
-  if (authKey == null) return;
-  let approve = false;
-  let authAckData = {};
-  const timeout = (storeHASStorage.auth_timeout_days || 1) * 24 * 60 * 60 * 1000;
-  const authReqData = JSON.parse(CryptoJS.AES.decrypt(payload.data, authKey).toString(CryptoJS.enc.Utf8));
-  if (storeAccountsOfUser.length > 0 && authKey !== null) {
-    const storeAccountAuths = storeAccountsOfUser[0].auths.filter((o) => o.key === authKey && o.expire > Date.now());
-    if (storeAccountAuths.length > 0) {
-      approve = true;
-      authAckData.expire = storeAccountAuths[0].expire;
-    } else {
-      authAckData.expire = Date.now() + timeout;
     }
-  } else {
-    authAckData.expire = Date.now() + timeout;
-  }
-  if (authReqData.challenge) {
-    const challengeData = authReqData.challenge;
-    assert(
-      challengeData.key_type &&
-        typeof challengeData.key_type == 'string' &&
-        data.value.keyTypes.includes(challengeData.key_type),
-      'invalid payload (challenge_data.key_type)'
-    );
-    assert(
-      challengeData.challenge && typeof challengeData.challenge == 'string',
-      'invalid payload (challenge_data.challenge)'
-    );
-    const keyPrivate = getPrivateKey(payload.account, challengeData.key_type, keys);
-    if (keyPrivate) {
-      const resultDataOfSignedChallenge = await getSignedChallenge(challengeData.challenge, keyPrivate);
-      const challengeDataParts = resultDataOfSignedChallenge.split('___');
-      authAckData.challenge = {
-        pubkey: challengeDataParts[0],
-        challenge: challengeDataParts[1],
-      };
-    } else {
-      approve = false;
+    if (!auth_key) {
+      // try to retrieve auth_key from last QRCode or deep-link
+      const lastQRResult = getLastQRDL();
+      if (lastQRResult  && tryDecrypt(payload.data, lastQRResult.key)) {
+          auth_key = lastQRResult.key;
+      }
     }
-  }
-  const encryptedAuthAckData = CryptoJS.AES.encrypt(JSON.stringify(authAckData), authKey).toString();
-  const pokValue = await getPOK(payload.account, payload.uuid, keys);
-  const approvalString = JSON.stringify({
-    cmd: 'auth_ack',
-    uuid: payload.uuid,
-    data: encryptedAuthAckData,
-    pok: pokValue,
-  });
-  const encryptedRejectionData = CryptoJS.AES.encrypt(payload.uuid, authKey).toString();
-  const rejectionString = JSON.stringify({
-    cmd: 'auth_nack',
-    uuid: payload.uuid,
-    data: encryptedRejectionData,
-    pok: pokValue,
-  });
-  data.value.approvalString = approvalString;
-  data.value.rejectionString = rejectionString;
-  data.value.showConfirmDialog = true;
-  if (authReqData.app !== null) {
-    if (authReqData.app.icon !== null) {
-      data.value.confirmDialogAvatar = authReqData.app.icon;
-    }
-    if (authReqData.app.name !== null) {
-      data.value.confirmDialogTitle = authReqData.app.name;
-    }
-    if (authReqData.app.description !== null) {
-      data.value.confirmDialogSubtitle = authReqData.app.description;
-    }
-  }
-  if (authKeyFromStoreAccountsOfUser === false) {
-    let newAuth = {
-      expire: authAckData.expire,
-      key: authKey,
-      app: {
-        name: authReqData.app.name,
-        icon: authReqData.app.icon,
-        description: authReqData.app.description,
-      } as AccountAuthApp,
-      ts_create: new Date().toISOString(),
-      ts_expire: new Date().toISOString(),
-      ts_lastused: new Date().toISOString(),
-      nonce: undefined,
-      settings: {} as AccountAuthSettings,
-    } as AccountAuth;
-    data.value.confirmNewAccountName = account.name;
-    data.value.confirmNewAccountAuth = newAuth;
+    // No auth_key available - ignore request
+    if (!auth_key) return;
+    // ask user to approve or reject authentication request
+    const auth_req_data = JSON.parse(tryDecrypt(payload.data, auth_key) as string)
+    assert(auth_req_data?.app?.name && typeof auth_req_data?.app?.name == 'string', 'invalid payload (data.app.name)');
+
+    $q.dialog({
+      component: DialogAuthReq,
+      componentProps: {
+        // dialog props
+        persistent: true,
+        // custom props
+        name: payload.name,
+        auth_req_data: auth_req_data,
+        expire: payload.expire,
+      },
+    }).onOk(() => {
+      approveAuthRequest(payload, account, auth_key as string);
+    }).onCancel(() => {
+      const auth_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth_key).toString()
+      HASSend(JSON.stringify({cmd:"auth_nack", uuid:payload.uuid, data:auth_nack_data, pok:getPOK(payload.account, payload.uuid)}))
+    })
+  } catch (e) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: e.message,
+      icon: 'report_problem',
+    })
   }
 }
 
+/**
+ * Try to decrypt a payload using the auth keys stored by the related account
+ * 
+ * @param payload An encrypted payload
+ * @return the account, auth used to decrypt the payload and the decrypted payload data, or undefined is the payload couldn't be decrypted
+ * @throws {Error} if the nonce is invalid
+ */
 async function validatePayload(payload: any) {
-  await storeHASStorage.readStorage();
-
-  const storeAccounts = storeHASStorage.accountsJson;
-  const storeAccountsOfUser = storeAccounts.filter((o) => o.name === payload.account);
-  const otherAccounts = storeAccounts.filter((o) => o.name !== payload.account);
-
-  if ((storeAccountsOfUser.length > 0 && storeHASAuth.isUnlocked) == false)
-    return;
-  const account = storeAccountsOfUser[0];
+  // Check if the account is managed by the PKSA
+  const account = storeAccounts.accounts.find((o) => o.name === payload.account) as IAccount;
   if (account) {
     for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
       try {
@@ -654,11 +522,15 @@ async function validatePayload(payload: any) {
           // ignore error
         }
         if (decoded && decoded !== '') {
-          const decodedData = JSON.parse(decoded);
-          if (decodedData !== '') {
-            auth.nonce = decodedData.nonce;
-            await storeHASStorage.updateAsJsonString(JSON.stringify([...storeAccountsOfUser, ...otherAccounts]));
-            return { auth: auth, signReqData: decodedData };
+          const data = JSON.parse(decoded);
+          if (data !== '') {
+            // Decryption succeeded, check payload against replay attack
+            assert(data.nonce  > (auth.nonce || 0),'invalid (nonce)')
+            // update auth in storage with current nonce
+            auth.nonce = data.nonce;
+            await storeAccounts.updateAccount(account);
+            // Then return valid auth and decrypted payload data
+            return { auth, data };
           }
         }
       } catch (e) {
@@ -673,230 +545,175 @@ async function validatePayload(payload: any) {
   return undefined;
 }
 
-async function approveSignRequestTapped() {
-  // TODO: Encapsulate process in try/catch + display error
+function checkTransaction(sign_req_data: any, auth: IAccountAuth) {
+  let level = -1
+  let askApproval = false
+  let askWhitelist = false
+  const opSet = new Set()
 
-  await storeHASStorage.readStorage();
-  const storeAccounts = storeHASStorage.accountsJson;
-  const storeAccountsOfUser = storeAccounts.filter((o) => o.name === data.value.signRequestApproveData.username);
-  const otherAccounts = storeAccounts.filter((o) => o.name !== data.value.signRequestApproveData.username);
-  if (storeAccountsOfUser.length > 0) {
-    const storeAccount = storeAccountsOfUser[0];
+  for(const op of sign_req_data.ops) {
+    console.log("op",JSON.stringify(op))
+    const opType = op[0]
+    const opInfo = operations.find(o => o.type == opType)
+    assert(opInfo, `Unknown operation ${opType}`)
+    assert(opInfo.key!='owner', 'Transaction requires owner key')
 
-    // FIXME: Find auth by auth_key, not app name or icon!!!
-    const storeAccountAuths = storeAccount.auths.filter((o) =>  o.app.name === data.value.signRequestApproveData.appName &&
-                                                                o.app.icon === data.value.signRequestApproveData.appIcon);
-    if (storeAccountAuths.length > 0) {
-      let storeAccountOtherAuths = storeAccount.auths.filter((o) => o.app.name !== data.value.signRequestApproveData.appName &&
-                                                                    o.app.icon !== data.value.signRequestApproveData.appIcon);
-
-      // START - if user has updated the flag - re-write with new flag value
-      if (data.value.signRequestWhiteListFlag === true) {
-        if (storeAccountAuths[0].settings !== undefined) {
-          storeAccountAuths[0].settings[data.value.signRequestApproveData.opType] = true;
-        } else {
-          const operationType = data.value.signRequestApproveData.opType as string;
-          storeAccountAuths[0].settings = {[operationType]: true,} as AccountAuthSettings;
-        }
-        storeAccountsOfUser[0].auths = [...storeAccountOtherAuths,...storeAccountAuths,];
-        const accountsToWrite = [...otherAccounts, ...storeAccountsOfUser];
-        await storeHASStorage.updateAsJsonString(JSON.stringify(accountsToWrite));
+    level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
+    // Check if operation is already whitelisted
+    if (!auth.whitelists.includes(opType)) {
+      askApproval = true
+      // check is op can be whitelisted and manage special case of custom_json
+      if (opInfo.key == 'posting' && !(opType == 'custom_json' && (op[1] as any)?.required_auths.length > 0) ) {
+        askWhitelist = true
+        opSet.add(opType)
       }
-      // END - if user has updated the flag - re-write with new flag value
-
-      const res = await dhiveClient.client.broadcast.sendOperations(data.value.signRequestApproveData.ops, data.value.signRequestApproveData.privateKey);
-      HASSend(
-        JSON.stringify({
-          cmd: 'sign_ack',
-          uuid: data.value.signRequestApproveData.uuid,
-          data: res.id,
-          pok: data.value.signRequestApproveData.pokValue,
-        })
-      );
-      data.value.signRequestApproveData = null;
-      data.value.signRequestRejectData = null;
-      data.value.showSignRequestConfirmDialog = false;
-      data.value.signRequestDialogAppData = null;
     }
   }
+  // TODO: improve management of ops
+  if (opSet.size > 1) {
+    askWhitelist = false
+  }
+  return { level, askApproval, askWhitelist, opSet }
 }
 
-async function rejectSignRequestTapped() {
-  HASSend(
-    JSON.stringify({
-      cmd: 'sign_nack',
-      uuid: data.value.signRequestRejectData.uuid,
-      data: data.value.signRequestRejectData.data,
-      pok: data.value.signRequestRejectData.pok,
-    })
-  );
-  data.value.signRequestApproveData = null;
-  data.value.signRequestRejectData = null;
-  data.value.showSignRequestConfirmDialog = false;
-  data.value.signRequestDialogAppData = null;
+async function approveSignRequest(payload: any, sign_req_data: any, key_private: string) {
+  if(sign_req_data.broadcast) {
+    const res = await dhiveClient.client.broadcast.sendOperations(sign_req_data.ops, dhiveClient.privateKeyFromString(key_private))
+    HASSend(JSON.stringify({cmd:"sign_ack", uuid:payload.uuid, data:res.id, broadcast:payload.broadcast, pok:getPOK(payload.account, payload.uuid)}))
+  } else {
+    throw new Error("Transaction signing only is not enabled")
+    // To enable transaction signing, comment the above line and uncomment the following code.
+    //
+    // const tx = new Transaction
+    // tx.ops = ops
+    // const signed_tx = await hiveClient.broadcast.sign(tx, PrivateKey.from(key_private))
+    // HASSend(JSON.stringify({cmd:"sign_ack", uuid:uuid, broadcast:payload.broadcast, data:signed_tx, pok:getPOK(payload.account, payload.uuid)}))
+  }
 }
 
 async function handleSignReq(payload: any) {
-  assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
-  assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
-  const { auth, signReqData } = await validatePayload(payload);
+  try {
+    // Do not process sign_req when app is locked
+    if (!storeApp.isUnlocked) return;
 
-  console.log(`auth: ${JSON.stringify(auth)} signReqData: ${JSON.stringify(signReqData)}`);
+    assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
+    assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
 
-  if (auth === undefined || auth === null) return;
-  assert(signReqData.key_type && typeof signReqData.key_type == 'string' && data.value.keyTypes.includes(signReqData.key_type), 'invalid data (key_type)');
-  assert(signReqData.ops && signReqData.ops.length > 0, 'invalid data (ops)');
-  await storeKeys.readKeys();
-  const keys = storeKeys.keysJson;
-  const keyPrivate = getPrivateKey(payload.account, signReqData.key_type, keys);
-  const pokValue = await getPOK(payload.account, payload.uuid, keys);
-  const opType = signReqData.ops[0][0] as string;
-  if (
-    keyPrivate !== undefined &&
-    keyPrivate !== null &&
-    pokValue !== null &&
-    pokValue !== undefined
-  ) {
-    const signReqApprovalData = {
-      ops: signReqData.ops,
-      privateKey: dhiveClient.privateKeyFromString(keyPrivate),
-      uuid: payload.uuid,
-      pok: pokValue,
-      username: payload.account,
-      appName: auth.app.name,
-      appIcon: auth.app.icon,
-      opType: opType,
-    };
-    const encryptedRejectionData = CryptoJS.AES.encrypt(
-      payload.uuid,
-      auth.key
-    ).toString();
-    const signReqRejectionData = {
-      uuid: payload.uuid,
-      data: encryptedRejectionData,
-      pok: pokValue,
-    };
-    let isWhiteListedOperation = false;
-    if (whiteListOperationTypes.includes(opType)) {
-      await storeHASStorage.readStorage();
-      const storeAccounts = storeHASStorage.accountsJson;
-      const storeAccountsOfUser = storeAccounts.filter((o) => o.name === payload.account);
-      if (storeAccountsOfUser.length > 0) {
-        // FIXME: Find auth by auth_key, not app name or icon!!!
-        const storeAccount = storeAccountsOfUser[0];
-        const storeAccountWhiteListAuths = storeAccount.auths.filter(
-          (o) =>
-            o.settings !== undefined &&
-            o.settings != null &&
-            opType in o.settings &&
-            o.settings[opType] === true &&
-            o.app.name === auth.app.name &&
-            o.app.icon === auth.app.icon
-        );
-        if (storeAccountWhiteListAuths.length > 0) {
-          isWhiteListedOperation = true;
-        }
-      }
-      if (isWhiteListedOperation) {
-        const res = await dhiveClient.client.broadcast.sendOperations(
-          signReqApprovalData.ops,
-          signReqApprovalData.privateKey
-        );
-        HASSend(
-          JSON.stringify({
-            cmd: 'sign_ack',
-            uuid: signReqApprovalData.uuid,
-            data: res.id,
-            pok: pokValue,
-          })
-        );
-      } else {
-        data.value.signRequestDialogAppData = auth as AccountAuth;
-        data.value.signRequestApproveData = signReqApprovalData;
-        data.value.signRequestRejectData = signReqRejectionData;
-        data.value.showSignRequestConfirmDialog = true;
-        data.value.signRequestWhiteListFlag = false;
-      }
+    const { auth, data: sign_req_data } = await validatePayload(payload);
+
+    console.log(`auth: ${JSON.stringify(auth)} sign_req_data: ${JSON.stringify(sign_req_data)}`);
+
+    if (!auth) return;
+    // validate decrypted sign_req_data (nonce has already been validated by validatePayload)
+    assert(sign_req_data.key_type && typeof sign_req_data.key_type == 'string' && KEYS_PA.includes(sign_req_data.key_type), 'invalid data (key_type)');
+    assert(sign_req_data.ops && sign_req_data.ops.length > 0, 'invalid data (ops)');
+    assert(sign_req_data.broadcast!=undefined, "invalid data (broadcast)")
+
+    const check = checkTransaction(sign_req_data, auth)
+
+    // Check if the PKSA stores the requested private key
+    //const key_private = getPrivateKey(payload.account, sign_req_data.key_type);
+    const key_type = KEYS_PA[check.level]
+    const key_private = getPrivateKey(payload.account, key_type);
+    assert(key_private,`Private ${key_type} key is missing`)
+
+    if (!check.askApproval) {
+      await approveSignRequest(payload, sign_req_data, key_private)
     } else {
-      data.value.signRequestDialogAppData = auth as AccountAuth;
-      data.value.signRequestApproveData = signReqApprovalData;
-      data.value.signRequestRejectData = signReqRejectionData;
-      data.value.showSignRequestConfirmDialog = true;
-      data.value.signRequestWhiteListFlag = false;
+      const opType = [...check.opSet][0]
+      $q.dialog({
+        component: DialogSignReq,
+        componentProps: {
+          // dialog props
+          persistent: true,
+          // custom props
+          name: payload.name,
+          auth: auth,
+          sign_req_data: sign_req_data,
+          askWhitelist: check.askWhitelist,
+          opType: opType,
+          expire: payload.expire,
+        },
+      }).onOk(async (whitelist) => {
+        await approveSignRequest(payload, sign_req_data, key_private)
+        if (whitelist) {
+          auth.whitelist.push(opType)
+        }
+      }).onCancel(() => {
+        const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth.key).toString()
+        HASSend(JSON.stringify({cmd:"sign_nack", uuid:payload.uuid, data:sign_nack_data, pok:getPOK(payload.account, payload.uuid)}))
+      })      
     }
+  } catch (e) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: e.message,
+      icon: 'report_problem',
+    })
   }
 }
 
-function approveSignChallenge() {
-  if (data.value.signChallengeData == null) return;
-  HASSend(data.value.signChallengeData.approval);
-  data.value.signChallengeData = null;
-  data.value.shouldShowSignChallengeDialog = false;
-}
+async function approveChallengeRequest(payload: any, challenge_req_data: any, key_private: string, auth: IAccountAuth) {
+  let challengeResponse = '';
+  if (challenge_req_data.decrypt) {
+    // Decrypt challenge
+    challengeResponse = await getDecryptedChallenge(challenge_req_data.challenge, key_private);
+  } else {
+    // Encrypt challenge
+    const res = await getSignedChallenge(challenge_req_data.challenge, key_private);
+    const challengeDataParts = res.split('___');
+    challengeResponse = challengeDataParts[1];
+  }
+  const key_public = await getPublicKey(key_private);
+  const challenge_ack_data = {pubkey: key_public, challenge: challengeResponse};
+  // Encrypt the challenge_ack_data
+  const data = CryptoJS.AES.encrypt(JSON.stringify(challenge_ack_data),auth.key).toString();
+  HASSend(JSON.stringify({cmd:"challenge_ack", uuid:payload.uuid, data:data, pok:getPOK(payload.account, payload.uuid)}))  
 
-function rejectSignChallenge() {
-  if (data.value.signChallengeData == null) return;
-  HASSend(data.value.signChallengeData.rejection);
-  data.value.signChallengeData = null;
-  data.value.shouldShowSignChallengeDialog = false;
 }
 
 async function handleChallengeReq(payload: any) {
-  console.log(`In handle challenge request: ${payload}`);
-  assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
-  assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
-  const { auth, signReqData } = await validatePayload(payload);
-  const challengeReqData = signReqData;
-  if (auth === undefined || auth === null) return;
-  assert(
-    challengeReqData.key_type &&
-      typeof challengeReqData.key_type == 'string' &&
-      data.value.keyTypes.includes(challengeReqData.key_type),
-    'invalid data (key_type)'
-  );
-  await storeKeys.readKeys();
-  const keys = storeKeys.keysJson;
-  const keyPrivate = getPrivateKey(payload.account, challengeReqData.key_type, keys);
-  const pokValue = await getPOK(payload.account, payload.uuid, keys);
-  console.log('Got POK');
-  if (
-    keyPrivate !== undefined &&
-    keyPrivate !== null &&
-    pokValue !== null &&
-    pokValue !== undefined
-  ) {
-    const publicKey = await getPublicKey(keyPrivate);
-    console.log('Got public key');
-    let challengeResponse = '';
-    if (challengeReqData.decrypt) {
-      challengeResponse = await getDecryptedChallenge(challengeReqData.challenge, keyPrivate);
-    } else {
-      const resultDataOfSignedChallenge = await getSignedChallenge(challengeReqData.challenge, keyPrivate);
-      const challengeDataParts = resultDataOfSignedChallenge.split('___');
-      challengeResponse = challengeDataParts[1];
-    }
-    console.log('Got challenge');
-    const challengeAckData = {pubkey: publicKey, challenge: challengeResponse};
-    const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(challengeAckData),auth.key).toString();
-    const approvalString = JSON.stringify({
-      cmd: 'challenge_ack',
-      uuid: payload.uuid,
-      data: encryptedData,
-      pok: pokValue,
-    });
-    const encryptedRejectionData = CryptoJS.AES.encrypt(payload.uuid, auth.key).toString();
-    const rejectionString = JSON.stringify({
-      cmd: 'challenge_nack',
-      uuid: payload.uuid,
-      data: encryptedRejectionData,
-      pok: pokValue,
-    });
-    data.value.shouldShowSignChallengeDialog = true;
-    data.value.signChallengeData = {
-      auth: auth,
-      approval: approvalString,
-      rejection: rejectionString,
-    };
+  try{
+    // Do not process challenge_req when app is locked
+    if (!storeApp.isUnlocked) return;
+
+    assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
+    assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
+  
+    const { auth, data: challenge_req_data } = await validatePayload(payload);
+
+    if (auth!) return;
+    // validate decrypted challenge_req_data (nonce has already been validated by validatePayload)
+    assert(challenge_req_data.key_type  && typeof challenge_req_data.key_type == 'string' && KEYS_MPA.includes(challenge_req_data.key_type), "invalid data (key_type)")
+    assert(challenge_req_data.challenge && typeof(challenge_req_data.challenge)=='string' && challenge_req_data.challenge.length > 0, "invalid data (challenge)")
+    // Check if the PKSA stores the requested private key
+    const key_private = getPrivateKey(payload.account, challenge_req_data.key_type);
+    assert(key_private,`Private ${challenge_req_data.key_type} key is missing`)
+
+    $q.dialog({
+      component: DialogChallengeReq,
+      componentProps: {
+        // dialog props
+        persistent: true,
+        // custom props
+        name: payload.name,
+        auth: auth,
+        expire: payload.expire,
+      },
+    }).onOk(async (whitelist) => {
+      await approveChallengeRequest(payload, challenge_req_data, key_private, auth)
+    }).onCancel(() => {
+      const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth.key).toString()
+      HASSend(JSON.stringify({cmd:"challenge_nack", uuid:payload.uuid, data:sign_nack_data, pok:getPOK(payload.account, payload.uuid)}))
+    })      
+  } catch (e) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: e.message,
+      icon: 'report_problem',
+    })
   }
 }
 
@@ -1004,7 +821,7 @@ function heartbeat() {
 }
 
 async function frequentChecker() {
-  if (storeHASAuth.isUnlocked == false) {
+  if (storeApp.isUnlocked == false) {
     data.value.wsClient?.close();
     data.value.wsClient = null;
   } else {
@@ -1023,9 +840,8 @@ async function frequentChecker() {
     const qrHasServer = storeApp.scan_value
     if (qrHasServer.length > 0 || deepLinkResponse.dataString.length > 0) {
       storeApp.scan_value = '';
-      data.value.lastQRResultString =
-        qrHasServer.length > 0 ? qrHasServer : deepLinkResponse.dataString;
-      const lastQRData = getLastQRResult();
+      data.value.lastQRDL = qrHasServer.length > 0 ? qrHasServer : deepLinkResponse.dataString;
+      const lastQRData = getLastQRDL();
       // Reconnect only if HAS Server is a different server
       if (lastQRData?.host !== null && lastQRData?.host !== undefined) {
         data.value.wsClient?.close();
@@ -1033,14 +849,14 @@ async function frequentChecker() {
       }
     }
     if (data.value.wsClient === null) {
-      const lastQRData = getLastQRResult();
+      const lastQRData = getLastQRDL();
       const hasServer = lastQRData?.host ?? storeHASStorage.has_server;
       data.value.hasServer = hasServer;
       startWebsocket();
-    } else if (storeKeys.didUpdate === true) {
+    } else if (storeAccounts.didUpdate === true) {
       data.value.wsClient?.close();
       data.value.wsClient = null;
-      storeKeys.didUpdate = false;
+      storeAccounts.didUpdate = false;
       startWebsocket();
     }
   }
@@ -1051,9 +867,8 @@ async function frequentChecker() {
 // hooks
 onMounted(() => {
   // this.hasAuthStore.readCode();
-  storeHASAuth.readPasscodeFromBiometrics();
+  storeApp.readPasscodeFromBiometrics();
   frequentChecker();
-    // const $q = useQuasar();
     // $q.dark.set(true);
 })
 

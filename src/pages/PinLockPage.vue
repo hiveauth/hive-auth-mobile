@@ -29,7 +29,7 @@
       </q-input>
 
       <q-input
-        v-if="!storeHASAuth.hasPasscode"
+        v-if="!storeApp.hasPasscode"
         outlined
         rounded
         v-model="PIN_repeat"
@@ -54,7 +54,7 @@
         </template>
       </q-input>
 
-      <div v-if="!storeHASAuth.hasPasscode" class="row q-mt-lg">
+      <div v-if="!storeApp.hasPasscode" class="row q-mt-lg">
         <q-btn
           class="col q-pt-sm q-pb-sm"
           rounded
@@ -77,15 +77,16 @@ import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
 import { useAppStore } from 'src/stores/storeApp';
-import { useHasAuthStore } from 'src/stores/has-auth';
-import { useHasKeysStore } from 'src/stores/has-keys';
+import { useAccountsStore } from 'src/stores/storeAccounts';
+
 import { useHasStorageStore } from 'src/stores/has-storage';
 
 const $q = useQuasar();
 const { t } = useI18n(), $t = t
 const router = useRouter();
-const storeHASAuth = useHasAuthStore();
-const storeHASKeys = useHasKeysStore();
+const storeApp = useAppStore();
+const storeAccounts = useAccountsStore();
+
 const storeHASStorage = useHasStorageStore();
 
 // data
@@ -97,7 +98,7 @@ const PIN_repeat = ref('')
 // functions
 function digitsChanged(newValue: string | number | null) {
   if (
-    storeHASAuth.hasPasscode &&
+    storeApp.hasPasscode &&
     typeof newValue === 'string' &&
     newValue.length === 6
   ) {
@@ -105,15 +106,12 @@ function digitsChanged(newValue: string | number | null) {
   }
 }
 
-async function reloadBiometrics() {
-  doWeHaveDeviceBiometrics.value = await storeHASAuth.doWeHaveNativeBiometrics();
-}
-
 async function verifyCode() {
-  const biometricsResult = await storeHASAuth.performBiometrics();
-  if (biometricsResult && storeHASAuth.isValidPasscode(PIN.value)) {
-    storeHASAuth.unlockApp();
-    await storeHASKeys.readKeys();
+  const biometricsResult = await storeApp.performBiometrics();
+  if (biometricsResult && storeApp.isValidPasscode(PIN.value)) {
+    storeApp.unlockApp();
+    console.log("call storeAccount.read")
+    await storeAccounts.read();
     await storeHASStorage.readStorage();
     router.replace({ name: 'main-menu' });
   } else {
@@ -129,15 +127,15 @@ async function verifyCode() {
 
 async function setPasscode() {
   try {
-    await storeHASAuth.setPasscodeToBiometrics(PIN.value);
-    await storeHASAuth.readPasscodeFromBiometrics();
-    storeHASAuth.unlockApp();
-    await storeHASKeys.readKeys();
+    await storeApp.setPasscodeToBiometrics(PIN.value);
+    await storeApp.readPasscodeFromBiometrics();
+    storeApp.unlockApp();
+    await storeAccounts.read();
     await storeHASStorage.readStorage();
     $q.notify({
       color: 'positive',
       position: 'bottom',
-      message: 'Passcode is now set.',
+      message: $t('unlock.pin_init'),
       icon: 'check',
     });
     router.replace({ name: 'main-menu' });
@@ -145,17 +143,16 @@ async function setPasscode() {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: 'Error setting passcode',
+      message: $t('unlock.pin_error'),
       icon: 'report_problem',
     });
   }
 }
 
 // hooks
-onMounted(() => {
-  const storeApp = useAppStore();
+onMounted(async () => {
   storeApp.path = 'Passcode'
-  reloadBiometrics();
+  doWeHaveDeviceBiometrics.value = await storeApp.doWeHaveNativeBiometrics();
 })
 
 </script>
