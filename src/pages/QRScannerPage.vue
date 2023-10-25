@@ -1,15 +1,6 @@
 <template>
   <q-page>
     <div class="q-pa-lg">
-      <!-- <div class="row q-mt-lg">
-        <q-btn
-          class="col q-pt-sm q-pb-sm"
-          rounded
-          color="primary"
-          label="Scan QR Code"
-          @click="startScan()"
-        />
-      </div> -->
     </div>
   </q-page>
 </template>
@@ -19,14 +10,12 @@ import { defineComponent, onMounted, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
-import { useQrResultStore } from 'src/stores/qr-result-store';
 import { useAppStore } from 'src/stores/storeApp';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 const $q = useQuasar()
 const { t } = useI18n(), $t = t
 const router = useRouter();
-const storeQRResult = useQrResultStore();
 const storeApp = useAppStore();
 
 // functions

@@ -444,15 +444,12 @@ async function handleAuthReq(payload: any) {
 
     let auth_key: string | null = null;
 
-    // TODO: remove code
-    const AUTH_REQ_SECRET = "sHSQaahP9v8V8P86EnMqkGD2QgGsNF2w8MDxE6MFDCmevKfwMa"
-    // If the PKSA run in "service mode " or for debug purpose, the APP can pass the encryption key (auth_key) to the PKSA with the auth_req payload
-    if (payload.auth_key && AUTH_REQ_SECRET) {
+    // For debug purpose, the APP can pass the encryption key (auth_key) to the PKSA with the auth_req payload
+    if (payload.auth_key && process.env.AUTH_REQ_SECRET) {
       // Decrypt the provided auth_key using the pre-shared PKSA secret
-      auth_key = tryDecrypt(payload.auth_key, AUTH_REQ_SECRET)
+      auth_key = tryDecrypt(payload.auth_key, process.env.AUTH_REQ_SECRET)
     }
-    // TODO: end of
-
+    
     if (!auth_key) {
       // check if the account store any non-expired auth_key that can decrypt the auth_req_data
       for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
@@ -866,10 +863,9 @@ async function frequentChecker() {
 
 // hooks
 onMounted(() => {
-  // this.hasAuthStore.readCode();
   storeApp.readPasscodeFromBiometrics();
   frequentChecker();
-    // $q.dark.set(true);
+  // $q.dark.set(true);
 })
 
 </script>
