@@ -150,18 +150,19 @@ const operations = [
   { type:'witness_update', key:'active'},
 ]
 
-const data = ref({
-  isDrawerOpen: false,
-  wsClient: null as WebSocket | null,
-  wsHeartbeat: null as number | null,
-  keyServer: null as string | null,
-  pingRate: (60 * 1000) as number,
-  pingTimeout: (5 * 60 * 1000) as number,
-  hasProtocol: 1 as number,
-  hasServer: DEFAULT_HAS_SERVER,
-  lastQRDL: '',
-});
+const pingRate: number = (60 * 1000)
+const pingTimeout: number = (5 * 60 * 1000)
 
+let hasProtocol: number = 1
+let wsClient: WebSocket | null = null
+let wsHeartbeat: number | null = null
+let keyServer: string | null = null
+let lastQRDL = ''
+
+// data
+const hasServer = ref(DEFAULT_HAS_SERVER)
+
+// functions
 function goBack() {
   router.replace({ name: 'main-menu' });
 }
@@ -179,12 +180,14 @@ function hideEncryptedData(str: string) {
 }
 
 function HASSend(message: string) {
+  assert(wsClient, "Websocket not initialized")
+  
   console.log(`[SEND] ${hideEncryptedData(message)}`);
   storeApp.logs.push({
     id: new Date().toISOString(),
     log: `SENT: ${hideEncryptedData(message)}`,
   });
-  data.value.wsClient?.send(message);
+  wsClient.send(message);
 }
 
 /**
@@ -192,12 +195,12 @@ function HASSend(message: string) {
  */
 function getLastQRDL(): IAuthReqPayload | null{
   if (
-    data.value.lastQRDL.length === 0 ||
-    data.value.lastQRDL.includes('has://auth_req/') == false
+    lastQRDL.length === 0 ||
+    lastQRDL.includes('has://auth_req/') == false
   ) {
     return null;
   }
-  const base64Data = data.value.lastQRDL.split('has://auth_req/')[1];
+  const base64Data = lastQRDL.split('has://auth_req/')[1];
   const base64DecodedString = atob(base64Data);
   const result = JSON.parse(base64DecodedString);
   return {
@@ -259,7 +262,7 @@ async function getPOK(name: string, value: string) {
     callId: Date.now().toString(),
     method: 'getProofOfKey',
     privateKey: key_private,
-    publicKey: data.value.keyServer ?? '',
+    publicKey: keyServer ?? '',
     memo: `#${value}`,
     accountName: '',
     userKey: '',
@@ -320,7 +323,7 @@ interface IRequestAccount {
 }
 
 async function handleKeyAck() {
-  if (data.value.keyServer && storeApp.isUnlocked) {
+  if (keyServer && storeApp.isUnlocked) {
     try {
       const request = {
         cmd: 'register_req',
@@ -702,14 +705,14 @@ async function processMessage(message: string) {
     }
     switch (payload.cmd) {
       case 'connected':
-        data.value.hasProtocol = payload.protocol || 0;
+        hasProtocol = payload.protocol || 0;
         return;
       case 'error':
         return;
       case 'register_ack':
         return;
       case 'key_ack':
-        data.value.keyServer = payload.key;
+        keyServer = payload.key;
         storeApp.isHasServerConnected = true;
         await handleKeyAck();
         break;
@@ -730,14 +733,14 @@ async function processMessage(message: string) {
 
 async function startWebsocket() {
   storeApp.isHasServerConnected = false;
-  console.log('Websocket - Connecting  to ' + data.value.hasServer);
-  data.value.wsClient = new WebSocket(data.value.hasServer as string);
-  data.value.wsClient.onopen = async function (e) {
+  console.log('Websocket - Connecting  to ' + hasServer.value);
+  wsClient = new WebSocket(hasServer.value);
+  wsClient.onopen = async function (e) {
     console.log('Websocket - Connected');
     HASSend(JSON.stringify({ cmd: 'key_req' }));
   };
 
-  data.value.wsClient.onmessage = async function (event) {
+  wsClient.onmessage = async function (event) {
     console.log(`[RECV] ${hideEncryptedData(event.data)}`);
     storeApp.logs.push({
       id: new Date().toISOString(),
@@ -750,9 +753,9 @@ async function startWebsocket() {
     }
   };
 
-  data.value.wsClient.onclose = async function (event) {
+  wsClient.onclose = async function (event) {
     // connection closed, discard the old websocket
-    data.value.wsClient = null;
+    wsClient = null;
     if (event.wasClean) {
       console.log('Websocket - Connection closed');
     } else {
@@ -765,37 +768,35 @@ async function startWebsocket() {
     }
   };
 
-  data.value.wsClient.onerror = function (error) {
+  wsClient.onerror = function (error) {
     console.error(`[error] ${error.message}`);
   };
 
-  data.value.wsClient?.on('pong', () => {
+  wsClient.on('pong', () => {
     // HAS server is alive
-    data.value.wsHeartbeat = Date.now();
+    wsHeartbeat = Date.now();
   });
 }
 
 function heartbeat() {
-  if (
-    data.value.wsHeartbeat &&
-    data.value.wsHeartbeat + data.value.pingTimeout < Date.now()
+  if (wsHeartbeat && wsHeartbeat + pingTimeout < Date.now()
   ) {
     // HAS server no more responding - try to reconnect
     console.log('Websocket - Connection lost');
-    data.value.wsClient = null;
+    wsClient = null;
     startWebsocket();
   } else {
-    if (data.value.wsClient && data.value.wsClient.readyState == 1) {
+    if (wsClient && wsClient.readyState == 1) {
       // Ping HAS server
-      data.value.wsClient?.ping();
+      wsClient.ping();
     }
   }
 }
 
 async function frequentChecker() {
-  if (storeApp.isUnlocked == false) {
-    data.value.wsClient?.close();
-    data.value.wsClient = null;
+  if (wsClient && !storeApp.isUnlocked) {
+    wsClient.close();
+    wsClient = null;
   } else {
     const deepLinkResponse = await HASCustomPlugin.callPlugin({
       callId: Date.now().toString(),
@@ -812,22 +813,21 @@ async function frequentChecker() {
     const qrHasServer = storeApp.scan_value
     if (qrHasServer.length > 0 || deepLinkResponse.dataString.length > 0) {
       storeApp.scan_value = '';
-      data.value.lastQRDL = qrHasServer.length > 0 ? qrHasServer : deepLinkResponse.dataString;
+      lastQRDL = qrHasServer.length > 0 ? qrHasServer : deepLinkResponse.dataString;
       const lastQRData = getLastQRDL();
       // Reconnect only if HAS Server is a different server
-      if (lastQRData?.host !== null && lastQRData?.host !== undefined) {
-        data.value.wsClient?.close();
-        data.value.wsClient = null;
+      if (wsClient && lastQRData?.host !== null && lastQRData?.host !== undefined) {
+        wsClient.close();
+        wsClient = null;
       }
     }
-    if (data.value.wsClient === null) {
+    if (!wsClient) {
       const lastQRData = getLastQRDL();
-      const hasServer = lastQRData?.host ?? DEFAULT_HAS_SERVER;
-      data.value.hasServer = hasServer;
+      hasServer.value = lastQRData?.host ?? DEFAULT_HAS_SERVER;
       startWebsocket();
     } else if (storeAccounts.didUpdate === true) {
-      data.value.wsClient?.close();
-      data.value.wsClient = null;
+      wsClient.close();
+      wsClient = null;
       storeAccounts.didUpdate = false;
       startWebsocket();
     }
