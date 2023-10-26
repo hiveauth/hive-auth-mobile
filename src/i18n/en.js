@@ -8,7 +8,7 @@ export default {
 	  error_permission_denied: "Camera Permissions denied",
 	  error_start_scan: "Permissions denied or Error when getting camera permissions",
 	},
-	unlock: {
+	login: {
 	  pin_label: "PIN code",
 	  pin_placeholder: "Enter your six digit PIN code",
 	  pin_repeat_label: "Confirm PIN code",

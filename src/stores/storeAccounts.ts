@@ -51,7 +51,6 @@ export interface IAccount {
 export const useAccountsStore = defineStore('storeAccounts', {
   state: () => ({
     accounts: [] as IAccount[], 
-    didUpdate: false,
   }),
   actions: {
     async read() {
@@ -80,7 +79,6 @@ export const useAccountsStore = defineStore('storeAccounts', {
       }
       try {
         await SecureStorage.set('accounts', JSON.stringify(this.accounts));
-        this.didUpdate = true;
       } catch (e) {
         console.error(`storeAccounts.update failed - ${e.message}. `);
       }

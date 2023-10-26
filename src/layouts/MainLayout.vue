@@ -2,7 +2,7 @@
   <q-layout view="lHh Lpr lFf">
     <q-header>
       <q-toolbar>
-        <q-btn v-if="storeApp.path !== 'Menu' && storeApp.path !== 'Passcode'"
+        <q-btn v-if="storeApp.isUnlocked"
           flat
           round
           dense
@@ -40,9 +40,9 @@
           round
           dense
           icon="public"
-          :color="storeApp.isHasServerConnected ? 'green' : 'red'"
+          :color="storeApp.isHASConnected ? 'green' : 'red'"
         />
-        <div>{{ data.hasServer?.replaceAll('wss://', '') }}</div>
+        <div>{{ HASServer?.replaceAll('wss://', '') }} ({{Number(HASProtocol).toFixed(1)}})</div>
       </q-toolbar>
     </q-footer>
   </q-layout>
@@ -77,9 +77,13 @@ interface IAuthReqPayload {
 }
 
 const PKSA_NAME = 'HiveAuth Mobile'
-const KEYS_MPA = ["memo","posting","active"] // Types sorted by permission level - do not change it
-const KEYS_PA = ["posting","active"] // Types sorted by permission level - do not change it
+const KEYS_MPA = ['memo','posting','active'] // Types sorted by permission level - do not change it
+const KEYS_PA = ['posting','active'] // Types sorted by permission level - do not change it
 const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
+
+const HAS_PROTOCOL = [0.8, 1.0]        // supported HAS protocol versions
+const PING_RATE = 60 * 1000 			  // 1 minute
+const PING_TIMEOUT = 5 * PING_RATE  // 5 minutes
 
 const $q = useQuasar();
 const storeApp = useAppStore()
@@ -150,17 +154,14 @@ const operations = [
   { type:'witness_update', key:'active'},
 ]
 
-const pingRate: number = (60 * 1000)
-const pingTimeout: number = (5 * 60 * 1000)
-
-let hasProtocol: number = 1
+let key_server: string | null = null
 let wsClient: WebSocket | null = null
-let wsHeartbeat: number | null = null
-let keyServer: string | null = null
+let tsHeartbeat = 0
 let lastQRDL = ''
 
 // data
-const hasServer = ref(DEFAULT_HAS_SERVER)
+const HASServer = ref(DEFAULT_HAS_SERVER)
+const HASProtocol = ref(0)
 
 // functions
 function goBack() {
@@ -194,10 +195,7 @@ function HASSend(message: string) {
  * Return the payload from the last QRCode or DeepLink processed
  */
 function getLastQRDL(): IAuthReqPayload | null{
-  if (
-    lastQRDL.length === 0 ||
-    lastQRDL.includes('has://auth_req/') == false
-  ) {
+  if (!lastQRDL.startsWith('has://auth_req/')) {
     return null;
   }
   const base64Data = lastQRDL.split('has://auth_req/')[1];
@@ -262,7 +260,7 @@ async function getPOK(name: string, value: string) {
     callId: Date.now().toString(),
     method: 'getProofOfKey',
     privateKey: key_private,
-    publicKey: keyServer ?? '',
+    publicKey: key_server ?? '',
     memo: `#${value}`,
     accountName: '',
     userKey: '',
@@ -323,20 +321,23 @@ interface IRequestAccount {
 }
 
 async function handleKeyAck() {
-  if (keyServer && storeApp.isUnlocked) {
+  // server public key received
+  if (key_server && storeApp.isUnlocked) {
+    storeApp.isHASConnected = true;
     try {
-      const request = {
-        cmd: 'register_req',
-        app: PKSA_NAME,
-        accounts: [] as IRequestAccount[],
-      };
+      if (storeAccounts.accounts.length > 0) {
+        const request = {
+          cmd: 'register_req',
+          app: PKSA_NAME,
+          accounts: [] as IRequestAccount[],
+        };
 
-      for await (const account of storeAccounts.accounts) {
-        checkUsername(account.name);
-        const pokValue = await getPOK(account.name, '');
-        request.accounts.push({name: account.name, pok: pokValue});
-      }
-      if (request.accounts.length > 0) {
+        for await (const account of storeAccounts.accounts) {
+          checkUsername(account.name);
+          const pokValue = await getPOK(account.name, '');
+          // Add account and Proof of Key
+          request.accounts.push({name: account.name, pok: pokValue});
+        }
         HASSend(JSON.stringify(request));
       }
     } catch (e) {
@@ -346,14 +347,16 @@ async function handleKeyAck() {
 }
 
 function tryDecrypt(data: any, key: any): string | null {
-  try {
-    const res = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
-    if (res !== '') {
-      // decryption succedded
-      return res
+  if(data && key) {
+    try {
+      const res = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+      if (res !== '') {
+        // decryption succedded
+        return res
+      }
+    } catch(e) {
+      // expected decryption failure - nothing to do
     }
-  } catch(e) {
-    // expected decryption failure - nothing to do
   }
   return null
 }
@@ -444,16 +447,16 @@ async function handleAuthReq(payload: any) {
     }
     if (!auth_key) {
       // try to retrieve auth_key from last QRCode or deep-link
-      const lastQRResult = getLastQRDL();
-      if (lastQRResult  && tryDecrypt(payload.data, lastQRResult.key)) {
-          auth_key = lastQRResult.key;
+      const auth_req_payload = getLastQRDL();
+      if (auth_req_payload  && tryDecrypt(payload.data, auth_req_payload.key)) {
+          auth_key = auth_req_payload.key;
       }
     }
     // No auth_key available - ignore request
     if (!auth_key) return;
     // ask user to approve or reject authentication request
     const auth_req_data = JSON.parse(tryDecrypt(payload.data, auth_key) as string)
-    assert(auth_req_data?.app?.name && typeof auth_req_data?.app?.name == 'string', 'invalid payload (data.app.name)');
+    assert(auth_req_data?.app?.name && typeof auth_req_data?.app?.name == 'string', 'invalid payload (auth_req_data.app.name)');
 
     $q.dialog({
       component: DialogAuthReq,
@@ -461,7 +464,7 @@ async function handleAuthReq(payload: any) {
         // dialog props
         persistent: true,
         // custom props
-        name: payload.name,
+        username: payload.account,
         auth_req_data: auth_req_data,
         expire: payload.expire,
       },
@@ -486,7 +489,7 @@ async function handleAuthReq(payload: any) {
  * 
  * @param payload An encrypted payload
  * @return the account, auth used to decrypt the payload and the decrypted payload data, or undefined is the payload couldn't be decrypted
- * @throws {Error} if the nonce is invalid
+ * @throws {Error} if the payload or the nonce is invalid
  */
 async function validatePayload(payload: any) {
   // Check if the account is managed by the PKSA
@@ -494,12 +497,7 @@ async function validatePayload(payload: any) {
   if (account) {
     for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
       try {
-        let decoded;
-        try {
-          decoded = CryptoJS.AES.decrypt(payload.data, auth.key).toString(CryptoJS.enc.Utf8);
-        } catch (e) {
-          // ignore error
-        }
+        const decoded = tryDecrypt(payload.data, auth.key)
         if (decoded && decoded !== '') {
           const data = JSON.parse(decoded);
           if (data !== '') {
@@ -521,7 +519,7 @@ async function validatePayload(payload: any) {
       }
     }
   }
-  return undefined;
+  throw new Error('invalid (unknown account)');
 }
 
 function checkTransaction(sign_req_data: any, auth: IAccountAuth) {
@@ -596,14 +594,14 @@ async function handleSignReq(payload: any) {
     if (!check.askApproval) {
       await approveSignRequest(payload, sign_req_data, key_private)
     } else {
-      const opType = [...check.opSet][0]
+      const opType = [...check.opSet][0] as string
       $q.dialog({
         component: DialogSignReq,
         componentProps: {
           // dialog props
           persistent: true,
           // custom props
-          name: payload.name,
+          username: payload.account,
           auth: auth,
           sign_req_data: sign_req_data,
           askWhitelist: check.askWhitelist,
@@ -613,7 +611,8 @@ async function handleSignReq(payload: any) {
       }).onOk(async (whitelist) => {
         await approveSignRequest(payload, sign_req_data, key_private)
         if (whitelist) {
-          auth.whitelist.push(opType)
+          console.log("update whitelist", JSON.stringify(auth))
+          auth.whitelists.push(opType)
         }
       }).onCancel(() => {
         const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth.key).toString()
@@ -673,7 +672,7 @@ async function handleChallengeReq(payload: any) {
         // dialog props
         persistent: true,
         // custom props
-        name: payload.name,
+        username: payload.account,
         auth: auth,
         expire: payload.expire,
       },
@@ -705,15 +704,16 @@ async function processMessage(message: string) {
     }
     switch (payload.cmd) {
       case 'connected':
-        hasProtocol = payload.protocol || 0;
+        // TODO: validate HAS protocol
+        assert(HAS_PROTOCOL.includes(payload.protocol || 0 ),'Unsupported HAS protocol')
+        HASProtocol.value = payload.protocol
         return;
       case 'error':
         return;
       case 'register_ack':
         return;
       case 'key_ack':
-        keyServer = payload.key;
-        storeApp.isHasServerConnected = true;
+        key_server = payload.key;
         await handleKeyAck();
         break;
       case 'auth_req':
@@ -731,55 +731,65 @@ async function processMessage(message: string) {
   }
 }
 
+let busy = false
+  
 async function startWebsocket() {
-  storeApp.isHasServerConnected = false;
-  console.log('Websocket - Connecting  to ' + hasServer.value);
-  wsClient = new WebSocket(hasServer.value);
-  wsClient.onopen = async function (e) {
-    console.log('Websocket - Connected');
-    HASSend(JSON.stringify({ cmd: 'key_req' }));
-  };
+  try {
+    if (busy || wsClient!= null) return
+    busy = true
 
-  wsClient.onmessage = async function (event) {
-    console.log(`[RECV] ${hideEncryptedData(event.data)}`);
-    storeApp.logs.push({
-      id: new Date().toISOString(),
-      log: `RECV: ${hideEncryptedData(event.data)}`,
-    });
-    try {
-      processMessage(event.data);
-    } catch (e) {
-      console.error(e.stack);
-    }
-  };
+    storeApp.isHASConnected = false;
+    console.log('Websocket - Connecting  to ' + HASServer.value);
+    wsClient = new WebSocket(HASServer.value);
+    wsClient.onopen = async function (e) {
+      console.log('Websocket - Connected');
+      HASSend(JSON.stringify({ cmd: 'key_req' }));
+    };
 
-  wsClient.onclose = async function (event) {
-    // connection closed, discard the old websocket
-    wsClient = null;
-    if (event.wasClean) {
-      console.log('Websocket - Connection closed');
-    } else {
-      // e.g. server process killed or network down
-      console.log('Websocket - Connection died');
-      // Wait 1 second before trying to reconnect
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // restart a new websocket
-      startWebsocket();
-    }
-  };
+    wsClient.onmessage = async function (event) {
+      console.log(`[RECV] ${hideEncryptedData(event.data)}`);
+      storeApp.logs.push({
+        id: new Date().toISOString(),
+        log: `RECV: ${hideEncryptedData(event.data)}`,
+      });
+      try {
+        processMessage(event.data);
+      } catch (e) {
+        console.error(e.stack);
+      }
+    };
 
-  wsClient.onerror = function (error) {
-    console.error(`[error] ${error.message}`);
-  };
+    wsClient.onclose = async function (event) {
+      // connection closed, discard the old websocket
+      wsClient = null;
+      if (event.wasClean) {
+        console.log('Websocket - Connection closed');
+      } else {
+        // e.g. server process killed or network down
+        console.log('Websocket - Connection died');
+        // Wait 1 second before trying to reconnect
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // restart a new websocket
+        startWebsocket();
+      }
+    };
 
-  wsClient.on('pong', () => {
-    // HAS server is alive
-    wsHeartbeat = Date.now();
-  });
+    wsClient.onerror = function (error) {
+      console.error(`[error] ${error.message}`);
+    };
+
+    // Not supported
+    // wsClient.on('pong', () => {
+    //   // HAS server is alive
+    //   tsHeartbeat = Date.now();
+    // });
+  } finally {
+    busy = false
+  }
 }
 
 function heartbeat() {
-  if (wsHeartbeat && wsHeartbeat + pingTimeout < Date.now()
+  if (tsHeartbeat && tsHeartbeat + PING_TIMEOUT < Date.now()
   ) {
     // HAS server no more responding - try to reconnect
     console.log('Websocket - Connection lost');
@@ -794,11 +804,10 @@ function heartbeat() {
 }
 
 async function frequentChecker() {
-  if (wsClient && !storeApp.isUnlocked) {
-    wsClient.close();
-    wsClient = null;
-  } else {
-    const deepLinkResponse = await HASCustomPlugin.callPlugin({
+  if (storeApp.isUnlocked) {
+    // Retrieve any deeplink or scanned qrcode value
+    const qrcode = storeApp.scan_value
+    const deeplink = (await HASCustomPlugin.callPlugin({
       callId: Date.now().toString(),
       method: 'getDeepLinkData',
       privateKey: '',
@@ -808,28 +817,38 @@ async function frequentChecker() {
       userKey: '',
       challenge: '',
       key: '',
-    });
-    console.log(`DeepLinkResponse: ${deepLinkResponse.dataString}`);
-    const qrHasServer = storeApp.scan_value
-    if (qrHasServer.length > 0 || deepLinkResponse.dataString.length > 0) {
+    })).dataString;
+
+    //console.log(`qrcode: ${qrcode} deeplink: ${deeplink}`);
+    if (qrcode.length > 0 || deeplink.length > 0) {
+      // store read value
       storeApp.scan_value = '';
-      lastQRDL = qrHasServer.length > 0 ? qrHasServer : deepLinkResponse.dataString;
+      lastQRDL = qrcode.length > 0 ? qrcode : deeplink;
+      // extract data from value
       const lastQRData = getLastQRDL();
-      // Reconnect only if HAS Server is a different server
-      if (wsClient && lastQRData?.host !== null && lastQRData?.host !== undefined) {
-        wsClient.close();
-        wsClient = null;
-      }
+      // // Reconnect only if HAS Server is a different server
+      // if (wsClient && lastQRData?.host !== null && lastQRData?.host !== undefined) {
+      //   wsClient.close();
+      //   wsClient = null;
+      // }
     }
     if (!wsClient) {
       const lastQRData = getLastQRDL();
-      hasServer.value = lastQRData?.host ?? DEFAULT_HAS_SERVER;
+      HASServer.value = lastQRData?.host || DEFAULT_HAS_SERVER;
       startWebsocket();
-    } else if (storeAccounts.didUpdate === true) {
+    } else if (storeApp.resetWebsocket) {
+      // Websocket needs to be reset to re-register accounts
+      storeApp.resetWebsocket = false;
       wsClient.close();
       wsClient = null;
-      storeAccounts.didUpdate = false;
       startWebsocket();
+    }
+  } else {
+    // App is locked
+    if (wsClient!=null) {
+      // websocket is still open -> close it
+      wsClient.close();
+      wsClient = null;
     }
   }
   await new Promise((resolve) => setTimeout(resolve, 1000));

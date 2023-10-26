@@ -45,7 +45,7 @@
   const whitelist = ref(true)
   
   const props = defineProps({
-    name: {
+    username: {
       type: String,
       required: true,
     },

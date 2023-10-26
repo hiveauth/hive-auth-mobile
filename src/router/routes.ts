@@ -17,13 +17,8 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: '',
-        name: 'passcode-lock',
-        component: () => import('pages/PinLockPage.vue'),
-      },
-      {
-        path: 'pksa-page',
-        name: 'pksa-page',
-        component: () => import('pages/PKSAPage.vue'),
+        name: 'login',
+        component: () => import('pages/Login.vue'),
       },
       {
         path: 'manage-accounts',
