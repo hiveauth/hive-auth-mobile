@@ -7,21 +7,18 @@ import messages from 'src/i18n'
 
 const i18n = createI18n({locale: 'en-US', messages}).global
 
-// TODO: Replace CREDENTIALS_SERVER
-//const CREDENTIALS_SERVER = 'hiveauth.mobile'
-const CREDENTIALS_SERVER = 'https:/hiveauth.com'
-
+const CREDENTIALS_SERVER = 'hiveauth.mobile'
 
 export interface logItem {
   id: string;
   log: string;
-
 }
 
 export const useAppStore = defineStore('storeApp', {
   state: () => ({
     logs: [] as logItem[],
-    isHasServerConnected: false,
+    resetWebsocket: false,
+    isHASConnected: false,
     path: '',
     scan_value: '',
     // app authentication
@@ -31,7 +28,6 @@ export const useAppStore = defineStore('storeApp', {
   }),
 
   getters: {
-    isDeviceLocked: (state) => !state.isUnlocked,
     isValidPasscode: (state) => {
       return ((enteredPasscode: string) => (
         state.hasPasscode &&

@@ -57,6 +57,7 @@ import { useAccountsStore } from 'src/stores/storeAccounts';
 
 const $q = useQuasar();
 const { t } = useI18n(), $t = t
+const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 
 // data
@@ -65,6 +66,7 @@ const private_key = ref('');
   
 // functions
 async function validateKey() {
+  let needReset = false
   try {
     $q.loading.show({ group: 'validateKey' });
 
@@ -86,6 +88,7 @@ async function validateKey() {
         },
         auths:[],
       };
+      needReset = true
     } 
     if (publicKey === publicKeys.active) {
       account.keys.active = private_key.value;
@@ -114,12 +117,12 @@ async function validateKey() {
     });
   } finally {
     $q.loading.hide('validateKey');
+    if(needReset) storeApp.resetWebsocket = true
   }
 }
 
 // Hooks
 onMounted(() => {
-  const storeApp = useAppStore();
   storeApp.path = 'Import Keys';
   if(process.env.IMPORT_USERNAME) username.value = process.env.IMPORT_USERNAME
   if(process.env.IMPORT_KEY) private_key.value = process.env.IMPORT_KEY

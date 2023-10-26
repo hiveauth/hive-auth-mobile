@@ -6,8 +6,8 @@
         rounded
         autofocus
         v-model="PIN"
-        :label="$t('unlock.pin_label')"
-        :placeholder="$t('unlock.pin_placeholder')"
+        :label="$t('login.pin_label')"
+        :placeholder="$t('login.pin_placeholder')"
         class="q-pt-lg"
         :type="isPasscodeVisible ? 'text' : 'password'"
         inputmode="numeric"
@@ -33,8 +33,8 @@
         outlined
         rounded
         v-model="PIN_repeat"
-        :label="$t('unlock.pin_repeat_label')"
-        :placeholder="$t('unlock.pin_repeat_placeholder')"
+        :label="$t('login.pin_repeat_label')"
+        :placeholder="$t('login.pin_repeat_placeholder')"
         class="q-pt-lg"
         :type="isPasscodeVisible ? 'text' : 'password'"
         inputmode="numeric"
@@ -59,14 +59,14 @@
           class="col q-pt-sm q-pb-sm"
           rounded
           color="primary"
-          :label="$t('unlock.btn_save')"
+          :label="$t('login.btn_save')"
           :disable="PIN.length !== 6 || PIN !== PIN_repeat"
           @click="setPasscode()"
         />
       </div>
     </div>
     <div v-else class="q-pa-lg">
-      {{$t('unlock.biometrics_unavailable')}}
+      {{$t('login.biometrics_unavailable')}}
     </div>
   </q-page>
 </template>
@@ -113,7 +113,7 @@ async function verifyCode() {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: $t('unlock.failed'),
+      message: $t('login.failed'),
       icon: 'dangerous',
     });
   }
@@ -128,7 +128,7 @@ async function setPasscode() {
     $q.notify({
       color: 'positive',
       position: 'bottom',
-      message: $t('unlock.pin_init'),
+      message: $t('login.pin_init'),
       icon: 'check',
     });
     router.replace({ name: 'main-menu' });
@@ -136,7 +136,7 @@ async function setPasscode() {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: $t('unlock.pin_error'),
+      message: $t('login.pin_error'),
       icon: 'report_problem',
     });
   }
@@ -144,7 +144,7 @@ async function setPasscode() {
 
 // hooks
 onMounted(async () => {
-  storeApp.path = 'Passcode'
+  storeApp.path = 'Login'
   doWeHaveDeviceBiometrics.value = await storeApp.doWeHaveNativeBiometrics();
 })
 
@@ -152,7 +152,7 @@ onMounted(async () => {
 
 <script lang="ts">
 export default defineComponent({
-  name: 'passcode-lock',
+  name: 'login-page',
   components: {}
 });
 </script>

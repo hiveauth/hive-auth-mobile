@@ -85,7 +85,7 @@ const router = useRouter();
 // functions
 function lockApp() {
   storeApp.lockApp();
-  router.replace({ name: 'passcode-lock' });
+  router.replace({ name: 'login' });
 }
 
 function navToManageAccounts() {
