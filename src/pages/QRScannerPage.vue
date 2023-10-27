@@ -32,7 +32,7 @@ async function startScan() {
           message: `QR Result - ${result.content}`,
           icon: 'camera',
         });
-        storeApp.scan_value = result.content;
+        storeApp.scanValue = result.content;
         router.replace('main-menu');
       } else {
         $q.notify({

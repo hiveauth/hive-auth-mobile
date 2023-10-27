@@ -679,7 +679,7 @@ async function handleChallengeReq(payload: any) {
     }).onOk(async (whitelist) => {
       await approveChallengeRequest(payload, challenge_req_data, key_private, auth)
     }).onCancel(() => {
-      const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth.key).toString()
+      const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid, auth.key).toString()
       HASSend(JSON.stringify({cmd:"challenge_nack", uuid:payload.uuid, data:sign_nack_data, pok:getPOK(payload.account, payload.uuid)}))
     })      
   } catch (e) {
@@ -806,7 +806,7 @@ function heartbeat() {
 async function frequentChecker() {
   if (storeApp.isUnlocked) {
     // Retrieve any deeplink or scanned qrcode value
-    const qrcode = storeApp.scan_value
+    const qrcode = storeApp.scanValue
     const deeplink = (await HASCustomPlugin.callPlugin({
       callId: Date.now().toString(),
       method: 'getDeepLinkData',
@@ -822,7 +822,7 @@ async function frequentChecker() {
     //console.log(`qrcode: ${qrcode} deeplink: ${deeplink}`);
     if (qrcode.length > 0 || deeplink.length > 0) {
       // store read value
-      storeApp.scan_value = '';
+      storeApp.scanValue = '';
       lastQRDL = qrcode.length > 0 ? qrcode : deeplink;
       // extract data from value
       const lastQRData = getLastQRDL();
