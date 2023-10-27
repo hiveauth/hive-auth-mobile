@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 
-await SecureStorage.setSynchronize(false);
-
 export interface IAccountKeys {
   posting?: string;
   active?: string;
@@ -14,22 +12,6 @@ export interface IAccountAuthApp {
   icon: string;
   description: string;
 }
-
-type whitelist_ops = 
-  'vote'
-  | 'comment'
-  | 'account_update2'
-  | 'comment_options'
-  | 'delete_comment'
-  | 'custom_json'
-  | 'custom_binary'
-  | 'claim_reward_balance'
-  | 'claim_reward_balance2'
-  | 'create_proposal'
-  | 'remove_proposal'
-  | 'update_proposal'
-  | 'update_proposal_votes'
-  | 'vote2'
 
 export interface IAccountAuth {
   expire: number;
@@ -55,6 +37,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
   actions: {
     async read() {
       try {
+        await SecureStorage.setSynchronize(false);
         const value = (await SecureStorage.get('accounts')) as string;
         if (value ) {
           this.accounts = JSON.parse(value);
@@ -78,6 +61,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
         })
       }
       try {
+        await SecureStorage.setSynchronize(false);
         await SecureStorage.set('accounts', JSON.stringify(this.accounts));
       } catch (e) {
         console.error(`storeAccounts.update failed - ${e.message}. `);

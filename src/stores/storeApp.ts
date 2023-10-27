@@ -20,7 +20,7 @@ export const useAppStore = defineStore('storeApp', {
     resetWebsocket: false,
     isHASConnected: false,
     path: '',
-    scan_value: '',
+    scanValue: '',
     // app authentication
     isUnlocked: false,
     passcode: '',
