@@ -29,6 +29,17 @@ export default {
 		empty: "No sessions found",
 		valid: "Valid till",
 	},
+	dialog_auth_req: {
+		text: "wants to authenticate on",
+		timeout: "Session validity",
+	},
+	dialog_challenge_req: {
+		text: "wants to validate a challenge on",
+	},
+	dialog_sign_req: {
+		text: "wants to sign a transaction on",
+		whitelist: "Do not prompt again for",
+	},
 	import_key: {
 		success: 'Key is securely stored',
 		failed: 'Failed to validate key',

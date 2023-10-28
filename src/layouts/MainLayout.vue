@@ -13,11 +13,7 @@
           <q-item>
             <q-item-section top avatar>
               <q-avatar size="40px" class="q-mb-sm">
-                <q-img
-                  src="https://images.hive.blog/u/hiveauth/avatar/small"
-                  height="40px"
-                  width="40px"
-                />
+                <q-img src="~assets/logo.svg" />
               </q-avatar>
             </q-item-section>
             <q-item-section>
@@ -376,6 +372,7 @@ async function approveAuthRequest(payload: any, account: IAccount, auth_key: str
   } else {
     // If not provided, the default expiration time for an auth_key is 24 hours
     auth_ack_data.expire = Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000))
+    console.log("expire:", new Date(auth_ack_data.expire).toISOString(), "timeout:", timeout)
   }
   // Check if the app also requires the PKSA to sign a challenge
   if(auth_req_data.challenge) {
@@ -440,7 +437,7 @@ async function handleAuthReq(payload: any) {
       for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
         if (tryDecrypt(payload.data, auth.key)) {
           // decryption succedded - automaticaly approve request
-          approveAuthRequest(payload, account, auth.key);
+          await approveAuthRequest(payload, account, auth.key);
           return
         }
       }
@@ -468,8 +465,8 @@ async function handleAuthReq(payload: any) {
         auth_req_data: auth_req_data,
         expire: payload.expire,
       },
-    }).onOk(() => {
-      approveAuthRequest(payload, account, auth_key as string);
+    }).onOk(async (timeout) => {
+      await approveAuthRequest(payload, account, auth_key as string, timeout);
     }).onCancel(() => {
       const auth_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth_key).toString()
       HASSend(JSON.stringify({cmd:"auth_nack", uuid:payload.uuid, data:auth_nack_data, pok:getPOK(payload.account, payload.uuid)}))
@@ -674,6 +671,7 @@ async function handleChallengeReq(payload: any) {
         // custom props
         username: payload.account,
         auth: auth,
+        challenge_req_data: challenge_req_data,
         expire: payload.expire,
       },
     }).onOk(async (whitelist) => {
