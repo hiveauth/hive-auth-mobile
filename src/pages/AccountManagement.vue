@@ -54,70 +54,45 @@
       v-if="tab === 'keys' && storeAccounts.accounts.length > 0"
     >
       <q-list bordered separator>
-        <q-item
-          clickable
+        <AccountManagementKeyItem
+          :key="`${storeAccounts.accounts[selectedIndex].name}-active`"
+          key-type="Active"
           v-if="
             storeAccounts.accounts[selectedIndex].keys.active !== null &&
             storeAccounts.accounts[selectedIndex].keys.active !== undefined
           "
-        >
-          <q-item-section avatar>
-            <q-avatar>
-              <q-icon name="key" />
-            </q-avatar>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Active Key</q-item-label>
-          </q-item-section>
-          <q-item-section avatar>
-            <q-icon color="red" name="bin" />
-          </q-item-section>
-        </q-item>
-
-        <q-item
-          clickable
+        />
+        <q-separator
+          v-if="
+            storeAccounts.accounts[selectedIndex].keys.active !== null &&
+            storeAccounts.accounts[selectedIndex].keys.active !== undefined
+          "
+        />
+        <AccountManagementKeyItem
+          key-type="Posting"
+          :key="`${storeAccounts.accounts[selectedIndex].name}-posting`"
           v-if="
             storeAccounts.accounts[selectedIndex].keys.posting !== null &&
             storeAccounts.accounts[selectedIndex].keys.posting !== undefined
           "
-        >
-          <q-item-section avatar>
-            <q-avatar>
-              <q-icon name="key" color="primary" size="1.75rem" />
-            </q-avatar>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Posting Key</q-item-label>
-          </q-item-section>
-          <q-item-section avatar>
-            <div class="row">
-              <div class="col">
-                <q-icon color="primary" name="fa-solid fa-copy" size="1.75rem" />
-              </div>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <div class="col">
-                <q-icon color="red" name="fa-solid fa-trash" size="1.75rem" />
-              </div>
-            </div>
-          </q-item-section>
-        </q-item>
+        />
+        <q-separator v-if="
+            storeAccounts.accounts[selectedIndex].keys.posting !== null &&
+            storeAccounts.accounts[selectedIndex].keys.posting !== undefined
+          "/>
 
-        <q-item
-          clickable
+        <AccountManagementKeyItem
+          :key="`${storeAccounts.accounts[selectedIndex].name}-memo`"
+          key-type="Memo"
           v-if="
             storeAccounts.accounts[selectedIndex].keys.memo !== null &&
             storeAccounts.accounts[selectedIndex].keys.memo !== undefined
           "
-        >
-          <q-item-section avatar>
-            <q-avatar>
-              <q-icon name="key" />
-            </q-avatar>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Memo Key</q-item-label>
-          </q-item-section>
-        </q-item>
+        />
+        <q-separator v-if="
+            storeAccounts.accounts[selectedIndex].keys.memo !== null &&
+            storeAccounts.accounts[selectedIndex].keys.memo !== undefined
+          "/>
       </q-list>
     </div>
   </div>
@@ -127,14 +102,15 @@
 import { defineComponent, onMounted, ref } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
+import AccountManagementKeyItem from 'components/AccountManagementKeyItem.vue';
 
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
-let selectedIndex = 0;
+let selectedIndex = ref(0);
 let tab = ref('keys');
 
 function onClickItemAtIndex(index: number) {
-  selectedIndex = index;
+  selectedIndex.value = index;
 }
 
 onMounted(() => {
