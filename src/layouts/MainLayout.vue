@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header>
+    <q-header v-if="storeApp.isUnlocked">
       <q-toolbar>
         <q-btn v-if="storeApp.isUnlocked"
           flat
@@ -22,8 +22,27 @@
             </q-item-section>
           </q-item>
         </q-toolbar-title>
+        <q-btn v-if="storeApp.isUnlocked"
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="toggleMenu"
+        />
       </q-toolbar>
     </q-header>
+
+    <q-drawer v-if="storeApp.isUnlocked"
+      v-model="menuOpen"
+      side="right"
+      show-if-above
+      bordered
+      :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'"      
+    >
+      <HeaderMenu/>
+    </q-drawer>
+
 
     <q-page-container>
       <router-view />
@@ -156,10 +175,15 @@ let tsHeartbeat = 0
 let lastQRDL = ''
 
 // data
+const menuOpen = ref(false)
 const HASServer = ref(DEFAULT_HAS_SERVER)
 const HASProtocol = ref(0)
 
 // functions
+function toggleMenu () {
+  menuOpen.value = !menuOpen.value
+}
+
 function goBack() {
   router.replace({ name: 'main-menu' });
 }
@@ -863,9 +887,11 @@ onMounted(() => {
 </script>
 
 <script lang="ts">
+import HeaderMenu from "components/HeaderMenu.vue"
 
 export default defineComponent({
   name: 'MainLayout',
+  components: { HeaderMenu  },
 });
 
 </script>
