@@ -26,6 +26,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/ManageAccounts.vue'),
       },
       {
+        path: 'account-management',
+        name: 'account-management',
+        component: () => import('pages/AccountManagement.vue'),
+      },
+      {
         path: 'main-menu',
         name: 'main-menu',
         component: () => import('pages/MainMenu.vue'),

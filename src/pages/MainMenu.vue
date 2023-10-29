@@ -1,12 +1,12 @@
 <template>
   <q-page>
     <q-list padding>
-      <q-item clickable v-ripple @click="navToManageAccounts">
+      <q-item clickable v-ripple @click="navToAccountManagement">
         <q-item-section avatar>
-          <q-icon name="key" />
+          <q-icon name="fa-solid fa-users" />
         </q-item-section>
 
-        <q-item-section> Manage Keys </q-item-section>
+        <q-item-section> Account Management </q-item-section>
       </q-item>
 
       <q-separator spaced />
@@ -90,6 +90,10 @@ function lockApp() {
 
 function navToManageAccounts() {
   router.replace({ name: 'manage-accounts' });
+}
+
+function navToAccountManagement() {
+  router.replace({ name: 'account-management' });
 }
 
 function navToAboutUs() {
