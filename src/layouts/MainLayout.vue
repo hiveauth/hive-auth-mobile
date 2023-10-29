@@ -2,7 +2,8 @@
   <q-layout view="lHh Lpr lFf">
     <q-header>
       <q-toolbar>
-        <q-btn v-if="storeApp.isUnlocked && storeApp.path != 'Menu'"
+        <q-btn
+          v-if="storeApp.isUnlocked && storeApp.path !== 'Menu'"
           flat
           round
           dense
@@ -26,6 +27,14 @@
             </q-item-section>
           </q-item>
         </q-toolbar-title>
+
+        <q-btn
+          flat
+          round
+          dense
+          icon="add"
+          v-if="storeApp.isUnlocked && storeApp.path === 'account-management'"
+        />
       </q-toolbar>
     </q-header>
 

@@ -56,7 +56,7 @@
           <q-icon name="history" />
         </q-item-section>
 
-        <q-item-section> WebSocket Logs </q-item-section>
+        <q-item-section> Logs </q-item-section>
       </q-item>
 
       <q-separator spaced />

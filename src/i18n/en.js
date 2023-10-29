@@ -25,6 +25,9 @@ export default {
 	  biometrics_subtitle: "", //"Unlock HiveAuth with your Biometrics",
 	  biometrics_description: "Provide your FaceID or Touch ID to unlock HiveAuth",
 	},
+  account_management: {
+    empty: 'No Accounts found',
+  },
 	sessions: {
 		empty: "No sessions found",
 		valid: "Valid till",
