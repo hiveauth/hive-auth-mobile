@@ -27,6 +27,8 @@ export default {
 	},
   account_management: {
     empty: 'No Accounts found',
+    keys: 'Keys',
+    sessions: 'Sessions',
   },
 	sessions: {
 		empty: "No sessions found",

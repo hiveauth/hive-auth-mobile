@@ -43,8 +43,11 @@
       </q-btn-dropdown>
     </div>
     <q-tabs v-model="tab" inline-label v-if="storeAccounts.accounts.length > 0">
-      <q-tab name="keys" icon="key" label="Keys" />
-      <q-tab name="sessions" icon="fa-solid fa-id-card" label="Sessions" />
+      <q-tab name="keys" icon="key" label={{ $t('account_management.keys') }} />
+      <q-tab name="sessions" icon="fa-solid fa-id-card" label={{
+        $t('account_management.sessions')
+      }}
+      />
     </q-tabs>
     <div class="absolute-center" v-if="storeAccounts.accounts.length === 0">
       {{ $t('account_management.empty') }}
@@ -53,47 +56,12 @@
       class="q-pa-md"
       v-if="tab === 'keys' && storeAccounts.accounts.length > 0"
     >
-      <q-list bordered separator>
-        <AccountManagementKeyItem
-          :key="`${storeAccounts.accounts[selectedIndex].name}-active`"
-          key-type="Active"
-          v-if="
-            storeAccounts.accounts[selectedIndex].keys.active !== null &&
-            storeAccounts.accounts[selectedIndex].keys.active !== undefined
-          "
-        />
-        <q-separator
-          v-if="
-            storeAccounts.accounts[selectedIndex].keys.active !== null &&
-            storeAccounts.accounts[selectedIndex].keys.active !== undefined
-          "
-        />
-        <AccountManagementKeyItem
-          key-type="Posting"
-          :key="`${storeAccounts.accounts[selectedIndex].name}-posting`"
-          v-if="
-            storeAccounts.accounts[selectedIndex].keys.posting !== null &&
-            storeAccounts.accounts[selectedIndex].keys.posting !== undefined
-          "
-        />
-        <q-separator v-if="
-            storeAccounts.accounts[selectedIndex].keys.posting !== null &&
-            storeAccounts.accounts[selectedIndex].keys.posting !== undefined
-          "/>
-
-        <AccountManagementKeyItem
-          :key="`${storeAccounts.accounts[selectedIndex].name}-memo`"
-          key-type="Memo"
-          v-if="
-            storeAccounts.accounts[selectedIndex].keys.memo !== null &&
-            storeAccounts.accounts[selectedIndex].keys.memo !== undefined
-          "
-        />
-        <q-separator v-if="
-            storeAccounts.accounts[selectedIndex].keys.memo !== null &&
-            storeAccounts.accounts[selectedIndex].keys.memo !== undefined
-          "/>
-      </q-list>
+      <AccountManagementKeyList
+        :name="storeAccounts.accounts[selectedIndex].name"
+        :active="storeAccounts.accounts[selectedIndex].keys.active"
+        :memo="storeAccounts.accounts[selectedIndex].keys.memo"
+        :posting="storeAccounts.accounts[selectedIndex].keys.posting"
+      />
     </div>
   </div>
 </template>
@@ -102,7 +70,7 @@
 import { defineComponent, onMounted, ref } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
-import AccountManagementKeyItem from 'components/AccountManagementKeyItem.vue';
+import AccountManagementKeyList from 'components/AccountManagementKeyList.vue';
 
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
