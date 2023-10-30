@@ -43,12 +43,8 @@
       </q-btn-dropdown>
     </div>
     <q-tabs v-model="tab" inline-label v-if="storeAccounts.accounts.length > 0">
-      <q-tab name="keys" icon="key" label="Keys" />
-      <q-tab
-        name="sessions"
-        icon="fa-solid fa-id-card"
-        label="Sessions"
-      />
+      <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
+      <q-tab name="sessions" icon="fa-solid fa-id-card" :label="$t('account_management.sessions')" />
     </q-tabs>
     <div class="absolute-center" v-if="storeAccounts.accounts.length === 0">
       {{ $t('account_management.empty') }}
@@ -63,6 +59,33 @@
         :memo="storeAccounts.accounts[selectedIndex].keys.memo"
         :posting="storeAccounts.accounts[selectedIndex].keys.posting"
       />
+    </div>
+    <div
+      class="q-pa-md"
+      v-if="
+        tab === 'sessions' &&
+        storeAccounts.accounts[selectedIndex].auths.length > 0
+      "
+    >
+      <!-- TO DO - Sessions are not working because I am not able to login to any website at the moment with HiveAuth Mobile App. once fixed, I'll be able to resume. -->
+      <q-list bordered>
+        <q-item
+          v-for="(auth, index) in storeAccounts.accounts[selectedIndex].auths"
+          :key="`${auth.app}-${index}`"
+        >
+          <q-item-section avatar>
+            <q-img
+              :src="auth.app.icon"
+              spinner-color="white"
+              style="height: 40px; max-width: 40px"
+            />
+          </q-item-section>
+          <q-item-section class="q-ml-md">{{ auth.app.name }}</q-item-section>
+          <q-item-section v-if="auth.app.description" class="q-ml-sm">{{
+            auth.app.description
+          }}</q-item-section>
+        </q-item>
+      </q-list>
     </div>
   </div>
 </template>

@@ -2,23 +2,25 @@
   <q-list bordered>
     <AccountManagementKeyItem
       :key="`${name}-active`"
+      :name="name"
       key-type="Active"
-      v-if="active !== null && active !== undefined"
+      :keyValue="active"
     />
-    <q-separator v-if="active !== null && active !== undefined" />
+    <q-separator />
     <AccountManagementKeyItem
-      key-type="Posting"
       :key="`${name}-posting`"
-      v-if="posting !== null && posting !== undefined"
+      :name="name"
+      key-type="Posting"
+      :keyValue="posting"
     />
-    <q-separator v-if="posting !== null && posting !== undefined" />
-
+    <q-separator />
     <AccountManagementKeyItem
       :key="`${name}-memo`"
+      :name="name"
       key-type="Memo"
-      v-if="memo !== null && memo !== undefined"
+      :keyValue="memo"
     />
-    <q-separator v-if="memo !== null && memo !== undefined" />
+    <q-separator />
   </q-list>
 </template>
 
