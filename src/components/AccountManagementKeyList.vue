@@ -1,5 +1,5 @@
 <template>
-  <q-list>
+  <q-list bordered>
     <AccountManagementKeyItem
       :key="`${name}-active`"
       key-type="Active"

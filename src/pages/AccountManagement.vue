@@ -43,10 +43,11 @@
       </q-btn-dropdown>
     </div>
     <q-tabs v-model="tab" inline-label v-if="storeAccounts.accounts.length > 0">
-      <q-tab name="keys" icon="key" label={{ $t('account_management.keys') }} />
-      <q-tab name="sessions" icon="fa-solid fa-id-card" label={{
-        $t('account_management.sessions')
-      }}
+      <q-tab name="keys" icon="key" label="Keys" />
+      <q-tab
+        name="sessions"
+        icon="fa-solid fa-id-card"
+        label="Sessions"
       />
     </q-tabs>
     <div class="absolute-center" v-if="storeAccounts.accounts.length === 0">
