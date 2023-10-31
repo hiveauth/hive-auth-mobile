@@ -29,6 +29,7 @@ export default {
     empty: 'No Accounts found',
     keys: 'Keys',
     sessions: 'Sessions',
+    expires: 'Expires',
   },
 	sessions: {
 		empty: "No sessions found",
