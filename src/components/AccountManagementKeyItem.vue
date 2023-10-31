@@ -2,8 +2,15 @@
   <q-item>
     <q-item-section avatar>
       <q-avatar>
-        <q-icon v-if="!suggestAdd" name="key" color="primary" size="1.25rem" />
-        <q-btn
+        <q-icon name="key" color="primary" size="1.25rem" />
+      </q-avatar>
+    </q-item-section>
+    <q-item-section>
+      <q-item-label v-if="!suggestAdd">{{ props.keyType }} Key</q-item-label>
+      <q-item-label v-if="suggestAdd">{{ props.keyType }} Key</q-item-label>
+    </q-item-section>
+    <q-item-section avatar v-if="suggestAdd">
+      <q-btn
           v-if="suggestAdd"
           round
           color="primary"
@@ -11,11 +18,6 @@
           flat
           outline
         />
-      </q-avatar>
-    </q-item-section>
-    <q-item-section>
-      <q-item-label v-if="!suggestAdd">{{ props.keyType }} Key</q-item-label>
-      <q-item-label v-if="suggestAdd">Add {{ props.keyType }} Key</q-item-label>
     </q-item-section>
     <q-item-section avatar v-if="!suggestAdd">
       <div class="row">

@@ -43,8 +43,8 @@
       </q-btn-dropdown>
     </div>
     <q-tabs v-model="tab" inline-label v-if="storeAccounts.accounts.length > 0">
-      <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
       <q-tab name="sessions" icon="fa-solid fa-id-card" :label="$t('account_management.sessions')" />
+      <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
     </q-tabs>
     <div class="absolute-center" v-if="storeAccounts.accounts.length === 0">
       {{ $t('account_management.empty') }}
@@ -67,24 +67,16 @@
         storeAccounts.accounts[selectedIndex].auths.length > 0
       "
     >
-      <!-- TO DO - Sessions are not working because I am not able to login to any website at the moment with HiveAuth Mobile App. once fixed, I'll be able to resume. -->
       <q-list bordered>
-        <q-item
-          v-for="(auth, index) in storeAccounts.accounts[selectedIndex].auths"
-          :key="`${auth.app}-${index}`"
-        >
-          <q-item-section avatar>
-            <q-img
-              :src="auth.app.icon"
-              spinner-color="white"
-              style="height: 40px; max-width: 40px"
-            />
-          </q-item-section>
-          <q-item-section class="q-ml-md">{{ auth.app.name }}</q-item-section>
-          <q-item-section v-if="auth.app.description" class="q-ml-sm">{{
-            auth.app.description
-          }}</q-item-section>
-        </q-item>
+        <AccountManagementSessionItem
+        v-for="(auth, index) in storeAccounts.accounts[selectedIndex].auths"
+        :key="`${auth.app}-${index}`"
+        :icon=auth.app.icon
+        :expiry=auth.expire
+        :description=auth.app.description
+        :name=auth.app.name
+        :whitelists=auth.whitelists
+        />
       </q-list>
     </div>
   </div>
@@ -95,11 +87,12 @@ import { defineComponent, onMounted, ref } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 import AccountManagementKeyList from 'components/AccountManagementKeyList.vue';
+import AccountManagementSessionItem from 'components/AccountManagementSessionItem.vue';
 
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 let selectedIndex = ref(0);
-let tab = ref('keys');
+let tab = ref('sessions');
 
 function onClickItemAtIndex(index: number) {
   selectedIndex.value = index;
