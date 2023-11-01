@@ -5,6 +5,8 @@ import { NativeBiometric } from 'capacitor-native-biometric';
 import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
 
+import { Pendings } from '../classes/pendings'
+
 const i18n = createI18n({locale: 'en-US', messages}).global
 
 const CREDENTIALS_SERVER = 'hiveauth.mobile'
@@ -16,6 +18,7 @@ export interface logItem {
 
 export const useAppStore = defineStore('storeApp', {
   state: () => ({
+    pendings: new Pendings(),
     logs: [] as logItem[],
     resetWebsocket: false,
     isHASConnected: false,
@@ -65,7 +68,7 @@ export const useAppStore = defineStore('storeApp', {
         this.passcode = value;
         this.hasPasscode = true;
       } catch (e) {
-        console.error(`storeApp.readCode failed - ${e.message}. `);
+        console.error(`storeApp.readCode failed - ${(e as Error).message}. `);
       }
     },
 
@@ -77,7 +80,7 @@ export const useAppStore = defineStore('storeApp', {
         description: i18n.t('store_auth.biometrics_description'),
       })
       .then(() => true)
-      .catch(() => false);
+      .catch(() => false)
 
       return verified;
     },
@@ -94,7 +97,7 @@ export const useAppStore = defineStore('storeApp', {
         this.passcode = passcode;
         this.hasPasscode = true;
       } catch (e) {
-        console.error(`storeApp.readPasscodeFromBiometrics failed - ${e.message}`
+        console.error(`storeApp.readPasscodeFromBiometrics failed - ${(e as Error).message}`
         );
       }
     },
@@ -113,9 +116,10 @@ export const useAppStore = defineStore('storeApp', {
         await SecureStorage.set('passcode', passcode, true, false);
         this.passcode = passcode;
         this.hasPasscode = true;
-      } catch (e: any) {
-        console.error(`Error saving passcode - ${e.message}. `);
+      } catch (e) {
+        console.error(`Error saving passcode - ${(e as Error).message}. `);
       }
     },
   },
 });
+
