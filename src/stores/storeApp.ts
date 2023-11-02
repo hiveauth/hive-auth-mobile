@@ -22,6 +22,7 @@ export const useAppStore = defineStore('storeApp', {
     logs: [] as logItem[],
     resetWebsocket: false,
     isHASConnected: false,
+    menuOpen: false,
     path: '',
     scanValue: '',
     // app authentication

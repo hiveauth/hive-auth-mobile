@@ -1,13 +1,13 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header v-if="storeApp.isUnlocked">
+    <q-header v-if="storeApp.isUnlocked && $router.currentRoute.value.name!='main'">
       <q-toolbar>
-        <q-btn v-if="storeApp.isUnlocked"
+        <q-btn
           flat
           round
           dense
           icon="arrow_back_ios"
-          @click="goBack"
+          @click="$router.back();"
         />
         <q-toolbar-title>
           <q-item>
@@ -22,23 +22,14 @@
             </q-item-section>
           </q-item>
         </q-toolbar-title>
-        <q-btn v-if="storeApp.isUnlocked"
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleMenu"
-        />
       </q-toolbar>
     </q-header>
 
     <q-drawer v-if="storeApp.isUnlocked"
-      v-model="menuOpen"
-      side="right"
+      v-model="storeApp.menuOpen"
+      dark
       show-if-above
       bordered
-      :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'"
     >
       <HeaderMenu/>
     </q-drawer>
@@ -184,10 +175,6 @@ const HASProtocol = ref(0)
 // functions
 function toggleMenu () {
   menuOpen.value = !menuOpen.value
-}
-
-function goBack() {
-  router.replace({ name: 'main-menu' });
 }
 
 function datetoISO(date: Date) {
@@ -494,9 +481,9 @@ async function handleAuthReq(auth_req: IAuthReq) {
     if (!auth_key) {
       // check if the account store any non-expired auth_key that can decrypt the auth_req_data
       for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
-        auth_key = tryDecrypt(auth_req.data, auth.key)
-        if (auth_key) {
+        if (tryDecrypt(auth_req.data, auth.key)) {
           // auth_key successfuly decrypted - stop searching
+          auth_key = auth.key
           break;
         }
       }

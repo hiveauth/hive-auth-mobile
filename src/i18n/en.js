@@ -45,6 +45,9 @@ export default {
 		failed: 'Failed to validate key',
 		no_match: 'no matching key',
 	},
+	main_page: {
+		no_pending_request: 'No pending request',
+	},
 	btn_ok: "OK",
 	btn_cancel: "Cancel",
 	btn_add: "Add",
