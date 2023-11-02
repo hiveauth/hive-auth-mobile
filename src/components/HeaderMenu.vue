@@ -61,7 +61,8 @@
   }
   
   function navToManageAccounts() {
-    router.push({ name: 'manage-accounts' });
+    router.push({ name: 'account-management' });
+
   }
   
   function navToAboutUs() {

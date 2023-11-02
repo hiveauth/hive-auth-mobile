@@ -66,7 +66,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
       } catch (e) {
         console.error(`storeAccounts.update failed - ${e.message}. `);
       }
-    }
+    },
 
     async updateAccount(value: IAccount) {
       const account = this.accounts.find((o) => o.name === value.name)
