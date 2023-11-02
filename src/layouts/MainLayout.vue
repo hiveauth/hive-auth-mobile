@@ -64,6 +64,8 @@ import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
 
+import { IRegisterReq, IRegisterReqAccount, IAuthReq, IAuthReqData, IAuthReqPayload, ISignReqData, IChallengeReqData } from '../interfaces/has.interfaces'
+
 import CryptoJS from 'crypto-js';
 import assert from 'assert';
 import HASCustomPlugin from '../plugins/HASCustomPlugin';
@@ -73,16 +75,13 @@ import DialogAuthReq from 'components/DialogAuthReq.vue';
 import DialogSignReq from 'components/DialogSignReq.vue';
 import DialogChallengeReq from 'components/DialogChallengeReq.vue';
 
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n(), $t = t
+
 interface PrivateKey {
   key_type: string;
   key_private: string;
-}
-
-interface IAuthReqPayload {
-  account: string;
-  uuid: string;
-  key: string;
-  host: string;
 }
 
 const PKSA_NAME = 'HiveAuth Mobile'
@@ -200,24 +199,6 @@ function HASSend(message: string) {
   wsClient.send(message);
 }
 
-/**
- * Return the payload from the last QRCode or DeepLink processed
- */
-function getLastQRDL(): IAuthReqPayload | null{
-  if (!lastQRDL.startsWith('has://auth_req/')) {
-    return null;
-  }
-  const base64Data = lastQRDL.split('has://auth_req/')[1];
-  const base64DecodedString = atob(base64Data);
-  const result = JSON.parse(base64DecodedString);
-  return {
-    account: result.account,
-    uuid: result.uuid,
-    key: result.key,
-    host: result.host,
-  } as IAuthReqPayload;
-}
-
 function checkUsername(name: string) {
   const err = `Invalid account name "${name}"`;
   assert(name, `${err} (undefined)`);
@@ -324,11 +305,6 @@ async function getPublicKey(key: string) {
   return JSON.parse(response.dataString).data;
 }
 
-interface IRequestAccount {
-  name: string,
-  pok: any
-}
-
 async function handleKeyAck() {
   // server public key received
   if (key_server && storeApp.isUnlocked) {
@@ -338,8 +314,8 @@ async function handleKeyAck() {
         const request = {
           cmd: 'register_req',
           app: PKSA_NAME,
-          accounts: [] as IRequestAccount[],
-        };
+          accounts: [] as IRegisterReqAccount[],
+        } as IRegisterReq;
 
         for await (const account of storeAccounts.accounts) {
           checkUsername(account.name);
@@ -371,6 +347,11 @@ function tryDecrypt(data: any, key: any): string | null {
 }
 
 async function approveAuthRequest(payload: any, account: IAccount, auth_key: string, timeout?: number | undefined) {
+  assert(typeof payload.account == 'string', 'invalid payload (account)');
+  assert(typeof payload.data == 'string', 'invalid payload (data)');
+  assert(typeof payload.data == 'string', 'invalid payload (uuid)');
+  assert(typeof payload.expire == 'number', 'invalid payload (expire)');
+
   // Prepare reply
   const auth_ack_data = {}
   // Decrypt data received with encryption key received offline from the app
@@ -413,7 +394,7 @@ async function approveAuthRequest(payload: any, account: IAccount, auth_key: str
       expire:auth_ack_data.expire,
       key:auth_key,
       app:auth_req_data.app,
-      whitelists: [],
+      whitelists: new Set<string>(),
       ts_create: datetoISO(new Date()),
       ts_lastused: datetoISO(new Date()),
       ts_expire: datetoISO(new Date(auth_ack_data.expire)) 
@@ -425,64 +406,92 @@ async function approveAuthRequest(payload: any, account: IAccount, auth_key: str
   storeAccounts.updateAccount(account)
 }
 
-async function handleAuthReq(payload: any) {
+function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
+  assert(typeof auth_req_payload?.account == 'string', 'invalid auth_req_payload (account)')
+  assert(typeof auth_req_payload?.uuid == 'string', 'invalid auth_req_payload (uuid)')
+  assert(typeof auth_req_payload?.key == 'string', 'invalid auth_req_payload (key)')
+  assert(typeof auth_req_payload?.host == 'string', 'invalid auth_req_payload (host)')
+
+  const account = storeAccounts.accounts.find(o => o.name === auth_req_payload.account);
+  if(!account) {
+    console.log(`account not managed (${auth_req_payload.account})`)
+    return // account is no more managed by PKSA
+  }
+
+  // search for matching request in pendings
+  const pending = storeApp.pendings.pop(auth_req_payload.uuid)
+  if(pending) {
+    const auth_req = (pending as unknown as IAuthReq)
+    // Try to descript the pending request with the payload auth_key
+    const decrypted = tryDecrypt(auth_req.data, auth_req_payload.key)
+    if (decrypted) {
+      // Successfuly decripted
+      const auth_key = auth_req_payload.key;
+      // ask user to approve or reject authentication request
+      const auth_req_data = JSON.parse(decrypted) as IAuthReqData
+      assert(typeof auth_req_data?.app?.name == 'string', 'invalid payload (auth_req_data.app.name)');
+
+      $q.dialog({
+        component: DialogAuthReq,
+        componentProps: {
+          // dialog props
+          persistent: true,
+          // custom props
+          username: auth_req.account,
+          auth_req_data: auth_req_data,
+          expire: auth_req.expire,
+        },
+      }).onOk(() => {
+        approveAuthRequest(auth_req, account, auth_key as string);
+      }).onCancel(() => {
+        const auth_nack_data = CryptoJS.AES.encrypt(auth_req.uuid,auth_key).toString()
+        HASSend(JSON.stringify({cmd:"auth_nack", uuid:auth_req.uuid, data:auth_nack_data, pok:getPOK(auth_req.account, auth_req.uuid)}))
+      })
+    }
+  }
+}
+
+async function handleAuthReq(auth_req: IAuthReq) {
   try {
     // Do not process auth_req when app is locked
     if (!storeApp.isUnlocked) return;
 
-    assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
-    assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
+    assert(typeof auth_req.account == 'string', 'invalid payload (account)');
+    assert(typeof auth_req.data == 'string', 'invalid payload (data)');
+    assert(typeof auth_req.data == 'string', 'invalid payload (uuid)');
+    assert(typeof auth_req.expire == 'number', 'invalid payload (expire)');
 
-    const account = storeAccounts.accounts.find(o => o.name === payload.account);
-    if(!account) return // account is no more managed by PKSA
+    const account = storeAccounts.accounts.find(o => o.name === auth_req.account);
+    if(!account) {
+      console.debug(`account not managed (${auth_req.account})`)
+      return // account is no more managed by PKSA
+    }
 
     let auth_key: string | null = null;
 
     // For debug purpose, the APP can pass the encryption key (auth_key) to the PKSA with the auth_req payload
-    if (payload.auth_key && process.env.AUTH_REQ_SECRET) {
+    if (auth_req?.auth_key && process.env.AUTH_REQ_SECRET) {
       // Decrypt the provided auth_key using the pre-shared PKSA secret
-      auth_key = tryDecrypt(payload.auth_key, process.env.AUTH_REQ_SECRET)
+      auth_key = tryDecrypt(auth_req.auth_key, process.env.AUTH_REQ_SECRET)
     }
     
     if (!auth_key) {
       // check if the account store any non-expired auth_key that can decrypt the auth_req_data
       for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
-        if (tryDecrypt(payload.data, auth.key)) {
-          // decryption succedded - automaticaly approve request
-          approveAuthRequest(payload, account, auth.key);
-          return
+        auth_key = tryDecrypt(auth_req.data, auth.key)
+        if (auth_key) {
+          // auth_key successfuly decrypted - stop searching
+          break;
         }
       }
     }
-    if (!auth_key) {
-      // try to retrieve auth_key from last QRCode or deep-link
-      const auth_req_payload = getLastQRDL();
-      if (auth_req_payload  && tryDecrypt(payload.data, auth_req_payload.key)) {
-          auth_key = auth_req_payload.key;
-      }
+    if(auth_key) {
+      // We have an auth_key - automaticaly approve request
+      approveAuthRequest(auth_req, account, auth_key);
+    } else {
+      // No auth key found, add the request to pendings and wait for scan or deeplink
+      storeApp.pendings.push(auth_req)
     }
-    // No auth_key available - ignore request
-    if (!auth_key) return;
-    // ask user to approve or reject authentication request
-    const auth_req_data = JSON.parse(tryDecrypt(payload.data, auth_key) as string)
-    assert(auth_req_data?.app?.name && typeof auth_req_data?.app?.name == 'string', 'invalid payload (auth_req_data.app.name)');
-
-    $q.dialog({
-      component: DialogAuthReq,
-      componentProps: {
-        // dialog props
-        persistent: true,
-        // custom props
-        username: payload.account,
-        auth_req_data: auth_req_data,
-        expire: payload.expire,
-      },
-    }).onOk(() => {
-      approveAuthRequest(payload, account, auth_key as string);
-    }).onCancel(() => {
-      const auth_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth_key).toString()
-      HASSend(JSON.stringify({cmd:"auth_nack", uuid:payload.uuid, data:auth_nack_data, pok:getPOK(payload.account, payload.uuid)}))
-    })
   } catch (e) {
     $q.notify({
       color: 'negative',
@@ -516,7 +525,7 @@ async function validatePayload(payload: any) {
             auth.nonce = data.nonce;
             await storeAccounts.updateAccount(account);
             // Then return valid auth and decrypted payload data
-            return { auth, data };
+            return { account, auth, data };
           }
         }
       } catch (e) {
@@ -545,7 +554,7 @@ function checkTransaction(sign_req_data: any, auth: IAccountAuth) {
 
     level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
     // Check if operation is already whitelisted
-    if (!auth.whitelists.includes(opType)) {
+    if (!auth.whitelists.has(opType)) {
       askApproval = true
       // check is op can be whitelisted and manage special case of custom_json
       if (opInfo.key == 'posting' && !(opType == 'custom_json' && (op[1] as any)?.required_auths.length > 0) ) {
@@ -584,7 +593,8 @@ async function handleSignReq(payload: any) {
     assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
     assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
 
-    const { auth, data: sign_req_data } = await validatePayload(payload);
+    const { account, auth, data } = await validatePayload(payload);
+    const sign_req_data = data as ISignReqData
 
     if (!auth) return;
     // validate decrypted sign_req_data (nonce has already been validated by validatePayload)
@@ -620,8 +630,8 @@ async function handleSignReq(payload: any) {
       }).onOk(async (whitelist) => {
         await approveSignRequest(payload, sign_req_data, key_private)
         if (whitelist) {
-          console.log("update whitelist", JSON.stringify(auth))
-          auth.whitelists.push(opType)
+          auth.whitelists.add(opType)
+          storeAccounts.updateAccount(account)
         }
       }).onCancel(() => {
         const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth.key).toString()
@@ -665,7 +675,8 @@ async function handleChallengeReq(payload: any) {
     assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
     assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
   
-    const { auth, data: challenge_req_data } = await validatePayload(payload);
+    const { account, auth, data } = await validatePayload(payload);
+    const challenge_req_data = data as IChallengeReqData
 
     if (auth!) return;
     // validate decrypted challenge_req_data (nonce has already been validated by validatePayload)
@@ -812,6 +823,48 @@ function heartbeat() {
   }
 }
 
+/**
+ * Process a QRCode or DeepLink
+ */
+function processQRDL(value: string) {
+  const URI_HAS = 'has://auth_req/'
+  const URI_HIVE = 'hive://sign/'
+
+  if (value.startsWith(URI_HAS)) {
+    const base64Data = value.split(URI_HAS)[1];
+    const base64DecodedString = atob(base64Data);
+    const result = JSON.parse(base64DecodedString);
+    const auth_req_payload =  {
+      account: result.account,
+      uuid: result.uuid,
+      key: result.key,
+      host: result.host,
+    }  as IAuthReqPayload;
+
+    // IF the PKSA is not yet connected to a HAS node, use the provided host and connect
+    if (!wsClient) {
+      HASServer.value = auth_req_payload?.host || DEFAULT_HAS_SERVER;
+      startWebsocket();
+    }
+    else {
+      // // Reconnect only if HAS Server is a different server
+      // if (auth_req_payload?.host && auth_req_payload?.host != HASServer.value) {
+      //   TODO: connect to new host
+      // }
+    }
+    processAuthReqPayload(auth_req_payload)
+  }
+
+  if(value.startsWith(URI_HIVE)) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: `${$t('not_supported')}`,
+      icon: 'report_problem',
+    })
+  }
+}
+
 async function frequentChecker() {
   if (storeApp.isUnlocked) {
     // Retrieve any deeplink or scanned qrcode value
@@ -827,23 +880,13 @@ async function frequentChecker() {
       challenge: '',
       key: '',
     })).dataString;
-
     //console.log(`qrcode: ${qrcode} deeplink: ${deeplink}`);
     if (qrcode.length > 0 || deeplink.length > 0) {
-      // store read value
+      // reset value in store
       storeApp.scanValue = '';
-      lastQRDL = qrcode.length > 0 ? qrcode : deeplink;
-      // extract data from value
-      const lastQRData = getLastQRDL();
-      // // Reconnect only if HAS Server is a different server
-      // if (wsClient && lastQRData?.host !== null && lastQRData?.host !== undefined) {
-      //   wsClient.close();
-      //   wsClient = null;
-      // }
+      processQRDL(qrcode.length > 0 ? qrcode : deeplink)
     }
     if (!wsClient) {
-      const lastQRData = getLastQRDL();
-      HASServer.value = lastQRData?.host || DEFAULT_HAS_SERVER;
       startWebsocket();
     } else if (storeApp.resetWebsocket) {
       // Websocket needs to be reset to re-register accounts

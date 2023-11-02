@@ -5,6 +5,8 @@ import { NativeBiometric } from 'capacitor-native-biometric';
 import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
 
+import { Pendings } from '../classes/pendings'
+
 const i18n = createI18n({locale: 'en-US', messages}).global
 
 const CREDENTIALS_SERVER = 'hiveauth.mobile'
@@ -16,6 +18,7 @@ export interface logItem {
 
 export const useAppStore = defineStore('storeApp', {
   state: () => ({
+    pendings: new Pendings(),
     logs: [] as logItem[],
     resetWebsocket: false,
     isHASConnected: false,
@@ -119,3 +122,4 @@ export const useAppStore = defineStore('storeApp', {
     },
   },
 });
+

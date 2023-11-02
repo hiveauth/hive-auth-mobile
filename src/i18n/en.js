@@ -47,4 +47,6 @@ export default {
 	btn_update: "Update",
 	btn_approve: "Approve",
 	btn_reject: "Reject",
- }
+
+	not_supported: "Feature not supported yet"
+}
