@@ -5,19 +5,19 @@
         push
         no-caps
         rounded
-        v-if="storeAccounts.accounts.length > 0"
+        v-if="storeAccounts.sortedAccounts.length > 0"
         class="account-drop-down"
       >
         <template v-slot:label>
           <q-item-section avatar>
             <q-avatar>
               <img
-                :src="`https://images.hive.blog/u/${storeAccounts.accounts[selectedIndex].name}/avatar/small`"
+                :src="`https://images.hive.blog/u/${storeAccounts.sortedAccounts[selectedIndex].name}/avatar/small`"
               />
             </q-avatar>
           </q-item-section>
           <q-item-section>
-            {{ storeAccounts.accounts[selectedIndex].name }}
+            {{ storeAccounts.sortedAccounts[selectedIndex].name }}
           </q-item-section>
         </template>
         <q-list>
@@ -42,40 +42,44 @@
         </q-list>
       </q-btn-dropdown>
     </div>
-    <q-tabs v-model="tab" inline-label v-if="storeAccounts.accounts.length > 0">
-      <q-tab name="sessions" icon="fa-solid fa-id-card" :label="$t('account_management.sessions')" />
+    <q-tabs v-model="tab" inline-label v-if="storeAccounts.sortedAccounts.length > 0">
+      <q-tab
+        name="sessions"
+        icon="fa-solid fa-id-card"
+        :label="$t('account_management.sessions')"
+      />
       <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
     </q-tabs>
-    <div class="absolute-center" v-if="storeAccounts.accounts.length === 0">
+    <div class="absolute-center" v-if="storeAccounts.sortedAccounts.length === 0">
       {{ $t('account_management.empty') }}
     </div>
     <div
       class="q-pa-md"
-      v-if="tab === 'keys' && storeAccounts.accounts.length > 0"
+      v-if="tab === 'keys' && storeAccounts.sortedAccounts.length > 0"
     >
       <AccountManagementKeyList
-        :name="storeAccounts.accounts[selectedIndex].name"
-        :active="storeAccounts.accounts[selectedIndex].keys.active"
-        :memo="storeAccounts.accounts[selectedIndex].keys.memo"
-        :posting="storeAccounts.accounts[selectedIndex].keys.posting"
+        :name="storeAccounts.sortedAccounts[selectedIndex].name"
+        :active="storeAccounts.sortedAccounts[selectedIndex].keys.active"
+        :memo="storeAccounts.sortedAccounts[selectedIndex].keys.memo"
+        :posting="storeAccounts.sortedAccounts[selectedIndex].keys.posting"
       />
     </div>
     <div
       class="q-pa-md"
       v-if="
         tab === 'sessions' &&
-        storeAccounts.accounts[selectedIndex].auths.length > 0
+        storeAccounts.sortedAccounts[selectedIndex].auths.length > 0
       "
     >
       <q-list bordered>
         <AccountManagementSessionItem
-        v-for="(auth, index) in storeAccounts.accounts[selectedIndex].auths"
-        :key="`${auth.app}-${index}`"
-        :icon=auth.app.icon
-        :expiry=auth.expire
-        :description=auth.app.description
-        :name=auth.app.name
-        :whitelists=auth.whitelists
+          v-for="(auth, index) in storeAccounts.sortedAccounts[selectedIndex].auths"
+          :key="`${auth.app}-${index}`"
+          :icon="auth.app.icon"
+          :expiry="auth.expire"
+          :description="auth.app.description"
+          :name="auth.app.name"
+          :whitelists="auth.whitelists"
         />
       </q-list>
     </div>
@@ -96,10 +100,20 @@ let tab = ref('sessions');
 
 function onClickItemAtIndex(index: number) {
   selectedIndex.value = index;
+  storeAccounts.updateLastSelectedAccount(storeAccounts.sortedAccounts[index].name);
 }
 
 onMounted(() => {
   storeApp.path = 'account-management';
+  const lastSelectedAccountName = storeAccounts.lastSelectedAccountName;
+  if (lastSelectedAccountName.length > 0) {
+    const index = storeAccounts.accounts.findIndex((account) => {
+      return account.name == lastSelectedAccountName;
+    });
+    if (index != -1) {
+      selectedIndex.value = index;
+    }
+  }
 });
 </script>
 

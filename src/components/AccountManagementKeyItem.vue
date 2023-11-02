@@ -20,50 +20,12 @@
         />
     </q-item-section>
     <q-item-section avatar v-if="!suggestAdd">
-      <div class="row">
-        <div class="col">
-          <q-btn
-            round
-            color="primary"
-            icon="fa-solid fa-copy"
-            flat
-            outline
-            @click="copyKeyToClipboard"
-          />
-        </div>
-        <div class="col">
-          <q-btn round color="red" icon="fa-solid fa-trash" flat outline />
-        </div>
-      </div>
+      <q-btn round color="red" icon="fa-solid fa-trash" flat outline />
     </q-item-section>
   </q-item>
 </template>
 
 <script setup lang="ts">
-import { Clipboard } from '@capacitor/clipboard';
-import { useQuasar } from 'quasar';
-
-const $q = useQuasar();
-async function copyKeyToClipboard() {
-  try {
-    await Clipboard.write({
-      string: props.keyValue ?? '',
-    });
-    $q.notify({
-      color: 'positive',
-      position: 'bottom',
-      message: `${props.name}'s ${props.keyType} Key is copied to clipboard`,
-      icon: 'assignment',
-    });
-  } catch (e) {
-    $q.notify({
-      color: 'negative',
-      position: 'bottom',
-      message: `Key could not be copied - ${e.message}`,
-      icon: 'report_problem',
-    });
-  }
-}
 const props = defineProps({
   name: {
     type: String,

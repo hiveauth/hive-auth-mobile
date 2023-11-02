@@ -32,22 +32,42 @@ export interface IAccount {
 
 export const useAccountsStore = defineStore('storeAccounts', {
   state: () => ({
-    accounts: [] as IAccount[], 
+    accounts: [] as IAccount[],
+    lastSelectedAccountName: '',
   }),
+  getters: {
+    sortedAccounts:(state) => {
+      return state.accounts.sort((a, b) => a.name.localeCompare(b.name));
+    }
+  },
   actions: {
     async read() {
       try {
         await SecureStorage.setSynchronize(false);
         const value = (await SecureStorage.get('accounts')) as string;
-        if (value ) {
+        const lastSelected = (await SecureStorage.get('lastSelectedAccount')) as string;
+        if ( value && value.length > 0 ) {
           this.accounts = JSON.parse(value);
+        }
+        if (lastSelected && lastSelected.length > 0) {
+          this.lastSelectedAccountName = lastSelected;
         }
       } catch (e) {
         console.error(`storeAccounts.read failed - ${e.message}`);
       }
       return this.accounts
     },
-  
+
+    async updateLastSelectedAccount(newValue: string) {
+      try {
+        this.lastSelectedAccountName = newValue;
+        await SecureStorage.setSynchronize(false);
+        await SecureStorage.set('lastSelectedAccount', newValue);
+      } catch (e) {
+        console.error(`storeAccounts.update failed - ${e.message}. `);
+      }
+    }
+
     async updateAccount(value: IAccount) {
       const account = this.accounts.find((o) => o.name === value.name)
       if(account) {

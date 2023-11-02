@@ -55,27 +55,17 @@ const props = defineProps({
     required: false,
   },
   whitelists: {
-    type: Array<string>,
+    type: Set<string>,
     required: true,
   },
 });
 
 function toggle() {
+  const whitelistOps = Array.from(props.whitelists);
+  const message = whitelistOps.length > 0 ? 'Following operations are whitelisted.\n' + Array.from(props.whitelists).join(', ') : 'No operations are whitelisted';
   $q.dialog({
     title: 'Whitlists',
-    message: 'Choose your whitelist operations:',
-    options: {
-      type: 'toggle',
-      model: [],
-      // inline: true,
-      items: [
-        { label: 'Option 1', value: 'opt1', color: 'secondary' },
-        { label: 'Option 2', value: 'opt2' },
-        { label: 'Option 3', value: 'opt3' },
-      ],
-    },
-    cancel: true,
-    persistent: true,
+    message: message,
   })
     .onOk((data) => {
       // console.log('>>>> OK, received', data)
