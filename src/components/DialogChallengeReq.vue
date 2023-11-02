@@ -2,6 +2,13 @@
     <q-dialog ref="dialogRef" @hide="onDialogHide">
       <q-card class="q-dialog-plugin">
         <q-card-section class="row items-center">
+          <q-avatar  size="40px">
+            <q-img :src="`https://images.hive.blog/u/${username}/avatar/small`" />
+          </q-avatar>
+          <span class="q-ml-md text-bold">{{ username }}</span>
+        </q-card-section>
+        <q-item>{{ $t('dialog_challenge_req.text') }}</q-item>
+        <q-card-section class="row items-center">
           <q-avatar v-if="auth.app.icon" color="primary" text-color="white" size="40px">
             <q-img
               :src="auth.app.icon"
@@ -50,6 +57,10 @@
       required: true,
     },
     auth: {
+      type: Object,
+      required: true,
+    },
+    challenge_req_data: {
       type: Object,
       required: true,
     },

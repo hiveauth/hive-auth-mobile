@@ -2,17 +2,27 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin">
       <q-card-section class="row items-center">
-        <q-avatar v-if="auth_req_data.app.icon" color="primary" text-color="white" size="40px">
+        <q-avatar  size="40px">
+          <q-img :src="`https://images.hive.blog/u/${username}/avatar/small`" />
+        </q-avatar>
+        <span class="q-ml-md text-bold">{{ username }}</span>
+      </q-card-section>
+      <q-item>{{ $t('dialog_auth_req.text') }}</q-item>
+      <q-card-section class="row items-center">
+        <q-avatar v-if="auth_req_data.app.icon" size="40px">
           <q-img
             :src="auth_req_data.app.icon"
             spinner-color="white"
-            style="height: 40px; max-width: 40px"
           />
         </q-avatar>
-        <span class="q-ml-md">{{ auth_req_data.app.name }}</span>
+        <span class="q-ml-md  text-bold">{{ auth_req_data.app.name }}</span>
         <span v-if="auth_req_data.app.description" class="q-ml-sm">{{ auth_req_data.app.description }}</span>
       </q-card-section>
-
+      <q-separator />
+      <q-card-section>
+        <q-item-section class="text-italic">{{$t('dialog_auth_req.timeout')}}</q-item-section>
+        <q-select map-options emit-value v-model="authTimeout" :options="options" />
+      </q-card-section>
       <q-card-actions align="right">
         <q-btn
           flat
@@ -32,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
@@ -52,6 +63,33 @@ const props = defineProps({
   },
 })
 
+const msHour = 60*60*1000
+const msDay = 24 * msHour
+const msWeek = 7 * msDay
+const msMonth = 30 * msDay
+
+const options = [
+  {
+    label: '1 Hour',
+    value: msHour,
+  },
+  {
+    label: '1 Day',
+    value: msDay
+  },
+  {
+    label: '1 Week',
+    value: msWeek
+  },
+  {
+    label: '1 Month',
+    value: msMonth
+  },
+]
+
+// data
+const authTimeout =  ref(msDay)
+
 defineEmits([
   // REQUIRED; need to specify some events that your
   // component will emit through useDialogPluginComponent()
@@ -70,7 +108,7 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
 function onOK () {
   // on OK, it is REQUIRED to call onDialogOK (with optional payload)
   // or with payload: onDialogOK({ ... }) ...and it will also hide the dialog automatically
-  onDialogOK()
+  onDialogOK(authTimeout.value)
 }
 
 function onCancel() {

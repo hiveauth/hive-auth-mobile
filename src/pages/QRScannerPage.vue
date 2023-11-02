@@ -33,7 +33,8 @@ async function startScan() {
           icon: 'camera',
         });
         storeApp.scanValue = result.content;
-        router.replace('main-menu');
+        // router.replace('main');
+        router.back()
       } else {
         $q.notify({
           color: 'negative',

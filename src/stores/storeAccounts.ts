@@ -53,7 +53,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
           this.lastSelectedAccountName = lastSelected;
         }
       } catch (e) {
-        console.error(`storeAccounts.read failed - ${e.message}`);
+        console.error(`storeAccounts.read failed - ${(e as Error).message}`);
       }
       return this.accounts
     },
@@ -84,7 +84,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
         await SecureStorage.setSynchronize(false);
         await SecureStorage.set('accounts', JSON.stringify(this.accounts));
       } catch (e) {
-        console.error(`storeAccounts.update failed - ${e.message}. `);
+        console.error(`storeAccounts.update failed - ${(e as Error).message}. `);
       }
     },
   },

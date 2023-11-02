@@ -50,7 +50,7 @@ const sessions = ref([] as ISessionData[]);
 
 // functions
 function formatDate(timestamp: number) {
-  return dayjs(timestamp).format('YYYY-MM-DD hh:mm:ss')
+  return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
 }
 
 // hooks

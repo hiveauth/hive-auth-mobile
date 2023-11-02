@@ -39,7 +39,7 @@
         <q-item-section> Sessions </q-item-section>
       </q-item>
 
-      <q-separator spaced />
+      <q-separator dark spaced />
 
       <q-item clickable v-ripple @click="navToAboutUs">
         <q-item-section avatar>
@@ -49,7 +49,7 @@
         <q-item-section> About </q-item-section>
       </q-item>
 
-      <q-separator spaced />
+      <q-separator dark spaced />
 
       <q-item clickable v-ripple @click="navToWebSocketLogs">
         <q-item-section avatar>
@@ -59,7 +59,7 @@
         <q-item-section> Logs </q-item-section>
       </q-item>
 
-      <q-separator spaced />
+      <q-separator dark spaced />
 
       <q-item clickable v-ripple @click="lockApp">
         <q-item-section avatar>
@@ -69,7 +69,7 @@
         <q-item-section> Lock App </q-item-section>
       </q-item>
 
-      <q-separator spaced />
+      <q-separator dark spaced />
     </q-list>
   </q-page>
 </template>
@@ -85,11 +85,11 @@ const router = useRouter();
 // functions
 function lockApp() {
   storeApp.lockApp();
-  router.replace({ name: 'login' });
+  router.replace({ name: 'main' });
 }
 
 function navToManageAccounts() {
-  router.replace({ name: 'manage-accounts' });
+  router.push({ name: 'manage-accounts' });
 }
 
 function navToAccountManagement() {
@@ -97,23 +97,23 @@ function navToAccountManagement() {
 }
 
 function navToAboutUs() {
-  router.replace({ name: 'about-us' });
+  router.push({ name: 'about' });
 }
 
 function navToScanner() {
-  router.replace({ name: 'qr-scanner' });
+  router.push({ name: 'scan' });
 }
 
 function navToActiveSessions() {
-  router.replace({ name: 'active-sessions' });
+  router.push({ name: 'active-sessions' });
 }
 
 function navToWebSocketLogs() {
-  router.replace({ name: 'websocket-logs' });
+  router.push({ name: 'websocket-logs' });
 }
 
 function navToImportKeys() {
-  router.replace({ name: 'import-key' });
+  router.push({ name: 'import-key' });
 }
 
 // Hooks
