@@ -15,7 +15,7 @@ android {
     applicationId "com.hiveauth.mobile"
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
-    versionCode 13
+    versionCode 14
     versionName "0.1.0"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     aaptOptions {
@@ -25,14 +25,14 @@ android {
     }
   }
 
-  signingConfigs {
-    release {
-      keyAlias keystoreProperties['keyAlias']
-      keyPassword keystoreProperties['keyPassword']
-      storeFile keystoreProperties['storeFilePath'] ? file(keystoreProperties['storeFilePath']) : null
-      storePassword keystoreProperties['storePassword']
-    }
-  }
+  // signingConfigs {
+  //   release {
+  //     keyAlias keystoreProperties['keyAlias']
+  //     keyPassword keystoreProperties['keyPassword']
+  //     storeFile keystoreProperties['storeFilePath'] ? file(keystoreProperties['storeFilePath']) : null
+  //     storePassword keystoreProperties['storePassword']
+  //   }
+  // }
 
   buildTypes {
     debug {
@@ -45,7 +45,8 @@ android {
       }
     }
     release {
-      signingConfig = signingConfigs["release"]
+      // signingConfig = signingConfigs["release"]
+      signingConfig signingConfigs.debug
       minifyEnabled false
       shrinkResources false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
