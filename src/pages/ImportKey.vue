@@ -124,8 +124,8 @@ async function validateKey() {
 // Hooks
 onMounted(() => {
   storeApp.path = 'Import Keys';
-  if(process.env.IMPORT_USERNAME) username.value = process.env.IMPORT_USERNAME
-  if(process.env.IMPORT_KEY) private_key.value = process.env.IMPORT_KEY
+  if(process.env.DEV && process.env.IMPORT_USERNAME) username.value = process.env.IMPORT_USERNAME
+  if(process.env.DEV && process.env.IMPORT_KEY) private_key.value = process.env.IMPORT_KEY
 })
 
 </script>
