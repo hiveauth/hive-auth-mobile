@@ -32,7 +32,7 @@ export interface IAccount {
 
 export const useAccountsStore = defineStore('storeAccounts', {
   state: () => ({
-    accounts: [] as IAccount[], 
+    accounts: [] as IAccount[],
   }),
   actions: {
     async read() {
@@ -43,11 +43,11 @@ export const useAccountsStore = defineStore('storeAccounts', {
           this.accounts = JSON.parse(value);
         }
       } catch (e) {
-        console.error(`storeAccounts.read failed - ${e.message}`);
+        console.error(`storeAccounts.read failed - ${(e as Error).message}`);
       }
       return this.accounts
     },
-  
+
     async updateAccount(value: IAccount) {
       const account = this.accounts.find((o) => o.name === value.name)
       if(account) {
@@ -64,7 +64,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
         await SecureStorage.setSynchronize(false);
         await SecureStorage.set('accounts', JSON.stringify(this.accounts));
       } catch (e) {
-        console.error(`storeAccounts.update failed - ${e.message}. `);
+        console.error(`storeAccounts.update failed - ${(e as Error).message}. `);
       }
     },
   },

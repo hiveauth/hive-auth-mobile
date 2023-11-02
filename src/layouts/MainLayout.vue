@@ -1,23 +1,19 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header>
+    <q-header v-if="storeApp.isUnlocked && $router.currentRoute.value.name!='main'">
       <q-toolbar>
-        <q-btn v-if="storeApp.isUnlocked"
+        <q-btn
           flat
           round
           dense
           icon="arrow_back_ios"
-          @click="goBack"
+          @click="$router.back();"
         />
         <q-toolbar-title>
           <q-item>
             <q-item-section top avatar>
               <q-avatar size="40px" class="q-mb-sm">
-                <q-img
-                  src="https://images.hive.blog/u/hiveauth/avatar/small"
-                  height="40px"
-                  width="40px"
-                />
+                <q-img src="~assets/logo.svg" />
               </q-avatar>
             </q-item-section>
             <q-item-section>
@@ -28,6 +24,16 @@
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
+
+    <q-drawer v-if="storeApp.isUnlocked"
+      v-model="storeApp.menuOpen"
+      dark
+      show-if-above
+      bordered
+    >
+      <HeaderMenu/>
+    </q-drawer>
+
 
     <q-page-container>
       <router-view />
@@ -55,7 +61,11 @@ import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
 
-import { IRegisterReq, IRegisterReqAccount, IAuthReq, IAuthReqData, IAuthReqPayload, ISignReqData, IChallengeReqData } from '../interfaces/has.interfaces'
+import { Operation } from '@hiveio/dhive/lib/chain/operation';
+import { IRegisterReq, IRegisterReqAccount,
+         IAuthReq, IAuthReqData, IAuthAckData, IAuthReqPayload, IAuthNack,
+         ISignReq, ISignReqData, ISignAck, ISignNack,
+         IChallengeReq, IChallengeReqData, IChallengeAck, IChallengeNack } from '../interfaces/has.interfaces'
 
 import CryptoJS from 'crypto-js';
 import assert from 'assert';
@@ -156,19 +166,19 @@ const operations = [
 let key_server: string | null = null
 let wsClient: WebSocket | null = null
 let tsHeartbeat = 0
-let lastQRDL = ''
 
 // data
+const menuOpen = ref(false)
 const HASServer = ref(DEFAULT_HAS_SERVER)
 const HASProtocol = ref(0)
 
 // functions
-function goBack() {
-  router.replace({ name: 'main-menu' });
+function toggleMenu () {
+  menuOpen.value = !menuOpen.value
 }
 
 function datetoISO(date: Date) {
-  return date.toISOString().replace(/T|Z/g," ")
+  return date.toISOString().replace(/T|Z/g, ' ')
 }
 
 function hideEncryptedData(str: string) {
@@ -180,8 +190,8 @@ function hideEncryptedData(str: string) {
 }
 
 function HASSend(message: string) {
-  assert(wsClient, "Websocket not initialized")
-  
+  assert(wsClient, 'Websocket not initialized')
+
   console.log(`[SEND] ${hideEncryptedData(message)}`);
   storeApp.logs.push({
     id: new Date().toISOString(),
@@ -200,7 +210,7 @@ function checkUsername(name: string) {
 
 /**
  * Get an account private key from the store
- * 
+ *
  * @param name Hive username
  * @param type name of private key requested
  * @returns the account's private key
@@ -317,12 +327,12 @@ async function handleKeyAck() {
         HASSend(JSON.stringify(request));
       }
     } catch (e) {
-      console.error(e.message);
+      console.error((e as Error).message);
     }
   }
 }
 
-function tryDecrypt(data: any, key: any): string | null {
+function tryDecrypt(data: string, key: string): string | null {
   if(data && key) {
     try {
       const res = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
@@ -337,32 +347,33 @@ function tryDecrypt(data: any, key: any): string | null {
   return null
 }
 
-async function approveAuthRequest(payload: any, account: IAccount, auth_key: string, timeout?: number | undefined) {
+async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key: string, timeout?: number | undefined) {
   assert(typeof payload.account == 'string', 'invalid payload (account)');
   assert(typeof payload.data == 'string', 'invalid payload (data)');
   assert(typeof payload.data == 'string', 'invalid payload (uuid)');
   assert(typeof payload.expire == 'number', 'invalid payload (expire)');
 
   // Prepare reply
-  const auth_ack_data = {}
+  let auth_ack_data: IAuthAckData
   // Decrypt data received with encryption key received offline from the app
   const auth_req_data = JSON.parse(CryptoJS.AES.decrypt(payload.data, auth_key).toString(CryptoJS.enc.Utf8))
   // clean storage from expired auths
-  account.auths = account.auths.filter(o => o.expire > Date.now()) 
+  account.auths = account.auths.filter(o => o.expire > Date.now())
   // Check if the matching auth it's still valid
   const validAuth = account.auths.find(o => o.key==auth_key && o.expire > Date.now())
   if(validAuth) {
     // auth is valid, reuse it and approve auth_req
-    auth_ack_data.expire = validAuth.expire
+    auth_ack_data = { expire: validAuth.expire }
   } else {
     // If not provided, the default expiration time for an auth_key is 24 hours
-    auth_ack_data.expire = Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000))
+    auth_ack_data = { expire: Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000)) }
+    console.log('expire:', new Date(auth_ack_data.expire).toISOString(), 'timeout:', timeout)
   }
   // Check if the app also requires the PKSA to sign a challenge
   if(auth_req_data.challenge) {
     const challenge_data = auth_req_data.challenge
-    assert(challenge_data.key_type && typeof(challenge_data.key_type)=="string" && KEYS_MPA.includes(challenge_data.key_type), `invalid payload (challenge_data.key_type)`)
-    assert(challenge_data.challenge && typeof(challenge_data.challenge)=="string", `invalid payload (challenge_data.challenge)`)
+    assert(challenge_data.key_type && typeof(challenge_data.key_type)=='string' && KEYS_MPA.includes(challenge_data.key_type), 'invalid payload (challenge_data.key_type)')
+    assert(challenge_data.challenge && typeof(challenge_data.challenge)=='string', 'invalid payload (challenge_data.challenge)')
     // Check if the PKSA stores the requested private key
     const key_private = getPrivateKey(payload.account,challenge_data.key_type)
     if(key_private)  {
@@ -378,7 +389,7 @@ async function approveAuthRequest(payload: any, account: IAccount, auth_key: str
   }
   // Encrypt auth_ack_data before sending it to the HAS server
   const data = CryptoJS.AES.encrypt(JSON.stringify(auth_ack_data), auth_key).toString()
-  HASSend(JSON.stringify({cmd:"auth_ack", uuid:payload.uuid, data:data, pok:getPOK(payload.account, payload.uuid) }))
+  HASSend(JSON.stringify({cmd:'auth_ack', uuid:payload.uuid, data:data, pok: await getPOK(payload.account, payload.uuid) }))
   if(!validAuth) {
     // Add new auth into storage
     account.auths.push({
@@ -388,7 +399,7 @@ async function approveAuthRequest(payload: any, account: IAccount, auth_key: str
       whitelists: new Set<string>(),
       ts_create: datetoISO(new Date()),
       ts_lastused: datetoISO(new Date()),
-      ts_expire: datetoISO(new Date(auth_ack_data.expire)) 
+      ts_expire: datetoISO(new Date(auth_ack_data.expire))
     })
   } else {
     validAuth.ts_lastused = datetoISO(new Date())
@@ -434,9 +445,10 @@ function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
         },
       }).onOk(() => {
         approveAuthRequest(auth_req, account, auth_key as string);
-      }).onCancel(() => {
+      }).onCancel(async () => {
         const auth_nack_data = CryptoJS.AES.encrypt(auth_req.uuid,auth_key).toString()
-        HASSend(JSON.stringify({cmd:"auth_nack", uuid:auth_req.uuid, data:auth_nack_data, pok:getPOK(auth_req.account, auth_req.uuid)}))
+        const auth_nack = {cmd: 'auth_nack', uuid: auth_req.uuid, data: auth_nack_data, pok: await getPOK(auth_req.account, auth_req.uuid)} as IAuthNack
+        HASSend(JSON.stringify(auth_nack))
       })
     }
   }
@@ -465,13 +477,13 @@ async function handleAuthReq(auth_req: IAuthReq) {
       // Decrypt the provided auth_key using the pre-shared PKSA secret
       auth_key = tryDecrypt(auth_req.auth_key, process.env.AUTH_REQ_SECRET)
     }
-    
+
     if (!auth_key) {
       // check if the account store any non-expired auth_key that can decrypt the auth_req_data
       for (const auth of account.auths.filter((o) => o.expire > Date.now())) {
-        auth_key = tryDecrypt(auth_req.data, auth.key)
-        if (auth_key) {
+        if (tryDecrypt(auth_req.data, auth.key)) {
           // auth_key successfuly decrypted - stop searching
+          auth_key = auth.key
           break;
         }
       }
@@ -487,7 +499,7 @@ async function handleAuthReq(auth_req: IAuthReq) {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: e.message,
+      message: (e as Error).message,
       icon: 'report_problem',
     })
   }
@@ -495,7 +507,7 @@ async function handleAuthReq(auth_req: IAuthReq) {
 
 /**
  * Try to decrypt a payload using the auth keys stored by the related account
- * 
+ *
  * @param payload An encrypted payload
  * @return the account, auth used to decrypt the payload and the decrypted payload data, or undefined is the payload couldn't be decrypted
  * @throws {Error} if the payload or the nonce is invalid
@@ -524,21 +536,21 @@ async function validatePayload(payload: any) {
           // Invalid nonce expected error, rethrow it
           throw e;
         }
-        console.debug(e.stack);
+        console.debug((e as Error).stack);
       }
     }
   }
   throw new Error('invalid (unknown account)');
 }
 
-function checkTransaction(sign_req_data: any, auth: IAccountAuth) {
+function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
   let level = -1
   let askApproval = false
   let askWhitelist = false
   const opSet = new Set()
 
   for(const op of sign_req_data.ops) {
-    const opType = op[0]
+    const opType = op[0] as string
     const opInfo = operations.find(o => o.type == opType)
     assert(opInfo, `Unknown operation ${opType}`)
     assert(opInfo.key!='owner', 'Transaction requires owner key')
@@ -561,12 +573,13 @@ function checkTransaction(sign_req_data: any, auth: IAccountAuth) {
   return { level, askApproval, askWhitelist, opSet }
 }
 
-async function approveSignRequest(payload: any, sign_req_data: any, key_private: string) {
+async function approveSignRequest(payload: ISignReq, sign_req_data: ISignReqData, key_private: string) {
   if(sign_req_data.broadcast) {
-    const res = await dhiveClient.client.broadcast.sendOperations(sign_req_data.ops, dhiveClient.privateKeyFromString(key_private))
-    HASSend(JSON.stringify({cmd:"sign_ack", uuid:payload.uuid, data:res.id, broadcast:payload.broadcast, pok:getPOK(payload.account, payload.uuid)}))
+    const res = await dhiveClient.client.broadcast.sendOperations(sign_req_data.ops as Operation[], dhiveClient.privateKeyFromString(key_private))
+    const sign_ack = {cmd: 'sign_ack', uuid: payload.uuid, data: res.id as unknown, broadcast: sign_req_data.broadcast, pok: await getPOK(payload.account, payload.uuid)} as ISignAck
+    HASSend(JSON.stringify(sign_ack))
   } else {
-    throw new Error("Transaction signing only is not enabled")
+    throw new Error('Transaction signing only is not enabled')
     // To enable transaction signing, comment the above line and uncomment the following code.
     //
     // const tx = new Transaction
@@ -576,7 +589,7 @@ async function approveSignRequest(payload: any, sign_req_data: any, key_private:
   }
 }
 
-async function handleSignReq(payload: any) {
+async function handleSignReq(payload: ISignReq) {
   try {
     // Do not process sign_req when app is locked
     if (!storeApp.isUnlocked) return;
@@ -591,7 +604,7 @@ async function handleSignReq(payload: any) {
     // validate decrypted sign_req_data (nonce has already been validated by validatePayload)
     assert(sign_req_data.key_type && typeof sign_req_data.key_type == 'string' && KEYS_PA.includes(sign_req_data.key_type), 'invalid data (key_type)');
     assert(sign_req_data.ops && sign_req_data.ops.length > 0, 'invalid data (ops)');
-    assert(sign_req_data.broadcast!=undefined, "invalid data (broadcast)")
+    assert(sign_req_data.broadcast!=undefined, 'invalid data (broadcast)')
 
     const check = checkTransaction(sign_req_data, auth)
 
@@ -624,22 +637,23 @@ async function handleSignReq(payload: any) {
           auth.whitelists.add(opType)
           storeAccounts.updateAccount(account)
         }
-      }).onCancel(() => {
+      }).onCancel(async () => {
         const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid,auth.key).toString()
-        HASSend(JSON.stringify({cmd:"sign_nack", uuid:payload.uuid, data:sign_nack_data, pok:getPOK(payload.account, payload.uuid)}))
-      })      
+        const sign_nack = {cmd: 'sign_nack', uuid: payload.uuid, data: sign_nack_data, pok: await getPOK(payload.account, payload.uuid)} as ISignNack
+        HASSend(JSON.stringify(sign_nack))
+      })
     }
   } catch (e) {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: e.message,
+      message: (e as Error).message,
       icon: 'report_problem',
     })
   }
 }
 
-async function approveChallengeRequest(payload: any, challenge_req_data: any, key_private: string, auth: IAccountAuth) {
+async function approveChallengeRequest(payload: IChallengeReq, challenge_req_data: IChallengeReqData, key_private: string, auth: IAccountAuth) {
   let challengeResponse = '';
   if (challenge_req_data.decrypt) {
     // Decrypt challenge
@@ -654,25 +668,25 @@ async function approveChallengeRequest(payload: any, challenge_req_data: any, ke
   const challenge_ack_data = {pubkey: key_public, challenge: challengeResponse};
   // Encrypt the challenge_ack_data
   const data = CryptoJS.AES.encrypt(JSON.stringify(challenge_ack_data),auth.key).toString();
-  HASSend(JSON.stringify({cmd:"challenge_ack", uuid:payload.uuid, data:data, pok:getPOK(payload.account, payload.uuid)}))  
-
+  const challenge_ack = { cmd:'challenge_ack', uuid:payload.uuid, data:data, pok: await getPOK(payload.account, payload.uuid)} as IChallengeAck
+  HASSend(JSON.stringify(challenge_ack))
 }
 
-async function handleChallengeReq(payload: any) {
+async function handleChallengeReq(payload: IChallengeReq) {
   try{
     // Do not process challenge_req when app is locked
     if (!storeApp.isUnlocked) return;
 
     assert(payload.account && typeof payload.account == 'string', 'invalid payload (account)');
     assert(payload.data && typeof payload.data == 'string', 'invalid payload (data)');
-  
-    const { account, auth, data } = await validatePayload(payload);
+
+    const { auth, data } = await validatePayload(payload);
     const challenge_req_data = data as IChallengeReqData
 
-    if (auth!) return;
+    if (!auth) return;
     // validate decrypted challenge_req_data (nonce has already been validated by validatePayload)
-    assert(challenge_req_data.key_type  && typeof challenge_req_data.key_type == 'string' && KEYS_MPA.includes(challenge_req_data.key_type), "invalid data (key_type)")
-    assert(challenge_req_data.challenge && typeof(challenge_req_data.challenge)=='string' && challenge_req_data.challenge.length > 0, "invalid data (challenge)")
+    assert(challenge_req_data.key_type  && typeof challenge_req_data.key_type == 'string' && KEYS_MPA.includes(challenge_req_data.key_type), 'invalid data (key_type)')
+    assert(challenge_req_data.challenge && typeof(challenge_req_data.challenge)=='string' && challenge_req_data.challenge.length > 0, 'invalid data (challenge)')
     // Check if the PKSA stores the requested private key
     const key_private = getPrivateKey(payload.account, challenge_req_data.key_type);
     assert(key_private,`Private ${challenge_req_data.key_type} key is missing`)
@@ -685,19 +699,21 @@ async function handleChallengeReq(payload: any) {
         // custom props
         username: payload.account,
         auth: auth,
+        challenge_req_data: challenge_req_data,
         expire: payload.expire,
       },
     }).onOk(async (whitelist) => {
       await approveChallengeRequest(payload, challenge_req_data, key_private, auth)
-    }).onCancel(() => {
+    }).onCancel(async () => {
       const sign_nack_data = CryptoJS.AES.encrypt(payload.uuid, auth.key).toString()
-      HASSend(JSON.stringify({cmd:"challenge_nack", uuid:payload.uuid, data:sign_nack_data, pok:getPOK(payload.account, payload.uuid)}))
-    })      
+      const sign_nack = {cmd: 'challenge_nack', uuid: payload.uuid, data: sign_nack_data, pok: await getPOK(payload.account, payload.uuid)} as IChallengeNack
+      HASSend(JSON.stringify(sign_nack))
+    })
   } catch (e) {
     $q.notify({
       color: 'negative',
       position: 'bottom',
-      message: e.message,
+      message: (e as Error).message,
       icon: 'report_problem',
     })
   }
@@ -715,7 +731,7 @@ async function processMessage(message: string) {
     }
     switch (payload.cmd) {
       case 'connected':
-        // TODO: validate HAS protocol
+        // TODO: validate HAS "protocol" value
         assert(HAS_PROTOCOL.includes(payload.protocol || 0 ),'Unsupported HAS protocol')
         HASProtocol.value = payload.protocol
         return;
@@ -738,12 +754,12 @@ async function processMessage(message: string) {
         break;
     }
   } catch (e) {
-    HASSend(JSON.stringify({ cmd: 'error', error: e.message }));
+    HASSend(JSON.stringify({ cmd: 'error', error: (e as Error).message }));
   }
 }
 
 let busy = false
-  
+
 async function startWebsocket() {
   try {
     if (busy || wsClient!= null) return
@@ -763,11 +779,7 @@ async function startWebsocket() {
         id: new Date().toISOString(),
         log: `RECV: ${hideEncryptedData(event.data)}`,
       });
-      try {
-        processMessage(event.data);
-      } catch (e) {
-        console.error(e.stack);
-      }
+      processMessage(event.data);
     };
 
     wsClient.onclose = async function (event) {
@@ -786,7 +798,7 @@ async function startWebsocket() {
     };
 
     wsClient.onerror = function (error) {
-      console.error(`[error] ${error.message}`);
+      console.error(`[error] ${JSON.stringify(error)}`);
     };
 
     // Not supported
@@ -908,9 +920,11 @@ onMounted(() => {
 </script>
 
 <script lang="ts">
+import HeaderMenu from 'components/HeaderMenu.vue'
 
 export default defineComponent({
   name: 'MainLayout',
+  components: { HeaderMenu  },
 });
 
 </script>

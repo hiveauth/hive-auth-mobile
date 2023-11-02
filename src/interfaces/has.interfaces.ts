@@ -1,32 +1,32 @@
-export interface IConnected { 
-  cmd: "connected"
+export interface IConnected {
+  cmd: 'connected'
   timeout: number
   version: string
   protocol: number
 }
 
-export interface IKeyReq { 
-  cmd: "key_req" 
+export interface IKeyReq {
+  cmd: 'key_req'
 }
 
-export interface IKeyAck { 
-  cmd: "key_ack"
+export interface IKeyAck {
+  cmd: 'key_ack'
   key: string
 }
 
 export interface IRegisterReqAccount {
   name: string
-  pok: any
+  pok: string
 }
 
 export interface IRegisterReq {
-  cmd: "register_req"
+  cmd: 'register_req'
   app: string
   accounts: IRegisterReqAccount[]
 }
 
 export interface IRegisterAck {
-  cmd: "register_ack"
+  cmd: 'register_ack'
   account: string
 }
 
@@ -34,7 +34,7 @@ export interface IAuthReq {
   cmd: 'auth_req'
   account: string
   data: string
-  uuid: string 
+  uuid: string
   expire: number
   auth_key?: string
 }
@@ -46,7 +46,7 @@ export interface IAuthReqData {
       icon: string | undefined
   },
   challenge : object | undefined
-  token: string | undefined // DEPRECATED - protocol < 1 only
+  token? : string // DEPRECATED - protocol < 1 only
 }
 
 export interface IAuthReqPayload {
@@ -57,27 +57,27 @@ export interface IAuthReqPayload {
 }
 
 export interface IAuthAckData {
-  token: string | undefined // DEPRECATED - protocol < 1.0 only
   expire: number
-  challenge: any | undefined
+  challenge?: object
+  token?: string  // DEPRECATED - protocol < 1.0 only
 }
 
 export interface IAuthAck {
-  cmd: "auth_ack"
+  cmd: 'auth_ack'
   uuid: string
   data: string
   pok: string
 }
 
 export interface IAuthNack {
-  cmd: "auth_nack"
+  cmd: 'auth_nack'
   uuid: string
   data: string
   pok: string
 }
 
 export interface IAuthError {
-  cmd: "auth_err"
+  cmd: 'auth_err'
   uuid: string
   error: string
   pok: string
@@ -85,49 +85,49 @@ export interface IAuthError {
 
 export interface ISignReqData {
   key_type: string
-  ops: string
+  ops: object[]
   broadcast: boolean
   nonce: number
 }
 
 export interface ISignReq {
-  cmd: "sign_req" 
+  cmd: 'sign_req'
   account: string
   data: string
   uuid: string
   expire: number
-  token: string | undefined // DEPRECATED - protocol < 1 only
+  token?: string // DEPRECATED - protocol < 1 only
 }
 
 export interface ISignAck {
-  cmd: "sign_ack"
+  cmd: 'sign_ack'
   uuid: string
-  data : any,
+  data : object,
   broadcast: boolean
   pok: string
 }
 
 export interface ISignNack {
-  cmd: "sign_nack"
+  cmd: 'sign_nack'
   uuid: string
   data: string
   pok: string
 }
 
 export interface ISignError {
-  cmd: "sign_err"
+  cmd: 'sign_err'
   uuid: string
   error: string
   pok: string
 }
 
 export interface IChallengeReq {
-  cmd: "challenge_req"
+  cmd: 'challenge_req'
   account: string
   data: string
   uuid: string
   expire: number
-  // token: string // DEPRECATED since protocol v1
+  token?: string // DEPRECATED since protocol v1
 }
 
 export interface IChallengeReqData {
@@ -143,20 +143,20 @@ export interface IChallengeAckData {
 }
 
 export interface IChallengeAck {
-  cmd: "challenge_ack"
+  cmd: 'challenge_ack'
   uuid: string
   data: string
   pok: string
 }
 export interface IChallengeNack {
-  cmd: "challenge_nack"
+  cmd: 'challenge_nack'
   uuid: string
   data: string
   pok: string
 }
 
 export interface iChallengeError {
-  cmd: "challenge_err"
+  cmd: 'challenge_err'
   uuid: string
   error: string
   pok: string

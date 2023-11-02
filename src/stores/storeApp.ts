@@ -22,6 +22,7 @@ export const useAppStore = defineStore('storeApp', {
     logs: [] as logItem[],
     resetWebsocket: false,
     isHASConnected: false,
+    menuOpen: false,
     path: '',
     scanValue: '',
     // app authentication
@@ -68,7 +69,7 @@ export const useAppStore = defineStore('storeApp', {
         this.passcode = value;
         this.hasPasscode = true;
       } catch (e) {
-        console.error(`storeApp.readCode failed - ${e.message}. `);
+        console.error(`storeApp.readCode failed - ${(e as Error).message}. `);
       }
     },
 
@@ -80,7 +81,7 @@ export const useAppStore = defineStore('storeApp', {
         description: i18n.t('store_auth.biometrics_description'),
       })
       .then(() => true)
-      .catch(() => false);
+      .catch(() => false)
 
       return verified;
     },
@@ -97,7 +98,7 @@ export const useAppStore = defineStore('storeApp', {
         this.passcode = passcode;
         this.hasPasscode = true;
       } catch (e) {
-        console.error(`storeApp.readPasscodeFromBiometrics failed - ${e.message}`
+        console.error(`storeApp.readPasscodeFromBiometrics failed - ${(e as Error).message}`
         );
       }
     },
@@ -116,8 +117,8 @@ export const useAppStore = defineStore('storeApp', {
         await SecureStorage.set('passcode', passcode, true, false);
         this.passcode = passcode;
         this.hasPasscode = true;
-      } catch (e: any) {
-        console.error(`Error saving passcode - ${e.message}. `);
+      } catch (e) {
+        console.error(`Error saving passcode - ${(e as Error).message}. `);
       }
     },
   },

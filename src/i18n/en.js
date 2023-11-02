@@ -29,10 +29,24 @@ export default {
 		empty: "No sessions found",
 		valid: "Valid till",
 	},
+	dialog_auth_req: {
+		text: "wants to authenticate on",
+		timeout: "Session validity",
+	},
+	dialog_challenge_req: {
+		text: "wants to validate a challenge on",
+	},
+	dialog_sign_req: {
+		text: "wants to sign a transaction on",
+		whitelist: "Do not prompt again for",
+	},
 	import_key: {
 		success: 'Key is securely stored',
 		failed: 'Failed to validate key',
 		no_match: 'no matching key',
+	},
+	main_page: {
+		no_pending_request: 'No pending request',
 	},
 	btn_ok: "OK",
 	btn_cancel: "Cancel",
