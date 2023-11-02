@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    HiveAuth Mobile vx.x.x
+    <div class="q-my-xl text-h6 text-center">HiveAuth Mobile v{{storeApp.appVersion}}</div>
     <q-separator inset />
     <q-list padding separator>
       <q-item clickable v-ripple @click="openLink('https://hiveauth.com')">
