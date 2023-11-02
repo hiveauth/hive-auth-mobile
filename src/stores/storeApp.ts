@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { NativeBiometric } from 'capacitor-native-biometric';
-
+import { Pendings } from '../classes/pendings'
 import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
-
-import { Pendings } from '../classes/pendings'
+import packageJson from '../../package.json'
 
 const i18n = createI18n({locale: 'en-US', messages}).global
 
@@ -21,14 +20,14 @@ export const useAppStore = defineStore('storeApp', {
     pendings: new Pendings(),
     logs: [] as logItem[],
     resetWebsocket: false,
+    isUnlocked: false,
     isHASConnected: false,
     menuOpen: false,
     path: '',
     scanValue: '',
-    // app authentication
-    isUnlocked: false,
     passcode: '',
     hasPasscode: false,
+    appVersion: '',
   }),
 
   getters: {
@@ -43,6 +42,7 @@ export const useAppStore = defineStore('storeApp', {
 
   actions: {
     unlockApp() {
+      this.appVersion = packageJson.version
       this.isUnlocked = true;
     },
 

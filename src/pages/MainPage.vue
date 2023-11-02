@@ -1,6 +1,6 @@
 <template>
   <q-page class="background">
-    <q-btn style="color: #e21438"
+    <q-btn  v-if="storeApp.isUnlocked" style="color: #e21438"
         flat
         rounded
         size="lg"

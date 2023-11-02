@@ -8,6 +8,24 @@ if (keystorePropertiesFile.exists()) {
   keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def appVersion = ""
+def appName = ""
+def packageJSONFilename = "${rootDir}/../../package.json"
+
+Integer appCode  = 1
+try {
+    def versionJSONFile = file(packageJSONFilename)
+    def slurper = new groovy.json.JsonSlurper()
+    appVersion = slurper.parseText(versionJSONFile.text).version
+    appName = slurper.parseText(versionJSONFile.text).productName
+    def (_,patch) = (appVersion =~/^\d+.\d+.(\d+)/ )[0]
+    appCode =  patch as Integer
+    println  "> Building application ${appName} with Version: ${appVersion} - Code: ${appCode}"
+} catch(Exception e) {
+    logger.warn("could not read version of ${packageJSONFilename}")
+    logger.warn("  -> ${e}")
+}
+
 android {
   namespace "com.hiveauth.mobile"
   compileSdkVersion rootProject.ext.compileSdkVersion
@@ -15,8 +33,8 @@ android {
     applicationId "com.hiveauth.mobile"
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
-    versionCode 15
-    versionName "0.1.0"
+    versionCode appCode
+    versionName appVersion
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     aaptOptions {
       // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
