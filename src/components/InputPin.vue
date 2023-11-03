@@ -128,7 +128,6 @@ async function setPasscode() {
       message: $t('login.pin_init'),
       icon: 'check',
     });
-    router.replace({ name: 'main-menu' });
   } catch (e) {
     $q.notify({
       color: 'negative',

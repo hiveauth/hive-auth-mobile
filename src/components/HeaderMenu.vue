@@ -45,47 +45,54 @@
     </q-item>
 
   </q-list>
+  <div class="q-pl-lg q-pb-sm text-caption text-weight-light fixed-bottom">
+    Version {{ storeApp.appVersion }}
+  </div>
 </template>
-  
-  <script setup lang="ts">
-  import { defineComponent } from 'vue';
-  import { useAppStore } from 'src/stores/storeApp';
-  import { useRouter } from 'vue-router';
-  
-  const storeApp = useAppStore();
-  const router = useRouter();
-  
-  // functions
-  function lockApp() {
-    storeApp.lockApp();
-  }
-  
-  function navToManageAccounts() {
-    router.push({ name: 'account-management' });
 
-  }
-  
-  function navToAboutUs() {
-    router.push({ name: 'about' });
-  }
-  
-  function navToActiveSessions() {
-    router.push({ name: 'active-sessions' });
-  }
-  
-  function navToWebSocketLogs() {
-    router.push({ name: 'websocket-logs' });
-  }
-  
-  function navToImportKeys() {
-    router.push({ name: 'import-key' });
-  }
-  
-  </script>
-  
-  <script lang="ts">
-  export default defineComponent({
-    name: 'header-menu'
-  });
-  </script>
-  
+<script setup lang="ts">
+import { defineComponent } from 'vue';
+import { useAppStore } from 'src/stores/storeApp';
+import { useRouter } from 'vue-router';
+
+const storeApp = useAppStore();
+const router = useRouter();
+
+// functions
+function lockApp() {
+  storeApp.menuOpen = false
+  storeApp.lockApp();
+}
+
+function navToManageAccounts() {
+  storeApp.menuOpen = false
+  router.push({ name: 'manage-accounts' });
+}
+
+function navToAboutUs() {
+  storeApp.menuOpen = false
+  router.push({ name: 'about' });
+}
+
+function navToActiveSessions() {
+  storeApp.menuOpen = false
+  router.push({ name: 'active-sessions' });
+}
+
+function navToWebSocketLogs() {
+  storeApp.menuOpen = false
+  router.push({ name: 'websocket-logs' });
+}
+
+function navToImportKeys() {
+  storeApp.menuOpen = false
+  router.push({ name: 'import-key' });
+}
+
+</script>
+
+<script lang="ts">
+export default defineComponent({
+  name: 'header-menu'
+});
+</script>

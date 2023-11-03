@@ -43,7 +43,6 @@
       <HeaderMenu/>
     </q-drawer>
 
-
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -177,15 +176,10 @@ let wsClient: WebSocket | null = null
 let tsHeartbeat = 0
 
 // data
-const menuOpen = ref(false)
 const HASServer = ref(DEFAULT_HAS_SERVER)
 const HASProtocol = ref(0)
 
 // functions
-function toggleMenu () {
-  menuOpen.value = !menuOpen.value
-}
-
 function datetoISO(date: Date) {
   return date.toISOString().replace(/T|Z/g, ' ')
 }
@@ -376,7 +370,6 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
   } else {
     // If not provided, the default expiration time for an auth_key is 24 hours
     auth_ack_data = { expire: Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000)) }
-    console.log('expire:', new Date(auth_ack_data.expire).toISOString(), 'timeout:', timeout)
   }
   // Check if the app also requires the PKSA to sign a challenge
   if(auth_req_data.challenge) {

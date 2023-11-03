@@ -43,7 +43,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'about',
         name: 'about',
-        component: () => import('pages/AboutUs.vue'),
+        component: () => import('pages/About.vue'),
       },
       {
         path: 'active-sessions',
