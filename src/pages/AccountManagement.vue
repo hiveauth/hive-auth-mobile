@@ -50,7 +50,7 @@
       />
       <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
     </q-tabs>
-    <div class="absolute-center" v-if="storeAccounts.sortedAccounts.length === 0">
+    <div class="absolute-center" v-if="storeAccounts.sortedAccounts.length === 0 && tab === 'keys'">
       {{ $t('account_management.empty') }}
     </div>
     <div
@@ -83,6 +83,9 @@
         />
       </q-list>
     </div>
+    <div class="absolute-center" v-if="storeAccounts.sortedAccounts[selectedIndex].auths.length === 0 && tab === 'sessions'">
+      {{ $t('account_management.empty_sessions') }} {{ storeAccounts.sortedAccounts[selectedIndex].name }}
+    </div>
   </div>
 </template>
 
@@ -104,7 +107,7 @@ function onClickItemAtIndex(index: number) {
 }
 
 onMounted(() => {
-  storeApp.path = 'account-management';
+  storeApp.path = 'Account Management';
   const lastSelectedAccountName = storeAccounts.lastSelectedAccountName;
   if (lastSelectedAccountName.length > 0) {
     const index = storeAccounts.accounts.findIndex((account) => {

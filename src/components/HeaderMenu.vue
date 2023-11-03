@@ -2,17 +2,9 @@
   <q-list padding>
     <q-item clickable v-ripple @click="navToManageAccounts">
       <q-item-section avatar>
-        <q-icon name="key" />
-      </q-item-section>
-      <q-item-section> Manage Keys </q-item-section>
-    </q-item>
-
-    <q-item clickable v-ripple @click="navToActiveSessions">
-      <q-item-section avatar>
         <q-icon name="people" />
       </q-item-section>
-
-      <q-item-section> Sessions </q-item-section>
+      <q-item-section> Manage Accounts </q-item-section>
     </q-item>
 
     <q-item clickable v-ripple @click="navToImportKeys">
@@ -21,6 +13,7 @@
       </q-item-section>
       <q-item-section> Import Keys</q-item-section>
     </q-item>
+
     <q-item clickable v-ripple @click="navToAboutUs">
       <q-item-section avatar>
         <q-icon name="info" />
@@ -66,7 +59,7 @@ function lockApp() {
 
 function navToManageAccounts() {
   storeApp.menuOpen = false
-  router.push({ name: 'manage-accounts' });
+  router.push({ name: 'account-management' });
 }
 
 function navToAboutUs() {
