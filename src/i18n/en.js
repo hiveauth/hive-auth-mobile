@@ -31,6 +31,10 @@ export default {
     keys: 'Keys',
     sessions: 'Sessions',
     expires: 'Expires',
+    import_key_action: 'Please choose an action for importing',
+    import_key_action_paste: 'Paste from Clipboard',
+    import_key_action_qr: 'Scan QR Code',
+    import_dialog_title: 'Import',
   },
 	sessions: {
 		empty: "No sessions found",
