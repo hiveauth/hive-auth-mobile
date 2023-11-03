@@ -57,11 +57,11 @@
 import { defineComponent, ref , onMounted} from 'vue';
 import { useQuasar } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
-import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
+import { useAccountsStore, IAccount, IAccountAuth, IAccountKeys } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
 
 import { Operation } from '@hiveio/dhive/lib/chain/operation';
-import { IRegisterReq, IRegisterReqAccount,
+import { IRegisterReq, IRegisterReqAccount, IRegisterAck,
          IAuthReq, IAuthReqData, IAuthAckData, IAuthReqPayload, IAuthNack,
          ISignReq, ISignReqData, ISignAck, ISignNack,
          IChallengeReq, IChallengeReqData, IChallengeAck, IChallengeNack } from '../interfaces/has.interfaces'
@@ -285,6 +285,19 @@ async function getDecryptedChallenge(challenge: string, key: string) {
   return JSON.parse(response.dataString).data;
 }
 
+async function checkKeys(account: IAccount) {
+  const publicKeys = await dhiveClient.getUserPublicKeys(account.name);
+  if (account.keys.active) {
+    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.active))==publicKeys.active,'active')
+  }
+  if (account.keys.posting) {
+    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.posting))==publicKeys.posting,'posting')
+  }
+  if (account.keys.memo) {
+    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.memo))==publicKeys.memo,'memo')
+  }
+}
+
 async function getPublicKey(key: string) {
   const response = await HASCustomPlugin.callPlugin({
     callId: Date.now().toString(),
@@ -298,6 +311,15 @@ async function getPublicKey(key: string) {
     key: key,
   });
   return JSON.parse(response.dataString).data;
+}
+
+function handleRegisterAck(register_ack: IRegisterAck) {
+  $q.notify({
+    color: 'positive',
+    message: `${register_ack.account} ${$t('main_layout.registered')}`,
+    timeout: 1000,
+    icon: 'check',
+  });
 }
 
 async function handleKeyAck() {
@@ -314,9 +336,20 @@ async function handleKeyAck() {
 
         for await (const account of storeAccounts.accounts) {
           checkUsername(account.name);
-          const pokValue = await getPOK(account.name, '');
-          // Add account and Proof of Key
-          request.accounts.push({name: account.name, pok: pokValue});
+          try {
+            // Verify if stored keys are still valid
+            await checkKeys(account)
+            const pokValue = await getPOK(account.name, '');
+            // Add account and Proof of Key
+            request.accounts.push({name: account.name, pok: pokValue});
+          } catch(e) {
+            $q.notify({
+              color: 'negative',
+              position: 'bottom',
+              message: `Invalid ${(e as Error).message} key for account ${account.name}`,
+              icon: 'report_problem',
+            })
+          }
         }
         HASSend(JSON.stringify(request));
       }
@@ -389,7 +422,7 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
       expire:auth_ack_data.expire,
       key:auth_key,
       app:auth_req_data.app,
-      whitelists: new Set<string>(),
+      whitelists: [],
       ts_create: datetoISO(new Date()),
       ts_lastused: datetoISO(new Date()),
       ts_expire: datetoISO(new Date(auth_ack_data.expire))
@@ -550,7 +583,7 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
 
     level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
     // Check if operation is already whitelisted
-    if (!auth.whitelists.has(opType)) {
+    if (!auth.whitelists.includes(opType)) {
       askApproval = true
       // check is op can be whitelisted and manage special case of custom_json
       if (opInfo.key == 'posting' && !(opType == 'custom_json' && (op[1] as any)?.required_auths.length > 0) ) {
@@ -627,7 +660,7 @@ async function handleSignReq(payload: ISignReq) {
       }).onOk(async (whitelist) => {
         await approveSignRequest(payload, sign_req_data, key_private)
         if (whitelist) {
-          auth.whitelists.add(opType)
+          auth.whitelists.push(opType)
           storeAccounts.updateAccount(account)
         }
       }).onCancel(async () => {
@@ -731,6 +764,7 @@ async function processMessage(message: string) {
       case 'error':
         return;
       case 'register_ack':
+        handleRegisterAck(payload)
         return;
       case 'key_ack':
         key_server = payload.key;
