@@ -16,6 +16,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/QRScannerPage.vue'),
       },
       {
+        path: 'key-scan',
+        name: 'key-scan',
+        component: () => import('pages/QRKeyScannerPage.vue'),
+      },
+      {
         path: '',
         name: 'main',
         component: () => import('pages/MainPage.vue'),

@@ -56,10 +56,12 @@ import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useAppStore } from 'src/stores/storeApp';
 import { Clipboard } from '@capacitor/clipboard';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import DialogAddKey from 'components/DialogAddKey.vue';
 import dhiveClient from 'src/helper/dhive-client';
 
+const router = useRouter();
 const { t } = useI18n(),
   $t = t;
 const storeApp = useAppStore();
@@ -94,7 +96,7 @@ function addKeyTapped() {
       validateAndImportKey();
     })
     .onCancel(async () => {
-      console.log('User tapped on Scan QR code');
+      scanKeyTapped();
     });
 }
 
@@ -188,6 +190,10 @@ async function validateAndImportKey() {
     $q.loading.hide('validateKey');
     if (needReset) storeApp.resetWebsocket = true;
   }
+}
+
+function scanKeyTapped() {
+  router.push({ name: 'key-scan' });
 }
 
 const currentKeyValue = props.keyValue ?? '';
