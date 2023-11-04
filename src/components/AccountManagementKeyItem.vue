@@ -21,13 +21,37 @@
       />
     </q-item-section>
     <q-item-section avatar v-if="!suggestAdd">
-      <q-btn round color="red" icon="fa-solid fa-trash" flat outline />
+      <q-btn
+        round
+        color="red"
+        icon="fa-solid fa-trash"
+        flat
+        outline
+        @click="showConfirmDeletionDialog"
+      />
     </q-item-section>
   </q-item>
+  <q-dialog v-model="confirmDialogPresent" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <q-avatar icon="fa-solid fa-trash" color="red" text-color="white" />
+        <span class="q-ml-sm"
+          >Are you sure you want to delete this key? This action can not be
+          undone.</span
+        >
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="Delete" color="red" v-close-popup @click="confirmDeletedTapped" />
+        <q-btn flat label="Cancel" color="primary" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
+import { ref } from 'vue';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useAppStore } from 'src/stores/storeApp';
 import { Clipboard } from '@capacitor/clipboard';
@@ -41,6 +65,7 @@ const { t } = useI18n(),
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 const $q = useQuasar();
+const confirmDialogPresent = ref(false);
 const props = defineProps({
   name: {
     type: String,
@@ -71,6 +96,47 @@ function addKeyTapped() {
     .onCancel(async () => {
       console.log('User tapped on Scan QR code');
     });
+}
+
+function showConfirmDeletionDialog() {
+  confirmDialogPresent.value = true;
+}
+
+async function confirmDeletedTapped() {
+  let needReset = false;
+  try {
+    $q.loading.show({ group: 'deleteKey' });
+    let account = storeAccounts.accounts.find((o) => o.name === props.name);
+    if (!account) {
+      return;
+    }
+    if (props.keyType === 'Active') {
+      account.keys.active = undefined;
+    } else if (props.keyType === 'Memo') {
+      account.keys.memo = undefined;
+    } else if (props.keyType === 'Posting') {
+      account.keys.posting = undefined;
+    } else {
+      throw new Error($t('import_key.no_match'));
+    }
+    await storeAccounts.updateAccount(account);
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: $t('account_management.delete_key_deleted_notify'),
+      icon: 'fa-solid fa-trash',
+    });
+  } catch (e) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: `${$t('import_key.failed')} - ${e.message}`,
+      icon: 'report_problem',
+    });
+  } finally {
+    $q.loading.hide('deleteKey');
+    if (needReset) storeApp.resetWebsocket = true;
+  }
 }
 
 async function validateAndImportKey() {
@@ -105,7 +171,6 @@ async function validateAndImportKey() {
       throw new Error($t('import_key.no_match'));
     }
     await storeAccounts.updateAccount(account);
-    // TO-DO: update this local key-item
     $q.notify({
       color: 'positive',
       position: 'bottom',

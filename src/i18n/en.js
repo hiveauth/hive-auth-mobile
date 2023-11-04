@@ -35,6 +35,10 @@ export default {
     import_key_action_paste: 'Paste from Clipboard',
     import_key_action_qr: 'Scan QR Code',
     import_dialog_title: 'Import',
+    delete_key_dialog_title: '',
+    delete_key_delete_button: '',
+    delete_key_cancel_button: '',
+    delete_key_deleted_notify: 'Key is deleted',
   },
 	sessions: {
 		empty: "No sessions found",

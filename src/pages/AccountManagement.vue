@@ -5,24 +5,24 @@
         push
         no-caps
         rounded
-        v-if="storeAccounts.sortedAccounts.length > 0"
+        v-if="sortedAccountsRef.length > 0"
         class="account-drop-down"
       >
         <template v-slot:label>
           <q-item-section avatar>
             <q-avatar>
               <img
-                :src="`https://images.hive.blog/u/${storeAccounts.sortedAccounts[selectedIndex].name}/avatar/small`"
+                :src="`https://images.hive.blog/u/${sortedAccountsRef[selectedIndex].name}/avatar/small`"
               />
             </q-avatar>
           </q-item-section>
           <q-item-section>
-            {{ storeAccounts.sortedAccounts[selectedIndex].name }}
+            {{ sortedAccountsRef[selectedIndex].name }}
           </q-item-section>
         </template>
         <q-list>
           <q-item
-            v-for="(account, index) in storeAccounts.accounts"
+            v-for="(account, index) in sortedAccountsRef"
             :key="`${account.name}-${index}`"
             clickable
             v-close-popup
@@ -42,7 +42,7 @@
         </q-list>
       </q-btn-dropdown>
     </div>
-    <q-tabs v-model="tab" inline-label v-if="storeAccounts.sortedAccounts.length > 0">
+    <q-tabs v-model="tab" inline-label v-if="sortedAccountsRef.length > 0">
       <q-tab
         name="sessions"
         icon="fa-solid fa-id-card"
@@ -50,30 +50,30 @@
       />
       <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
     </q-tabs>
-    <div class="absolute-center" v-if="storeAccounts.sortedAccounts.length === 0 && tab === 'keys'">
+    <div class="absolute-center" v-if="sortedAccountsRef.length === 0 && tab === 'keys'">
       {{ $t('account_management.empty') }}
     </div>
     <div
       class="q-pa-md"
-      v-if="tab === 'keys' && storeAccounts.sortedAccounts.length > 0"
+      v-if="tab === 'keys' && sortedAccountsRef.length > 0"
     >
       <AccountManagementKeyList
-        :name="storeAccounts.sortedAccounts[selectedIndex].name"
-        :active="storeAccounts.sortedAccounts[selectedIndex].keys.active"
-        :memo="storeAccounts.sortedAccounts[selectedIndex].keys.memo"
-        :posting="storeAccounts.sortedAccounts[selectedIndex].keys.posting"
+        :name="sortedAccountsRef[selectedIndex].name"
+        :active="sortedAccountsRef[selectedIndex].keys.active"
+        :memo="sortedAccountsRef[selectedIndex].keys.memo"
+        :posting="sortedAccountsRef[selectedIndex].keys.posting"
       />
     </div>
     <div
       class="q-pa-md"
       v-if="
         tab === 'sessions' &&
-        storeAccounts.sortedAccounts[selectedIndex].auths.length > 0
+        sortedAccountsRef[selectedIndex].auths.length > 0
       "
     >
       <q-list bordered>
         <AccountManagementSessionItem
-          v-for="(auth, index) in storeAccounts.sortedAccounts[selectedIndex].auths"
+          v-for="(auth, index) in sortedAccountsRef[selectedIndex].auths"
           :key="`${auth.app}-${index}`"
           :icon="auth.app.icon"
           :expiry="auth.expire"
@@ -83,8 +83,8 @@
         />
       </q-list>
     </div>
-    <div class="absolute-center" v-if="storeAccounts.sortedAccounts[selectedIndex].auths.length === 0 && tab === 'sessions'">
-      {{ $t('account_management.empty_sessions') }} {{ storeAccounts.sortedAccounts[selectedIndex].name }}
+    <div class="absolute-center" v-if="sortedAccountsRef[selectedIndex].auths.length === 0 && tab === 'sessions'">
+      {{ $t('account_management.empty_sessions') }} {{ sortedAccountsRef[selectedIndex].name }}
     </div>
   </div>
 </template>
@@ -100,10 +100,10 @@ const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 let selectedIndex = ref(0);
 let tab = ref('sessions');
-
+const sortedAccountsRef = ref(storeAccounts.sortedAccounts);
 function onClickItemAtIndex(index: number) {
   selectedIndex.value = index;
-  storeAccounts.updateLastSelectedAccount(storeAccounts.sortedAccounts[index].name);
+  storeAccounts.updateLastSelectedAccount(sortedAccountsRef.value[index].name);
 }
 
 onMounted(() => {
