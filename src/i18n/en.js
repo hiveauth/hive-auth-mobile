@@ -59,6 +59,9 @@ export default {
 	main_page: {
 		no_pending_request: 'No pending request',
 	},
+	main_layout: {
+		registered: ' registered',
+	},
 	btn_ok: "OK",
 	btn_cancel: "Cancel",
 	btn_add: "Add",

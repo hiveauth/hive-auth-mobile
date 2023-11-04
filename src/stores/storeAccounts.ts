@@ -17,7 +17,7 @@ export interface IAccountAuth {
   expire: number;
   key: string;
   app: IAccountAuthApp;
-  whitelists: Set<string>;
+  whitelists: string[];
   ts_create: string;
   ts_expire: string;
   ts_lastused?: string;
