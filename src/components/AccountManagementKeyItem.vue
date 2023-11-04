@@ -27,8 +27,19 @@
 </template>
 
 <script setup lang="ts">
+import { useQuasar } from 'quasar';
+import { useAccountsStore } from 'src/stores/storeAccounts';
+import { useAppStore } from 'src/stores/storeApp';
+import { Clipboard } from '@capacitor/clipboard';
+import { useI18n } from 'vue-i18n';
+
 import DialogAddKey from 'components/DialogAddKey.vue';
-import { useQuasar } from 'quasar'
+import dhiveClient from 'src/helper/dhive-client';
+
+const { t } = useI18n(),
+  $t = t;
+const storeApp = useAppStore();
+const storeAccounts = useAccountsStore();
 const $q = useQuasar();
 const props = defineProps({
   name: {
@@ -44,24 +55,76 @@ const props = defineProps({
     required: false,
   },
 });
+
 function addKeyTapped() {
   $q.dialog({
     component: DialogAddKey,
     componentProps: {
-      // dialog props
       persistent: false,
-      // custom props
       username: props.name,
       key_type: props.keyType,
     },
   })
     .onOk(() => {
-      console.log('User tapped on Paste from Clipboard');
+      validateAndImportKey();
     })
     .onCancel(async () => {
       console.log('User tapped on Scan QR code');
     });
 }
+
+async function validateAndImportKey() {
+  let needReset = false;
+  try {
+    $q.loading.show({ group: 'validateKey' });
+    const clipboardResult = await Clipboard.read();
+    const stringValue = clipboardResult.value;
+    const publicKeys = await dhiveClient.getUserPublicKeys(props.name);
+    const privateKey = dhiveClient.privateKeyFromString(stringValue);
+    const publicKey = dhiveClient.publicKeyFrom(privateKey);
+    let account = storeAccounts.accounts.find((o) => o.name === props.name);
+    if (!account) {
+      account = {
+        name: props.name,
+        keys: {
+          posting: undefined,
+          active: undefined,
+          memo: undefined,
+        },
+        auths: [],
+      };
+      needReset = true;
+    }
+    if (publicKey === publicKeys.active) {
+      account.keys.active = stringValue;
+    } else if (publicKey === publicKeys.memo) {
+      account.keys.memo = stringValue;
+    } else if (publicKey === publicKeys.posting) {
+      account.keys.posting = stringValue;
+    } else {
+      throw new Error($t('import_key.no_match'));
+    }
+    await storeAccounts.updateAccount(account);
+    // TO-DO: update this local key-item
+    $q.notify({
+      color: 'positive',
+      position: 'bottom',
+      message: $t('import_key.success'),
+      icon: 'check',
+    });
+  } catch (e) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: `${$t('import_key.failed')} - ${e.message}`,
+      icon: 'report_problem',
+    });
+  } finally {
+    $q.loading.hide('validateKey');
+    if (needReset) storeApp.resetWebsocket = true;
+  }
+}
+
 const currentKeyValue = props.keyValue ?? '';
 const suggestAdd =
   props.keyValue === null ||

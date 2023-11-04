@@ -55,12 +55,10 @@ const props = defineProps({
 
 // this is part of our example (so not required)
 function tappedOnPasteFromClipboard() {
-  console.log('User tapped on Paste from Clipboard');
   onDialogOK();
 }
 
 function tappedOnScanQRCode() {
-  console.log('User tapped on Scan QR code');
   onDialogCancel();
 }
 
