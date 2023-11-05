@@ -27,14 +27,14 @@ function publicKeyFrom(privateKey: PrivateKey): string {
 
 async function getUserPublicKeys(username: string): Promise<IPublicKeys> {
   try {
-    const [account] = await client.database.getAccounts([username]);
-    if (!account) {
+    const account = await client.database.getAccounts([username]);
+    if (account.length == 0) {
       throw new Error(`User '${username}' not found.`);
     }
     return {
-      active: account.active.key_auths[0][0],
-      memo: account.memo_key,
-      posting: account.posting.key_auths[0][0],
+      active: account[0].active.key_auths[0][0],
+      memo: account[0].memo_key,
+      posting: account[0].posting.key_auths[0][0],
     } as IPublicKeys;
   } catch (error) {
     console.error('Error occurred while retrieving user public keys:', error);

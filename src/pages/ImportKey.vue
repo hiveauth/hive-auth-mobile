@@ -102,7 +102,13 @@ async function validateKey() {
     username.value = username.value.toLowerCase().trim();
 
     const publicKeys = await dhive.getUserPublicKeys(username.value);
-    const publicKey = PrivateKey.from(private_key.value).createPublic().toString()
+    let publicKey: string = undefined
+    try {
+      // try to derive public key from entered valud
+      publicKey = PrivateKey.from(private_key.value).createPublic().toString()
+    } catch(e) {
+      // failed - nothing to do as user can enter a master password or a keychain export
+    }
 
     let account = storeAccounts.accounts.find((o) => o.name === username.value);
     if (!account) {
@@ -150,7 +156,7 @@ async function validateKey() {
           }
           if(account.keys.memo = keys.posting.public) {
             isMasterPassword = true
-            account.keys.memo = keys.private.private
+            account.keys.memo = keys.memo.private
           }
           // TODO: Enable import of keychain export
 
