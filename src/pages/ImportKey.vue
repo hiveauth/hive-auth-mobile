@@ -146,15 +146,15 @@ async function validateKey() {
           // Check if provided value is a master password
           let isMasterPassword = false
           const keys = getKeys(username.value, private_key.value)
-          if(account.keys.active = keys.active.public) {
+          if(account.keys.active == keys.active.public) {
             isMasterPassword = true
             account.keys.active = keys.active.private
           }
-          if(account.keys.posting = keys.posting.public) {
+          if(account.keys.posting == keys.posting.public) {
             isMasterPassword = true
             account.keys.posting = keys.posting.private
           }
-          if(account.keys.memo = keys.posting.public) {
+          if(account.keys.memo == keys.posting.public) {
             isMasterPassword = true
             account.keys.memo = keys.memo.private
           }
@@ -175,6 +175,7 @@ async function validateKey() {
     username.value = '';
     private_key.value = '';
   } catch (e) {
+    needReset = false
     $q.notify({
       color: 'negative',
       position: 'bottom',
