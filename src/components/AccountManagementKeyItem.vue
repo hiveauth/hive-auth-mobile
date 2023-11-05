@@ -8,8 +8,8 @@
     <q-item-section>
       {{ props.keyType }} Key
     </q-item-section>
-    <q-item-section avatar v-if="suggestAdd">
-      <q-btn v-if="suggestAdd"
+    <q-item-section avatar v-if="keyMissing">
+      <q-btn v-if="keyMissing"
         round
         color="primary"
         icon="add"
@@ -18,7 +18,7 @@
         @click="onAddKey"
       />
     </q-item-section>
-    <q-item-section v-if="!suggestAdd" avatar>
+    <q-item-section v-if="!keyMissing" avatar>
       <q-btn
         round
         color="red"
@@ -29,19 +29,6 @@
       />
     </q-item-section>
   </q-item>
-  <q-dialog v-model="confirmDialogPresent" persistent>
-    <q-card>
-      <q-card-section class="row items-center">
-        <q-avatar icon="fa-solid fa-trash" color="red" text-color="white" />
-        <span class="q-ml-sm" >Are you sure you want to delete this key? This action can not be undone.</span>
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn flat label="Delete" color="red" v-close-popup @click="onConfirmDelete" />
-        <q-btn flat label="Cancel" color="primary" v-close-popup />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
 </template>
 
 <script setup lang="ts">
@@ -49,19 +36,15 @@ import { useQuasar } from 'quasar';
 import { ref } from 'vue';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useAppStore } from 'src/stores/storeApp';
-import { Clipboard } from '@capacitor/clipboard';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import DialogAddKey from 'components/DialogAddKey.vue';
-import dhiveClient from 'src/helper/dhive-client';
-
+const $q = useQuasar();
 const router = useRouter();
-const { t } = useI18n(), $t = t;
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
-const $q = useQuasar();
-const confirmDialogPresent = ref(false);
+const { t } = useI18n(), $t = t;
+
 const props = defineProps({
   name: {
     type: String,
@@ -70,6 +53,9 @@ const props = defineProps({
   keyType: {
     type: String,
     required: true,
+    validator(value: string) {
+      return ['Active', 'Posting', 'Memo'].includes(value)
+    }
   },
   keyValue: {
     type: String,
@@ -77,38 +63,68 @@ const props = defineProps({
   },
 });
 
+const currentKeyValue = props.keyValue ?? '';
+const keyMissing = (props.keyValue === null || props.keyValue === undefined || currentKeyValue.length === 0);
+
 function onAddKey() {
   router.push({name:"import-key", query: {username: props.name, type: props.keyType}})
 }
-
-function onDeleteKey() {
-  confirmDialogPresent.value = true;
-}
-
-async function onConfirmDelete() {
+async function onDeleteKey() {
   let needReset = false;
   try {
     $q.loading.show({ group: 'deleteKey' });
-    let account = storeAccounts.accounts.find((o) => o.name === props.name);
+    const account = storeAccounts.accounts.find((o) => o.name === props.name);
     if (!account) {
       return;
     }
-    if (props.keyType === 'Active') {
-      account.keys.active = undefined;
-    } else if (props.keyType === 'Memo') {
-      account.keys.memo = undefined;
-    } else if (props.keyType === 'Posting') {
-      account.keys.posting = undefined;
-    } else {
-      throw new Error($t('import_key.no_match'));
+    // take a copy of existing keys to work on it before updating the account
+    const keys = {...account.keys}
+    switch(props.keyType) {
+      case 'Active':
+      keys.active = undefined;
+      break;
+      case 'Memo':
+        keys.memo = undefined;
+        break;
+      case 'Posting':
+        keys.posting = undefined;
+        break;
+      default:
+        throw new Error(`onConfirmDelete - Invalid keyType ${props.keyType}`);
     }
-    await storeAccounts.updateAccount(account);
-    $q.notify({
-      color: 'negative',
-      position: 'bottom',
-      message: $t('account_management.delete_key_deleted_notify'),
-      icon: 'fa-solid fa-trash',
-    });
+    // Check if the account no more holds any key
+    if(!keys.active && !keys.posting && !keys.memo) {
+      // ask user to confirm account deletion
+      $q.dialog({
+        title: $t('key_item.confirm_delete_account.title'),
+        message: $t('key_item.confirm_delete_account.message'),
+        cancel: true,
+        focus: "cancel",
+        color: "red",
+        persistent: true
+      }).onOk(async () => {
+        await storeAccounts.deleteAccount(account.name)
+      })
+    } else {
+      // Ask user to confirm key deletation
+      $q.dialog({
+        title: $t('key_item.confirm_delete_key.title'),
+        message: $t('key_item.confirm_delete_key.message'),
+        cancel: true,
+        focus: "cancel",
+        color: "red",
+        persistent: true
+      }).onOk(async () => {
+        account.keys = keys
+        await storeAccounts.updateAccount(account);
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: $t('account_management.delete_key_deleted_notify'),
+          icon: 'fa-solid fa-trash',
+        });
+      })
+    }
   } catch (e) {
     $q.notify({
       color: 'negative',
@@ -121,12 +137,6 @@ async function onConfirmDelete() {
     if (needReset) storeApp.resetWebsocket = true;
   }
 }
-
-const currentKeyValue = props.keyValue ?? '';
-const suggestAdd =
-  props.keyValue === null ||
-  props.keyValue === undefined ||
-  currentKeyValue.length === 0;
 </script>
 <script lang="ts">
 export default {

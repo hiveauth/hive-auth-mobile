@@ -40,6 +40,16 @@ export default {
     delete_key_cancel_button: '',
     delete_key_deleted_notify: 'Key is deleted',
   },
+	key_item: {
+		confirm_delete_key: {
+			title: "Delete Key",
+			message:"Are you sure you want to delete this key?"
+		},
+		confirm_delete_account: {
+			title: "Account deletion",
+			message: "Deleting that key will also delete the account. Do you want to continue?",
+		},
+	},
 	sessions: {
 		empty: "No sessions found",
 		valid: "Valid till",

@@ -1,9 +1,9 @@
 <template>
   <q-page>
-      <div class="text-center text-h6 q-mt-lg">
-      {{ $t('import_key.title') }}
-    </div>
     <div v-if="!storeApp.isScanning" class="q-pa-lg">
+      <div class="text-center text-h6 q-mt-lg">
+        {{ $t('import_key.title') }}
+      </div>
       <q-input v-if="!keyType"
         outlined
         v-model="username"
@@ -60,9 +60,9 @@ import DialogScan from 'components/DialogScan.vue';
 
 const $q = useQuasar();
 const router = useRouter();
-const { t } = useI18n(), $t = t
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
+const { t } = useI18n(), $t = t
 
 enum KeyTypes {
   active = 'active',
@@ -102,7 +102,7 @@ async function validateKey() {
     username.value = username.value.toLowerCase().trim();
 
     const publicKeys = await dhive.getUserPublicKeys(username.value);
-    let publicKey: string = undefined
+    let publicKey: string | undefined = undefined
     try {
       // try to derive public key from entered valud
       publicKey = PrivateKey.from(private_key.value).createPublic().toString()
@@ -146,15 +146,15 @@ async function validateKey() {
           // Check if provided value is a master password
           let isMasterPassword = false
           const keys = getKeys(username.value, private_key.value)
-          if(account.keys.active == keys.active.public) {
+          if(publicKeys.active == keys.active.public) {
             isMasterPassword = true
             account.keys.active = keys.active.private
           }
-          if(account.keys.posting == keys.posting.public) {
+          if(publicKeys.posting == keys.posting.public) {
             isMasterPassword = true
             account.keys.posting = keys.posting.private
           }
-          if(account.keys.memo == keys.posting.public) {
+          if(publicKeys.memo == keys.memo.public) {
             isMasterPassword = true
             account.keys.memo = keys.memo.private
           }
@@ -174,6 +174,7 @@ async function validateKey() {
     });
     username.value = '';
     private_key.value = '';
+    router.back()
   } catch (e) {
     needReset = false
     $q.notify({

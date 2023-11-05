@@ -92,11 +92,10 @@ import { defineComponent, onMounted, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
-import AccountManagementKeyList from 'components/AccountManagementKeyList.vue';
-import AccountManagementSessionItem from 'components/AccountManagementSessionItem.vue';
-import dhiveClient from 'src/helper/dhive-client';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import AccountManagementKeyList from 'components/AccountManagementKeyList.vue';
+// import AccountManagementSessionItem from 'components/AccountManagementSessionItem.vue';
 
 const $q = useQuasar();
 const router = useRouter();
@@ -121,6 +120,7 @@ function onAddAccount() {
 
 onMounted(() => {
   storeApp.path = 'Account Management';
+  console.log("mounted")  
   const lastSelectedAccountName = storeAccounts.lastSelectedAccountName;
   if (lastSelectedAccountName.length > 0) {
     const index = storeAccounts.accounts.findIndex((account) => {

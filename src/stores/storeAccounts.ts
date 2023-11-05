@@ -44,13 +44,15 @@ export const useAccountsStore = defineStore('storeAccounts', {
     async read() {
       try {
         await SecureStorage.setSynchronize(false);
-        const value = (await SecureStorage.get('accounts')) as string;
-        const lastSelected = (await SecureStorage.get('lastSelectedAccount')) as string;
-        if ( value && value.length > 0 ) {
-          this.accounts = JSON.parse(value);
+
+        const accounts = (await SecureStorage.get('accounts')) as string;
+        if ( accounts && accounts.length > 0 ) {
+          this.accounts = (JSON.parse(accounts) as IAccount[]).filter(o => !Object.values(o.keys).every(el => el === undefined))
         }
+
+        const lastSelected = (await SecureStorage.get('lastSelectedAccount')) as string;
         if (lastSelected && lastSelected.length > 0) {
-          this.lastSelectedAccountName = lastSelected;
+          this.lastSelectedAccountName = this.accounts.some(o => o.name ==lastSelected) ? lastSelected : this.accounts.length > 0 ? this.accounts[0].name : '';
         }
       } catch (e) {
         console.error(`storeAccounts.read failed - ${(e as Error).message}`);
@@ -87,5 +89,16 @@ export const useAccountsStore = defineStore('storeAccounts', {
         console.error(`storeAccounts.update failed - ${(e as Error).message}. `);
       }
     },
+
+    async deleteAccount(name: string) {
+      this.accounts = this.accounts.filter((o) => o.name != name)
+      try {
+        await SecureStorage.setSynchronize(false);
+        await SecureStorage.set('accounts', JSON.stringify(this.accounts));
+      } catch (e) {
+        console.error(`storeAccounts.delete failed - ${(e as Error).message}. `);
+      }
+    },
   },
+  
 });
