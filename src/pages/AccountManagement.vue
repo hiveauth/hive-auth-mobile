@@ -1,42 +1,37 @@
 <template>
   <div>
     <div class="q-pa-md">
-      <q-btn-dropdown
+      <q-btn-dropdown v-if="accounts.length > 0"
         push
         no-caps
         rounded
-        v-if="sortedAccountsRef.length > 0"
-        class="account-drop-down"
+        class="full_width"
       >
         <template v-slot:label>
           <q-item-section avatar>
             <q-avatar>
-              <img
-                :src="`https://images.hive.blog/u/${sortedAccountsRef[selectedIndex].name}/avatar/small`"
-              />
+              <img :src="`https://images.hive.blog/u/${accounts[selectedIndex].name}/avatar/small`"/>
             </q-avatar>
           </q-item-section>
-          <q-item-section>
-            {{ sortedAccountsRef[selectedIndex].name }}
+          <q-item-section class="text-left username">
+            @{{ accounts[selectedIndex].name }}
           </q-item-section>
         </template>
         <q-list>
           <q-item
-            v-for="(account, index) in sortedAccountsRef"
+            v-for="(account, index) in accounts"
             :key="`${account.name}-${index}`"
             clickable
             v-close-popup
-            @click="onClickItemAtIndex(index)"
+            @click="onSelectAccount(index)"
           >
             <q-item-section avatar>
               <q-avatar>
-                <q-img
-                  :src="`https://images.hive.blog/u/${account.name}/avatar/small`"
-                />
+                <q-img :src="`https://images.hive.blog/u/${account.name}/avatar/small`" />
               </q-avatar>
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ account.name }}</q-item-label>
+              <q-item-label>@{{ account.name }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -44,14 +39,17 @@
     </div>
     <div class="q-pl-md q-pr-md q-pb-md">
       <q-btn
-      class="account-drop-down"
+      class="full_width"
         color="primary"
         icon="add"
         label="Add an Account"
-        @click="addAccountTapped"
+        @click="onAddAccount"
       />
     </div>
-    <q-tabs v-model="tab" inline-label v-if="sortedAccountsRef.length > 0">
+    <q-tabs v-if="accounts.length > 0" 
+      v-model="tab" 
+      inline-label
+    >
       <q-tab
         name="sessions"
         icon="fa-solid fa-id-card"
@@ -59,29 +57,21 @@
       />
       <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
     </q-tabs>
-    <div
-      class="absolute-center"
-      v-if="sortedAccountsRef.length === 0 && tab === 'keys'"
-    >
+    <div v-if="tab === 'keys' &&accounts.length === 0" class="absolute-center">
       {{ $t('account_management.empty') }}
     </div>
-    <div class="q-pa-md" v-if="tab === 'keys' && sortedAccountsRef.length > 0">
+    <div class="q-pa-md" v-if="tab === 'keys' && accounts.length > 0">
       <AccountManagementKeyList
-        :name="sortedAccountsRef[selectedIndex].name"
-        :active="sortedAccountsRef[selectedIndex].keys.active"
-        :memo="sortedAccountsRef[selectedIndex].keys.memo"
-        :posting="sortedAccountsRef[selectedIndex].keys.posting"
+        :name="accounts[selectedIndex].name"
+        :active="accounts[selectedIndex].keys.active"
+        :memo="accounts[selectedIndex].keys.memo"
+        :posting="accounts[selectedIndex].keys.posting"
       />
     </div>
-    <div
-      class="q-pa-md"
-      v-if="
-        tab === 'sessions' && sortedAccountsRef[selectedIndex].auths.length > 0
-      "
-    >
+    <div v-if="tab === 'sessions' && accounts[selectedIndex].auths.length > 0" class="q-pa-md">
       <q-list bordered>
         <AccountManagementSessionItem
-          v-for="(auth, index) in sortedAccountsRef[selectedIndex].auths"
+          v-for="(auth, index) in accounts[selectedIndex].auths"
           :key="`${auth.app}-${index}`"
           :icon="auth.app.icon"
           :expiry="auth.expire"
@@ -91,39 +81,9 @@
         />
       </q-list>
     </div>
-    <div
-      class="absolute-center"
-      v-if="
-        sortedAccountsRef[selectedIndex].auths.length === 0 &&
-        tab === 'sessions'
-      "
-    >
+    <div v-if="tab === 'sessions' && accounts[selectedIndex].auths.length === 0" class="absolute-center" >
       {{ $t('account_management.empty_sessions') }}
-      {{ sortedAccountsRef[selectedIndex].name }}
     </div>
-
-    <q-dialog v-model="showAddPrompt">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Enter hive username</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-input
-            dense
-            v-model="usernameEntered"
-            autofocus
-            @keyup.enter="showAddPrompt = false"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Add Account" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
   </div>
 </template>
 
@@ -135,79 +95,28 @@ import { useAccountsStore } from 'src/stores/storeAccounts';
 import AccountManagementKeyList from 'components/AccountManagementKeyList.vue';
 import AccountManagementSessionItem from 'components/AccountManagementSessionItem.vue';
 import dhiveClient from 'src/helper/dhive-client';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 const $q = useQuasar();
+const router = useRouter();
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
-let selectedIndex = ref(0);
-let tab = ref('sessions');
-let usernameEntered = ref('');
-let showAddPrompt = ref(false);
-const sortedAccountsRef = ref(storeAccounts.sortedAccounts);
+const { t } = useI18n(), $t = t;
 
-function onClickItemAtIndex(index: number) {
+// data
+const accounts = ref(storeAccounts.sortedAccounts);
+const selectedIndex = ref(0);
+const tab = ref('sessions');
+const username = ref('');
+
+function onSelectAccount(index: number) {
   selectedIndex.value = index;
-  storeAccounts.updateLastSelectedAccount(sortedAccountsRef.value[index].name);
+  storeAccounts.updateLastSelectedAccount(accounts.value[index].name);
 }
 
-function addAccountTapped() {
-  showAddPrompt.value = true;
-}
-
-async function addAccountTappedFromDialog() {
-  let needReset = false
-  try {
-    $q.loading.show({ group: 'validateKey' });
-    usernameEntered.value = usernameEntered.value.toLowerCase().trim();
-    let account = storeAccounts.accounts.find((o) => o.name === usernameEntered.value);
-    if (!account) {
-      account = {
-        name: usernameEntered.value,
-        keys: {
-          posting:undefined,
-          active:undefined,
-          memo:undefined,
-        },
-        auths:[],
-      };
-      needReset = true
-    } else {
-      $q.notify({
-      color: 'negative',
-      position: 'bottom',
-      message: 'Account is alredy added',
-      icon: 'report_problem',
-    });
-    }
-    // if (publicKey === publicKeys.active) {
-    //   account.keys.active = private_key.value;
-    // } else if (publicKey === publicKeys.memo) {
-    //   account.keys.memo = private_key.value;
-    // } else if (publicKey === publicKeys.posting) {
-    //   account.keys.posting = private_key.value;
-    // } else {
-    //   throw new Error($t('import_key.no_match'));
-    // }
-    // await storeAccounts.updateAccount(account);
-    // $q.notify({
-    //   color: 'positive',
-    //   position: 'bottom',
-    //   message: $t('import_key.success'),
-    //   icon: 'check',
-    // });
-    // username.value = '';
-    // private_key.value = '';
-  } catch (e) {
-    $q.notify({
-      color: 'negative',
-      position: 'bottom',
-      message: `${$t('import_key.failed')} - ${e.message}`,
-      icon: 'report_problem',
-    });
-  } finally {
-    $q.loading.hide('validateKey');
-    if(needReset) storeApp.resetWebsocket = true
-  }
+function onAddAccount() {
+  router.push({name: "import-key"})
 }
 
 onMounted(() => {
@@ -231,7 +140,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.account-drop-down {
+.username {
+  font-size: medium;
+}
+.full_width {
   width: 100%;
 }
 </style>

@@ -1,6 +1,6 @@
 import { Client, PrivateKey } from '@hiveio/dhive';
 
-export interface PublicKeysModel {
+export interface IPublicKeys {
   posting: string;
   active: string;
   memo: string;
@@ -25,17 +25,17 @@ function publicKeyFrom(privateKey: PrivateKey): string {
   return privateKey.createPublic().toString();
 }
 
-async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
+async function getUserPublicKeys(username: string): Promise<IPublicKeys> {
   try {
-    const account = await client.database.getAccounts([username]);
-    if (account.length === 0) {
+    const [account] = await client.database.getAccounts([username]);
+    if (!account) {
       throw new Error(`User '${username}' not found.`);
     }
     return {
-      active: account[0].active.key_auths[0][0],
-      memo: account[0].memo_key,
-      posting: account[0].posting.key_auths[0][0],
-    } as PublicKeysModel;
+      active: account.active.key_auths[0][0],
+      memo: account.memo_key,
+      posting: account.posting.key_auths[0][0],
+    } as IPublicKeys;
   } catch (error) {
     console.error('Error occurred while retrieving user public keys:', error);
     throw error;

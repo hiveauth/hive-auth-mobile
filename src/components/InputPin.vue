@@ -3,7 +3,7 @@
     <q-input
       outlined
       dark
-      :autoFocus="true"
+      autofocus
       v-model="PIN"
       :label="$t('login.pin_label')"
       :placeholder="$t('login.pin_placeholder')"

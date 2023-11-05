@@ -56,9 +56,19 @@ export default {
 		whitelist: "Do not prompt again for",
 	},
 	import_key: {
+		title: 'Import your existing Hive account',
 		success: 'Key is securely stored',
 		failed: 'Failed to validate key',
-		no_match: 'no matching key',
+		no_match: 'No matching key',
+		invalid: 'Invalid {type} Key',
+		username: {
+			label: "Username",
+			placeholder: "Enter your Hive username",
+		},
+		key: {
+			label: "Private {type} Key",
+			placeholder: "Enter or scan your private key",
+		}
 	},
 	main_page: {
 		no_pending_request: 'No pending request',
