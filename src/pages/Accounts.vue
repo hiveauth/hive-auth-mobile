@@ -10,11 +10,11 @@
         <template v-slot:label>
           <q-item-section avatar>
             <q-avatar>
-              <img :src="`https://images.hive.blog/u/${accounts[selectedIndex].name}/avatar/small`"/>
+              <img :src="`https://images.hive.blog/u/${selectedAccount.name}/avatar/small`"/>
             </q-avatar>
           </q-item-section>
           <q-item-section class="text-left username">
-            @{{ accounts[selectedIndex].name }}
+            @{{ selectedAccount.name }}
           </q-item-section>
         </template>
         <q-list>
@@ -53,25 +53,25 @@
       <q-tab
         name="sessions"
         icon="fa-solid fa-id-card"
-        :label="$t('account_management.sessions')"
+        :label="$t('accounts.sessions')"
       />
-      <q-tab name="keys" icon="key" :label="$t('account_management.keys')" />
+      <q-tab name="keys" icon="key" :label="$t('accounts.keys')" />
     </q-tabs>
     <div v-if="tab === 'keys' &&accounts.length === 0" class="absolute-center">
-      {{ $t('account_management.empty') }}
+      {{ $t('accounts.empty') }}
     </div>
     <div class="q-pa-md" v-if="tab === 'keys' && accounts.length > 0">
-      <AccountManagementKeyList
-        :name="accounts[selectedIndex].name"
-        :active="accounts[selectedIndex].keys.active"
-        :memo="accounts[selectedIndex].keys.memo"
-        :posting="accounts[selectedIndex].keys.posting"
+      <AccountKeyList
+        :name="selectedAccount.name"
+        :active="selectedAccount.keys.active"
+        :memo="selectedAccount.keys.memo"
+        :posting="selectedAccount.keys.posting"
       />
     </div>
-    <div v-if="tab === 'sessions' && accounts[selectedIndex].auths.length > 0" class="q-pa-md">
+    <div v-if="tab === 'sessions' && selectedAccount.auths.length > 0" class="q-pa-md">
       <q-list bordered>
-        <AccountManagementSessionItem
-          v-for="(auth, index) in accounts[selectedIndex].auths"
+        <AccountSessionItem
+          v-for="(auth, index) in selectedAccount.auths"
           :key="`${auth.app}-${index}`"
           :icon="auth.app.icon"
           :expiry="auth.expire"
@@ -81,21 +81,21 @@
         />
       </q-list>
     </div>
-    <div v-if="tab === 'sessions' && accounts[selectedIndex].auths.length === 0" class="absolute-center" >
-      {{ $t('account_management.empty_sessions') }}
+    <div v-if="tab === 'sessions' && selectedAccount.auths.length === 0" class="absolute-center" >
+      {{ $t('accounts.empty_sessions') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import AccountManagementKeyList from 'components/AccountManagementKeyList.vue';
-// import AccountManagementSessionItem from 'components/AccountManagementSessionItem.vue';
+import AccountKeyList from 'components/AccountKeyList.vue';
+import AccountSessionItem from 'components/AccountSessionItem.vue';
 
 const $q = useQuasar();
 const router = useRouter();
@@ -104,11 +104,15 @@ const storeAccounts = useAccountsStore();
 const { t } = useI18n(), $t = t;
 
 // data
-const accounts = ref(storeAccounts.sortedAccounts);
+const accounts = ref(storeAccounts.accounts);
 const selectedIndex = ref(0);
 const tab = ref('sessions');
 const username = ref('');
 
+// computed
+const selectedAccount = computed(() => { return accounts.value[selectedIndex.value] })
+
+// functions
 function onSelectAccount(index: number) {
   selectedIndex.value = index;
   storeAccounts.updateLastSelectedAccount(accounts.value[index].name);
@@ -118,9 +122,9 @@ function onAddAccount() {
   router.push({name: "import-key"})
 }
 
+// hooks
 onMounted(() => {
-  storeApp.path = 'Account Management';
-  console.log("mounted")  
+  storeApp.headerSubtitle = 'Accounts';
   const lastSelectedAccountName = storeAccounts.lastSelectedAccountName;
   if (lastSelectedAccountName.length > 0) {
     const index = storeAccounts.accounts.findIndex((account) => {
@@ -135,7 +139,7 @@ onMounted(() => {
 
 <script lang="ts">
 export default defineComponent({
-  name: 'account-management',
+  name: 'page-accounts',
 });
 </script>
 

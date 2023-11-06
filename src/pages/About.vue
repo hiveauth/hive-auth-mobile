@@ -101,7 +101,7 @@ async function openLink(string: string) {
 
 // hooks
 onMounted(() => {
-  storeApp.path = 'About';
+  storeApp.headerSubtitle = 'About';
 });
 
 </script>

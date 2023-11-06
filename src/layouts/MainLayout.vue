@@ -3,7 +3,6 @@
     <q-header v-if="storeApp.isUnlocked && $router.currentRoute.value.name!='main'">
       <q-toolbar>
         <q-btn
-          v-if="storeApp.isUnlocked && storeApp.path !== 'Menu'"
           flat
           round
           dense
@@ -19,18 +18,10 @@
             </q-item-section>
             <q-item-section>
               <q-item-label>HiveAuth</q-item-label>
-              <q-item-label caption style="color: white">{{storeApp.path}}</q-item-label>
+              <q-item-label caption style="color: white">{{storeApp.headerSubtitle}}</q-item-label>
             </q-item-section>
           </q-item>
         </q-toolbar-title>
-
-        <q-btn
-          flat
-          round
-          dense
-          icon="add"
-          v-if="storeApp.isUnlocked && storeApp.path === 'account-management'"
-        />
       </q-toolbar>
     </q-header>
 
@@ -66,7 +57,7 @@
 import { defineComponent, ref , onMounted} from 'vue';
 import { useQuasar } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
-import { useAccountsStore, IAccount, IAccountAuth, IAccountKeys } from 'src/stores/storeAccounts';
+import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
 
 import { Operation } from '@hiveio/dhive/lib/chain/operation';

@@ -62,7 +62,7 @@ async function startScan() {
 
 // hooks
 onMounted(() => {
-  storeApp.path = 'Scan QR Code'
+  storeApp.headerSubtitle = 'Scan QR Code'
   startScan();
 })
 
@@ -74,6 +74,6 @@ onUnmounted(() => {
 
 <script lang="ts">
 export default defineComponent({
-  name: 'page_scan'
+  name: 'page-scan'
 });
 </script>

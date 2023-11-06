@@ -35,11 +35,6 @@ export const useAccountsStore = defineStore('storeAccounts', {
     accounts: [] as IAccount[],
     lastSelectedAccountName: '',
   }),
-  getters: {
-    sortedAccounts:(state) => {
-      return state.accounts.sort((a, b) => a.name.localeCompare(b.name));
-    }
-  },
   actions: {
     async read() {
       try {
@@ -70,7 +65,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
       }
     },
 
-    async updateAccount(value: IAccount) {
+    async updateAccount(value: IAccount, sort = false) {
       const account = this.accounts.find((o) => o.name === value.name)
       if(account) {
         account.keys = value.keys
@@ -81,6 +76,9 @@ export const useAccountsStore = defineStore('storeAccounts', {
           keys: value.keys,
           auths: value.auths
         })
+      }
+      if(sort) {
+        this.accounts.sort((a, b) => a.name.localeCompare(b.name));
       }
       try {
         await SecureStorage.setSynchronize(false);

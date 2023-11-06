@@ -6,9 +6,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
-        path: 'import-key',
-        name: 'import-key',
-        component: () => import('pages/ImportKey.vue'),
+        path: '',
+        name: 'main',
+        component: () => import('pages/MainPage.vue'),
       },
       {
         path: 'scan',
@@ -16,19 +16,9 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/QRScannerPage.vue'),
       },
       {
-        path: '',
-        name: 'main',
-        component: () => import('pages/MainPage.vue'),
-      },
-      {
-        path: 'manage-accounts',
-        name: 'manage-accounts',
-        component: () => import('pages/ManageAccounts.vue'),
-      },
-      {
-        path: 'account-management',
-        name: 'account-management',
-        component: () => import('pages/AccountManagement.vue'),
+        path: 'accounts',
+        name: 'accounts',
+        component: () => import('pages/Accounts.vue'),
       },
       {
         path: 'websocket-logs',
@@ -39,11 +29,6 @@ const routes: RouteRecordRaw[] = [
         path: 'about',
         name: 'about',
         component: () => import('pages/About.vue'),
-      },
-      {
-        path: 'active-sessions',
-        name: 'active-sessions',
-        component: () => import('pages/ActiveSession.vue'),
       },
     ],
   },

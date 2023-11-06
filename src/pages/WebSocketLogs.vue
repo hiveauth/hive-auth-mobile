@@ -66,7 +66,7 @@ function getDateInTimeAgoFormat(date: string) {
 
 // hooks
 onMounted(() => {
-  storeApp.path = 'Logs';
+  storeApp.headerSubtitle = 'Logs';
 })
 
 </script>

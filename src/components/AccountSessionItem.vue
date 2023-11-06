@@ -21,7 +21,7 @@
         {{ description ?? '' }}</q-item-label
       >
       <q-item-label
-        >{{ $t('account_management.expires') }} {{ formattedDate() }}
+        >{{ $t('accounts.expires') }} {{ formattedDate() }}
       </q-item-label>
     </q-item-section>
     <q-item-section avatar>

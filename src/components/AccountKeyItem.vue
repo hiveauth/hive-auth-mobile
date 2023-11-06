@@ -6,7 +6,7 @@
       </q-avatar>
     </q-item-section>
     <q-item-section>
-      {{ props.keyType }} Key
+      {{ keyName }} Key
     </q-item-section>
     <q-item-section avatar v-if="keyMissing">
       <q-btn v-if="keyMissing"
@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useAppStore } from 'src/stores/storeApp';
 import { useI18n } from 'vue-i18n';
@@ -54,7 +54,7 @@ const props = defineProps({
     type: String,
     required: true,
     validator(value: string) {
-      return ['Active', 'Posting', 'Memo'].includes(value)
+      return ['active', 'posting', 'memo'].includes(value)
     }
   },
   keyValue: {
@@ -64,7 +64,10 @@ const props = defineProps({
 });
 
 const currentKeyValue = props.keyValue ?? '';
-const keyMissing = (props.keyValue === null || props.keyValue === undefined || currentKeyValue.length === 0);
+const keyName = props.keyType.charAt(0).toUpperCase() + props.keyType.slice(1).toLowerCase()
+
+// computed
+const keyMissing = computed(() => { return props.keyValue === null || props.keyValue === undefined || currentKeyValue.length === 0 });
 
 function onAddKey() {
   router.push({name:"import-key", query: {username: props.name, type: props.keyType}})
@@ -80,14 +83,14 @@ async function onDeleteKey() {
     // take a copy of existing keys to work on it before updating the account
     const keys = {...account.keys}
     switch(props.keyType) {
-      case 'Active':
+      case 'active':
       keys.active = undefined;
       break;
-      case 'Memo':
-        keys.memo = undefined;
-        break;
-      case 'Posting':
+      case 'posting':
         keys.posting = undefined;
+        break;
+      case 'memo':
+        keys.memo = undefined;
         break;
       default:
         throw new Error(`onConfirmDelete - Invalid keyType ${props.keyType}`);
@@ -96,8 +99,8 @@ async function onDeleteKey() {
     if(!keys.active && !keys.posting && !keys.memo) {
       // ask user to confirm account deletion
       $q.dialog({
-        title: $t('key_item.confirm_delete_account.title'),
-        message: $t('key_item.confirm_delete_account.message'),
+        title: $t('accounts_key.confirm_delete_account.title'),
+        message: $t('accounts_key.confirm_delete_account.message'),
         cancel: true,
         focus: "cancel",
         color: "red",
@@ -108,8 +111,8 @@ async function onDeleteKey() {
     } else {
       // Ask user to confirm key deletation
       $q.dialog({
-        title: $t('key_item.confirm_delete_key.title'),
-        message: $t('key_item.confirm_delete_key.message'),
+        title: $t('accounts_key.confirm_delete_key.title'),
+        message: $t('accounts_key.confirm_delete_key.message'),
         cancel: true,
         focus: "cancel",
         color: "red",
@@ -120,7 +123,7 @@ async function onDeleteKey() {
         $q.notify({
           color: 'negative',
           position: 'bottom',
-          message: $t('account_management.delete_key_deleted_notify'),
+          message: $t('accounts_key.deleted'),
           icon: 'fa-solid fa-trash',
         });
       })
@@ -140,7 +143,7 @@ async function onDeleteKey() {
 </script>
 <script lang="ts">
 export default {
-  name: 'AccountManagementKeyItem',
+  name: 'AccountKeyItem',
 };
 </script>
 <style scoped></style>

@@ -1,20 +1,20 @@
 <template>
   <q-list bordered>
-    <AccountManagementKeyItem
+    <AccountKeyItem
       :key="`${name}-active`"
       :name="name"
       key-type="Active"
       :keyValue="active"
     />
     <q-separator />
-    <AccountManagementKeyItem
+    <AccountKeyItem
       :key="`${name}-posting`"
       :name="name"
       key-type="Posting"
       :keyValue="posting"
     />
     <q-separator />
-    <AccountManagementKeyItem
+    <AccountKeyItem
       :key="`${name}-memo`"
       :name="name"
       key-type="Memo"
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import AccountManagementKeyItem from 'components/AccountManagementKeyItem.vue';
+import AccountKeyItem from 'components/AccountKeyItem.vue';
 
 const props = defineProps({
   name: {
@@ -48,7 +48,7 @@ const props = defineProps({
 </script>
 <script lang="ts">
 export default {
-  name: 'AccountManagementKeyList',
+  name: 'AccountKeyList',
 };
 </script>
 <style scoped></style>

@@ -1,4 +1,10 @@
 export default {
+	menu: {
+		accounts: "Accounts",
+		about: "About",
+		lock: "Lock application",
+		logs: "Logs",
+	},
 	logs: {
 	  success_copy_clipboard: "Data copied to clipboard",
 	  error_copy_clipboard: "Failed to copy data to clipboard",
@@ -25,22 +31,17 @@ export default {
 	  biometrics_subtitle: "", //"Unlock HiveAuth with your Biometrics",
 	  biometrics_description: "Provide your FaceID or Touch ID to unlock HiveAuth",
 	},
-  account_management: {
+  accounts: {
     empty: 'No Accounts found',
     empty_sessions: 'No sessions found',
     keys: 'Keys',
     sessions: 'Sessions',
     expires: 'Expires',
-    import_key_action: 'Please choose an action for importing',
-    import_key_action_paste: 'Paste from Clipboard',
-    import_key_action_qr: 'Scan QR Code',
-    import_dialog_title: 'Import',
     delete_key_dialog_title: '',
     delete_key_delete_button: '',
     delete_key_cancel_button: '',
-    delete_key_deleted_notify: 'Key is deleted',
   },
-	key_item: {
+	accounts_key: {
 		confirm_delete_key: {
 			title: "Delete Key",
 			message:"Are you sure you want to delete this key?"
@@ -49,6 +50,7 @@ export default {
 			title: "Account deletion",
 			message: "Deleting that key will also delete the account. Do you want to continue?",
 		},
+    deleted: 'Key has been deleted',
 	},
 	sessions: {
 		empty: "No sessions found",

@@ -24,7 +24,7 @@ export const useAppStore = defineStore('storeApp', {
     isHASConnected: false,
     isScanning: false,
     menuOpen: false,
-    path: '',
+    headerSubtitle: '',
     scanValue: '',
     passcode: '',
     hasPasscode: false,

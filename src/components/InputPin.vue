@@ -64,7 +64,7 @@
       />
     </div>
   </div>
-  <div v-else class="q-pa-lg">
+  <div v-else class="q-pa-lg" style="color: white">
     {{$t('login.biometrics_unavailable')}}
   </div>
 </template>
