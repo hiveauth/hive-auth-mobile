@@ -67,7 +67,7 @@ const currentKeyValue = props.keyValue ?? '';
 const keyName = props.keyType.charAt(0).toUpperCase() + props.keyType.slice(1).toLowerCase()
 
 // computed
-const keyMissing = computed(() => { return props.keyValue === null || props.keyValue === undefined || currentKeyValue.length === 0 });
+const keyMissing = computed(() => { return (props.keyValue?.length ?? 0)  === 0 });
 
 function onAddKey() {
   router.push({name:"import-key", query: {username: props.name, type: props.keyType}})
