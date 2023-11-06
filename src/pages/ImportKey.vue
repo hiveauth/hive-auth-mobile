@@ -127,13 +127,16 @@ async function validateKey() {
 
     switch (keyType.value) {
       case KeyTypes.active:
-        if (publicKey === publicKeys.active) throw new Error($t('import_key.invalid', { type: keyType.value }));
+        if (publicKey != publicKeys.active) throw new Error($t('import_key.invalid', { type: keyType.value }));
+        account.keys.active = private_key.value
         break
       case KeyTypes.posting:
-      if (publicKey === publicKeys.posting) throw new Error($t('import_key.invalid', { type: keyType.value }));
+      if (publicKey != publicKeys.posting) throw new Error($t('import_key.invalid', { type: keyType.value }));
+        account.keys.posting = private_key.value
         break
       case KeyTypes.memo:
-      if (publicKey === publicKeys.memo) throw new Error($t('import_key.invalid', { type: keyType.value }));
+      if (publicKey != publicKeys.memo) throw new Error($t('import_key.invalid', { type: keyType.value }));
+        account.keys.memo = private_key.value
         break
       default:
         if (publicKey === publicKeys.active) {
@@ -209,6 +212,9 @@ function scanKey() {
         // failed - nothing to do as user can enter a master password or a keychain export
         console.log((e as Error).message)
       }
+    }
+    if(username.value) {
+      validateKey()
     }
   }).onDismiss(() => {
     storeApp.isScanning = false

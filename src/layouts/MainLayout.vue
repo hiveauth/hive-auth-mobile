@@ -7,7 +7,7 @@
           round
           dense
           icon="arrow_back_ios"
-          @click="$router.back();"
+          @click="$router.back()"
         />
         <q-toolbar-title>
           <q-item>

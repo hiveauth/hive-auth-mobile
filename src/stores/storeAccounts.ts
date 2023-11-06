@@ -33,7 +33,8 @@ export interface IAccount {
 export const useAccountsStore = defineStore('storeAccounts', {
   state: () => ({
     accounts: [] as IAccount[],
-    lastSelectedAccountName: '',
+    lastAccountName: '',
+    lastAccountTab: '',
   }),
   actions: {
     async read() {
@@ -44,24 +45,34 @@ export const useAccountsStore = defineStore('storeAccounts', {
         if ( accounts && accounts.length > 0 ) {
           this.accounts = (JSON.parse(accounts) as IAccount[]).filter(o => !Object.values(o.keys).every(el => el === undefined))
         }
-
-        const lastSelected = (await SecureStorage.get('lastSelectedAccount')) as string;
-        if (lastSelected && lastSelected.length > 0) {
-          this.lastSelectedAccountName = this.accounts.some(o => o.name ==lastSelected) ? lastSelected : this.accounts.length > 0 ? this.accounts[0].name : '';
+        const lastAccountName = (await SecureStorage.get('lastAccountName')) as string;
+        if (lastAccountName && lastAccountName.length > 0) {
+          this.lastAccountName = this.accounts.some(o => o.name ==lastAccountName) ? lastAccountName : this.accounts.length > 0 ? this.accounts[0].name : '';
         }
+        this.lastAccountTab = (await SecureStorage.get('lastAccountTab')) as string;
       } catch (e) {
         console.error(`storeAccounts.read failed - ${(e as Error).message}`);
       }
       return this.accounts
     },
 
-    async updateLastSelectedAccount(newValue: string) {
+    async updateLastAccountName(value: string) {
       try {
-        this.lastSelectedAccountName = newValue;
+        this.lastAccountName = value;
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('lastSelectedAccount', newValue);
+        await SecureStorage.set('lastSelectedAccount', value);
       } catch (e) {
-        console.error(`storeAccounts.update failed - ${e.message}. `);
+        console.error(`storeAccounts.updateLastAccountName failed - ${(e as Error).message}. `);
+      }
+    },
+
+    async updateLastAccountTab(value: string) {
+      try {
+        this.lastAccountName = value;
+        await SecureStorage.setSynchronize(false);
+        await SecureStorage.set('lastSelectedtab', value);
+      } catch (e) {
+        console.error(`storeAccounts.updateLastAccountName failed - ${(e as Error).message}. `);
       }
     },
 
