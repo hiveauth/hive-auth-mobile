@@ -295,7 +295,7 @@ async function getDecryptedChallenge(challenge: string, key: string) {
 }
 
 async function checkKeys(account: IAccount) {
-  const publicKeys = await dhiveClient.getUserPublicKeys(account.name);
+  const publicKeys = await dhiveClient.getPublicKeys(account.name);
   if (account.keys.active) {
     assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.active))==publicKeys.active,'active')
   }

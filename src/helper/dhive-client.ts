@@ -25,7 +25,7 @@ function publicKeyFrom(privateKey: PrivateKey): string {
   return privateKey.createPublic().toString();
 }
 
-async function getUserPublicKeys(username: string): Promise<IPublicKeys> {
+async function getPublicKeys(username: string): Promise<IPublicKeys> {
   try {
     const account = await client.database.getAccounts([username]);
     if (account.length == 0) {
@@ -45,6 +45,6 @@ async function getUserPublicKeys(username: string): Promise<IPublicKeys> {
 export default {
   privateKeyFromString,
   publicKeyFrom,
-  getUserPublicKeys,
+  getPublicKeys,
   client,
 };

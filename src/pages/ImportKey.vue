@@ -101,7 +101,7 @@ async function validateKey() {
 
     username.value = username.value.toLowerCase().trim();
 
-    const publicKeys = await dhive.getUserPublicKeys(username.value);
+    const publicKeys = await dhive.getPublicKeys(username.value);
     let publicKey: string | undefined = undefined
     try {
       // try to derive public key from entered valud
@@ -194,8 +194,22 @@ function scanKey() {
   $q.dialog({
     component: DialogScan
   })
-  .onOk((value) => {
+  .onOk(async (value) => {
     private_key.value = value
+    if(!username.value) {
+      // try to retrieve username from 
+      try {
+        // try to derive public key from entered valud
+        const publicKey = PrivateKey.from(private_key.value).createPublic().toString()
+        const res = await dhive.client.call('account_by_key_api','get_key_references', { "keys":[publicKey] } )
+        if(res.accounts.length > 0 ) {
+          username.value = res.accounts[0][0]
+        }
+      } catch(e) {
+        // failed - nothing to do as user can enter a master password or a keychain export
+        console.log((e as Error).message)
+      }
+    }
   }).onDismiss(() => {
     storeApp.isScanning = false
   })
