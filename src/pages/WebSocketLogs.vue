@@ -1,8 +1,7 @@
 <template>
   <q-page>
     <q-list padding separator>
-      <q-item
-        v-for="logItem in logs"
+      <q-item v-for="logItem in logs"
         :key="logItem.id"
         class="q-mb-sm"
         clickable

@@ -19,7 +19,7 @@
           <!-- <q-btn flat round class="q-mx-lg" >
               <img src="~assets/btn-help-red.png" style="width: 60px; height: px" >
           </q-btn> -->
-          <q-btn flat round class="q-mx-lg" @click="$router.push({ name: 'scan' });">
+          <q-btn push round class="q-mx-lg" @click="$router.push({ name: 'scan' });">
               <img src="~assets/btn-qr-red.png" style="width: 7rem; height: px" >
           </q-btn>
         </div>

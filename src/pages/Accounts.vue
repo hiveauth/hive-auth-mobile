@@ -16,8 +16,7 @@
           </q-item-section>
         </template>
         <q-list>
-          <q-item
-            v-for="(account) in storeAccounts.accounts"
+          <q-item v-for="(account) in storeAccounts.accounts"
             :key="account.name"
             clickable
             v-close-popup
@@ -80,14 +79,10 @@
         <div v-if="tab === 'sessions'">
           <div v-if="auths.length > 0" class="q-pa-md">
             <q-list bordered>
-              <AccountSession
-                v-for="(auth) in auths"
-                :key="auth.key"
-                :icon="auth.app.icon"
-                :expiry="auth.expire"
-                :description="auth.app.description"
-                :name="auth.app.name"
-                :whitelists="auth.whitelists"
+              <AccountSession v-for="(auth) in auths"
+                :key = "auth.key"
+                :account = "selectedAccount"
+                :auth = "auth"
               />
             </q-list>
           </div>
@@ -108,7 +103,6 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import AccountKey from 'components/AccountKey.vue';
 import AccountSession from 'components/AccountSession.vue';
-import { IAuthAck } from 'src/interfaces/has.interfaces';
 
 const $q = useQuasar();
 const router = useRouter();
