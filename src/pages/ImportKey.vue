@@ -95,7 +95,7 @@ function getKeys(username: string, password: string) {
 }
 
 async function validateKey() {
-  let needReset = false
+  let newAccount = false
   try {
     $q.loading.show({ group: 'validateKey' });
 
@@ -122,7 +122,7 @@ async function validateKey() {
         },
         auths: [],
       };
-      needReset = true
+      newAccount = true
     }
 
     switch (keyType.value) {
@@ -168,18 +168,18 @@ async function validateKey() {
           }
         }
     }
-    await storeAccounts.updateAccount(account);
+    await storeAccounts.updateAccount(account, newAccount);
     $q.notify({
       color: 'positive',
       position: 'bottom',
       message: $t('import_key.success'),
       icon: 'check',
     });
-    username.value = '';
-    private_key.value = '';
+    storeAccounts.updateLastAccountName(username.value)
+    storeAccounts.updateLastAccountTab('keys')
     router.back()
   } catch (e) {
-    needReset = false
+    newAccount = false
     $q.notify({
       color: 'negative',
       position: 'bottom',
@@ -188,7 +188,7 @@ async function validateKey() {
     });
   } finally {
     $q.loading.hide('validateKey');
-    if(needReset) storeApp.resetWebsocket = true
+    if(newAccount) storeApp.resetWebsocket = true
   }
 }
 

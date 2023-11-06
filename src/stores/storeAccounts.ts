@@ -60,7 +60,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
       try {
         this.lastAccountName = value;
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('lastSelectedAccount', value);
+        await SecureStorage.set('lastAccountName', value);
       } catch (e) {
         console.error(`storeAccounts.updateLastAccountName failed - ${(e as Error).message}. `);
       }
@@ -68,11 +68,11 @@ export const useAccountsStore = defineStore('storeAccounts', {
 
     async updateLastAccountTab(value: string) {
       try {
-        this.lastAccountName = value;
+        this.lastAccountTab = value;
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('lastSelectedtab', value);
+        await SecureStorage.set('lastAccountTab', value);
       } catch (e) {
-        console.error(`storeAccounts.updateLastAccountName failed - ${(e as Error).message}. `);
+        console.error(`storeAccounts.updateLastAccountTab failed - ${(e as Error).message}. `);
       }
     },
 

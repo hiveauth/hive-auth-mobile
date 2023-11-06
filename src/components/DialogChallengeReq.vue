@@ -3,7 +3,7 @@
       <q-card class="q-dialog-plugin">
         <q-card-section class="row items-center">
           <q-avatar  size="40px">
-            <q-img :src="`https://images.hive.blog/u/${username}/avatar/small`" />
+            <q-img :src="storeApp.getAvatar(username)" />
           </q-avatar>
           <span class="q-ml-md text-bold">{{ username }}</span>
         </q-card-section>
@@ -45,8 +45,10 @@
   <script setup lang="ts">
   import { ref } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
+  import { useAppStore } from 'src/stores/storeApp';
   import { useI18n } from 'vue-i18n'
   
+  const storeApp = useAppStore()
   const { t } = useI18n(), $t = t
 
   const whitelist = ref(true)

@@ -39,6 +39,7 @@ export const useAppStore = defineStore('storeApp', {
         enteredPasscode === state.passcode
       ))
     },
+    getAvatar: (state) => { return (username: string) => `https://images.hive.blog/u/${username}/avatar/small` },
   },
 
   actions: {
