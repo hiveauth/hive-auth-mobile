@@ -34,7 +34,7 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
-      <div class="q-pb-md">
+      <div class="q-py-md">
         <q-btn
         class="full_width"
           color="primary"
@@ -77,23 +77,23 @@
             <q-separator />
           </q-list>
         </div>
-      </div>
-      <div v-if="tab === 'sessions'">
-        <div v-if="auths.length > 0" class="q-pa-md">
-          <q-list bordered>
-            <AccountSession
-              v-for="(auth, index) in auths"
-              :key="`${auth.app}-${index}`"
-              :icon="auth.app.icon"
-              :expiry="auth.expire"
-              :description="auth.app.description"
-              :name="auth.app.name"
-              :whitelists="auth.whitelists"
-            />
-          </q-list>
-        </div>
-        <div v-else class="absolute-center" >
-          {{ $t('accounts.empty_sessions') }}
+        <div v-if="tab === 'sessions'">
+          <div v-if="auths.length > 0" class="q-pa-md">
+            <q-list bordered>
+              <AccountSession
+                v-for="(auth, index) in auths"
+                :key="`${auth.app}-${index}`"
+                :icon="auth.app.icon"
+                :expiry="auth.expire"
+                :description="auth.app.description"
+                :name="auth.app.name"
+                :whitelists="auth.whitelists"
+              />
+            </q-list>
+          </div>
+          <div v-else class="absolute-center" >
+            {{ $t('accounts.empty_sessions') }}
+          </div>
         </div>
       </div>
     </div>
