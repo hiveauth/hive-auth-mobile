@@ -106,6 +106,7 @@ async function onDeleteKey() {
         color: "red",
         persistent: true
       }).onOk(async () => {
+        storeAccounts.updateLastAccountName('')
         await storeAccounts.deleteAccount(account.name)
       })
     } else {

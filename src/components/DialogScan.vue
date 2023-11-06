@@ -21,12 +21,12 @@ async function startScan() {
       BarcodeScanner.hideBackground();
       const result = await BarcodeScanner.startScan();
       if (result.hasContent) {
-        $q.notify({
-          color: 'positive',
-          position: 'bottom',
-          message: `QR Result - ${result.content}`,
-          icon: 'camera',
-        });
+        // $q.notify({
+        //   color: 'positive',
+        //   position: 'bottom',
+        //   message: `QR Result - ${result.content}`,
+        //   icon: 'camera',
+        // });
         onDialogOK(result.content)
       } else {
         $q.notify({
