@@ -92,8 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineComponent, onMounted, ref, computed } from 'vue';
-import { useQuasar } from 'quasar';
+import { defineComponent, onMounted, computed } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore, IAccount } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
@@ -101,7 +100,6 @@ import { useI18n } from 'vue-i18n';
 import AccountKey from 'components/AccountKey.vue';
 import AccountSession from 'components/AccountSession.vue';
 
-const $q = useQuasar();
 const router = useRouter();
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();

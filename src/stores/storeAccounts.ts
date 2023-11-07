@@ -36,6 +36,12 @@ export const useAccountsStore = defineStore('storeAccounts', {
     lastAccountTab: '',
   }),
   actions: {
+    clean() {
+      for (const account of this.accounts) {
+        account.auths = account.auths.filter(o => o.expire > Date.now())
+      }
+    },
+
     async read() {
       try {
         await SecureStorage.setSynchronize(false);
@@ -43,6 +49,7 @@ export const useAccountsStore = defineStore('storeAccounts', {
         const accounts = (await SecureStorage.get('accounts')) as string;
         if ( accounts && accounts.length > 0 ) {
           this.accounts = (JSON.parse(accounts) as IAccount[]).filter(o => !Object.values(o.keys).every(el => el === undefined))
+          this.clean()
         }
         const lastAccountName = (await SecureStorage.get('lastAccountName')) as string;
         if (lastAccountName && lastAccountName.length > 0) {
@@ -55,24 +62,26 @@ export const useAccountsStore = defineStore('storeAccounts', {
       return this.accounts
     },
 
-    async updateLastAccountName(value: string) {
+    async write() {
       try {
-        this.lastAccountName = value;
+        this.clean()
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('lastAccountName', value);
+        await SecureStorage.set('accounts', JSON.stringify(this.accounts));
+        await SecureStorage.set('lastAccountName', this.lastAccountName);
+        await SecureStorage.set('lastAccountTab', this.lastAccountTab);
       } catch (e) {
-        console.error(`storeAccounts.updateLastAccountName failed - ${(e as Error).message}. `);
+        console.error(`storeAccounts.write failed - ${(e as Error).message}. `);
       }
     },
 
+    async updateLastAccountName(value: string) {
+        this.lastAccountName = value;
+        this.write()
+    },
+
     async updateLastAccountTab(value: string) {
-      try {
         this.lastAccountTab = value;
-        await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('lastAccountTab', value);
-      } catch (e) {
-        console.error(`storeAccounts.updateLastAccountTab failed - ${(e as Error).message}. `);
-      }
+        this.write()
     },
 
     async updateAccount(value: IAccount, sort = false) {
@@ -90,23 +99,12 @@ export const useAccountsStore = defineStore('storeAccounts', {
       if(sort) {
         this.accounts.sort((a, b) => a.name.localeCompare(b.name));
       }
-      try {
-        await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('accounts', JSON.stringify(this.accounts));
-      } catch (e) {
-        console.error(`storeAccounts.update failed - ${(e as Error).message}. `);
-      }
+      this.write()
     },
 
     async deleteAccount(name: string) {
       this.accounts = this.accounts.filter((o) => o.name != name)
-      try {
-        await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('accounts', JSON.stringify(this.accounts));
-      } catch (e) {
-        console.error(`storeAccounts.delete failed - ${(e as Error).message}. `);
-      }
+      this.write()
     },
   },
-  
 });

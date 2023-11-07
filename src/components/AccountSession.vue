@@ -10,8 +10,11 @@
       </q-item-section>
       <q-item-section>
         <q-item-label class="text-bold">{{ storeApp.capitalize(auth.app.name) }} </q-item-label>
-        <q-item-label
-          >{{ $t('account_session.expires') }} {{ dayjs(props.auth.expire).fromNow() }}
+        <q-item-label v-if="props.auth.expire < Date.now()">
+          Expired
+        </q-item-label>
+        <q-item-label v-else>
+          {{ $t('account_session.expires') }} {{ dayjs(props.auth.expire).fromNow() }}
         </q-item-label>
       </q-item-section>
       <q-item-section avatar>
@@ -47,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType } from 'vue';
+import { onMounted, PropType } from 'vue';
 import { useQuasar } from 'quasar';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
@@ -92,6 +95,9 @@ function onDeleteWhitelist(op: string) {
         });
 }
 
-</script>
+// hooks
+onMounted(() => {
+  storeAccounts.clean();
+});
 
-<style scoped></style>
+</script>

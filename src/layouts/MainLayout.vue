@@ -837,21 +837,6 @@ async function startWebsocket() {
   }
 }
 
-function heartbeat() {
-  if (tsHeartbeat && tsHeartbeat + PING_TIMEOUT < Date.now()
-  ) {
-    // HAS server no more responding - try to reconnect
-    console.log('Websocket - Connection lost');
-    wsClient = null;
-    startWebsocket();
-  } else {
-    if (wsClient && wsClient.readyState == 1) {
-      // Ping HAS server
-      wsClient.ping();
-    }
-  }
-}
-
 /**
  * Process a QRCode or DeepLink
  */

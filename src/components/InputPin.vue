@@ -73,13 +73,11 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 
 const $q = useQuasar();
 const { t } = useI18n(), $t = t
-const router = useRouter();
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 
