@@ -1,10 +1,10 @@
 <template>
   <q-page>
-    <div v-if="!storeApp.isScanning" class="q-pa-lg">
+    <div v-if="!storeApp.isScanning" class="q-ma-lg">
       <div class="text-center text-h6 q-mt-lg">
-        {{ $t('import_key.title') }}
+        {{ !keyType ? $t('import_key.title.account') : $t('import_key.title.key')}}
       </div>
-      <q-input v-if="!keyType"
+      <q-input v-if="!keyType" class="q-mt-lg"
         outlined
         v-model="username"
         :label="$t('import_key.username.label')"
@@ -15,13 +15,12 @@
           <q-icon name="alternate_email" />
         </template>
       </q-input>
-      <q-input
+      <q-input class="q-pt-lg"
         outlined
         v-model="private_key"
         type="text"
-        :label= "$t('import_key.key.label', { type: keyType ?? '' })" 
+        :label= "$t('import_key.key.label', { type: storeApp.capitalize(keyType ?? '') })" 
         :placeholder="$t('import_key.key.placeholder')"
-        class="q-pt-lg"
         :autofocus="keyType!=undefined"
       >
         <template v-slot:prepend>
@@ -127,15 +126,15 @@ async function validateKey() {
 
     switch (keyType.value) {
       case KeyTypes.active:
-        if (publicKey != publicKeys.active) throw new Error($t('import_key.invalid', { type: keyType.value }));
+        if (publicKey != publicKeys.active) throw new Error($t('import_key.invalid', { type: storeApp.capitalize(keyType.value) }));
         account.keys.active = private_key.value
         break
       case KeyTypes.posting:
-      if (publicKey != publicKeys.posting) throw new Error($t('import_key.invalid', { type: keyType.value }));
+      if (publicKey != publicKeys.posting) throw new Error($t('import_key.invalid', { type: storeApp.capitalize(keyType.value) }));
         account.keys.posting = private_key.value
         break
       case KeyTypes.memo:
-      if (publicKey != publicKeys.memo) throw new Error($t('import_key.invalid', { type: keyType.value }));
+      if (publicKey != publicKeys.memo) throw new Error($t('import_key.invalid', { type: storeApp.capitalize(keyType.value) }));
         account.keys.memo = private_key.value
         break
       default:

@@ -469,8 +469,8 @@ function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
           auth_req_data: auth_req_data,
           expire: auth_req.expire,
         },
-      }).onOk(() => {
-        approveAuthRequest(auth_req, account, auth_key as string);
+      }).onOk((timeout) => {
+        approveAuthRequest(auth_req, account, auth_key as string, timeout);
       }).onCancel(async () => {
         const auth_nack_data = CryptoJS.AES.encrypt(auth_req.uuid,auth_key).toString()
         const auth_nack = {cmd: 'auth_nack', uuid: auth_req.uuid, data: auth_nack_data, pok: await getPOK(auth_req.account, auth_req.uuid)} as IAuthNack

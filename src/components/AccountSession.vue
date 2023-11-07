@@ -14,7 +14,7 @@
       </q-item-label>
     </q-item-section>
     <q-item-section avatar>
-      <q-btn round color="red" icon="fa-solid fa-trash" flat outline @click="onDeleteAuth"/>
+      <q-btn round color="red" icon="fa fa-trash-can" flat outline @click="onDeleteAuth"/>
     </q-item-section>
   </q-item>
   <q-separator />

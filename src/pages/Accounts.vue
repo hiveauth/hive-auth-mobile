@@ -54,7 +54,7 @@
           <q-tab name="sessions" icon="fa-solid fa-id-card" :label="$t('accounts.sessions')" />
           <q-tab name="keys" icon="key" :label="$t('accounts.keys')" />
         </q-tabs>
-        <div class="q-my-md" v-if="tab === 'keys' && accounts.length > 0">
+        <div v-if="tab === 'keys'" class="q-my-md" >
           <q-list bordered>
             <AccountKey
               :name="selectedAccount.name"
@@ -76,8 +76,8 @@
             <q-separator />
           </q-list>
         </div>
-        <div v-if="tab === 'sessions'">
-          <div v-if="auths.length > 0" class="q-pa-md">
+        <div v-if="tab === 'sessions'"  class="q-my-md">
+          <div v-if="auths.length > 0">
             <q-list bordered>
               <AccountSession v-for="(auth) in auths"
                 :key = "auth.key"

@@ -6,25 +6,25 @@
       </q-avatar>
     </q-item-section>
     <q-item-section>
-      {{ keyName }} Key
+      {{ storeApp.capitalize(props.keyType) }} Key
     </q-item-section>
     <q-item-section avatar v-if="keyMissing">
       <q-btn v-if="keyMissing"
         round
+        flat
         color="primary"
         icon="add"
-        flat
-        outline
+        size="sm"
         @click="onAddKey"
       />
     </q-item-section>
     <q-item-section v-if="!keyMissing" avatar>
       <q-btn
         round
-        color="red"
-        icon="fa-solid fa-trash"
         flat
-        outline
+        color="red"
+        icon="fa fa-trash-can"
+        size="sm"
         @click="onDeleteKey"
       />
     </q-item-section>
@@ -62,9 +62,6 @@ const props = defineProps({
     required: false,
   },
 });
-
-const currentKeyValue = props.keyValue ?? '';
-const keyName = props.keyType.charAt(0).toUpperCase() + props.keyType.slice(1).toLowerCase()
 
 // computed
 const keyMissing = computed(() => { return (props.keyValue?.length ?? 0)  === 0 });
@@ -125,7 +122,7 @@ async function onDeleteKey() {
           color: 'negative',
           position: 'bottom',
           message: $t('accounts_key.deleted'),
-          icon: 'fa-solid fa-trash',
+          icon: 'fa fa-trash-can',
         });
       })
     }

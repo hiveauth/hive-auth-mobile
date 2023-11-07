@@ -37,9 +37,6 @@ export default {
     keys: 'Keys',
     sessions: 'Sessions',
     expires: 'Expires',
-    delete_key_dialog_title: '',
-    delete_key_delete_button: '',
-    delete_key_cancel_button: '',
   },
 	accounts_key: {
 		confirm_delete_key: {
@@ -68,7 +65,10 @@ export default {
 		whitelist: "Do not prompt again for",
 	},
 	import_key: {
-		title: 'Import your existing Hive account',
+		title: {
+			account: 'Import your Hive account and key',
+			key: 'Import your account key',
+		},
 		success: 'Key is securely stored',
 		failed: 'Failed to validate key',
 		no_match: 'No matching key',
