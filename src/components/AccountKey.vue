@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useAppStore } from 'src/stores/storeApp';
 import { useI18n } from 'vue-i18n';
@@ -67,7 +67,7 @@ const props = defineProps({
 const keyMissing = computed(() => { return (props.keyValue?.length ?? 0)  === 0 });
 
 function onAddKey() {
-  router.push({name:"import-key", query: {username: props.name, type: props.keyType}})
+  router.push({name:'mport-key', query: {username: props.name, type: props.keyType}})
 }
 async function onDeleteKey() {
   let needReset = false;
@@ -99,8 +99,8 @@ async function onDeleteKey() {
         title: $t('accounts_key.confirm_delete_account.title'),
         message: $t('accounts_key.confirm_delete_account.message'),
         cancel: true,
-        focus: "cancel",
-        color: "red",
+        focus: 'cancel',
+        color: 'red',
         persistent: true
       }).onOk(async () => {
         storeAccounts.updateLastAccountName('')
@@ -112,14 +112,14 @@ async function onDeleteKey() {
         title: $t('accounts_key.confirm_delete_key.title'),
         message: $t('accounts_key.confirm_delete_key.message'),
         cancel: true,
-        focus: "cancel",
-        color: "red",
+        focus: 'cancel',
+        color: 'red',
         persistent: true
       }).onOk(async () => {
         account.keys = keys
         await storeAccounts.updateAccount(account);
         $q.notify({
-          color: 'negative',
+          color: 'positive',
           position: 'bottom',
           message: $t('accounts_key.deleted'),
           icon: 'fa fa-trash-can',

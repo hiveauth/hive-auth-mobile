@@ -1,17 +1,16 @@
 <template>
   <q-page>
     <q-list padding separator>
-      <q-item v-for="logItem in logs"
-        :key="logItem.id"
+      <q-item v-for="log in logs" :key="log.id"
         class="q-mb-sm"
         clickable
         v-ripple
-        @click="copyKeyToClipboard(logItem.log)"
+        @click="copyKeyToClipboard(log.message)"
       >
         <q-item-section side top>
-          <q-item-label>{{ getDateInTimeAgoFormat(logItem.id) }}</q-item-label>
+          <q-item-label>{{ getDateInTimeAgoFormat(log.id) }}</q-item-label>
           <q-item-label style="overflow-wrap: break-word">{{
-            logItem.log
+            log.message
           }}</q-item-label>
         </q-item-section>
       </q-item>

@@ -1,7 +1,6 @@
 <template>
     <div class="q-mx-md">
       <q-btn-dropdown v-if="accounts.length > 0" class="q-my-md full_width"
-        push
         no-caps
         rounded
       >
@@ -16,8 +15,7 @@
           </q-item-section>
         </template>
         <q-list>
-          <q-item v-for="(account) in storeAccounts.accounts"
-            :key="account.name"
+          <q-item v-for="(account) in storeAccounts.accounts" :key="account.name"
             clickable
             v-close-popup
             @click="onSelectAccount(account.name)"
@@ -79,8 +77,7 @@
         <div v-if="tab === 'sessions'"  class="q-my-md">
           <div v-if="auths.length > 0">
             <q-list bordered>
-              <AccountSession v-for="(auth) in auths"
-                :key = "auth.key"
+              <AccountSession v-for="(auth) in auths" :key = "auth.key"
                 :account = "selectedAccount"
                 :auth = "auth"
               />

@@ -120,7 +120,7 @@ function onCancel() {
 
 <script lang="ts">
 export default {
-  name: "DialogAuthReq",
+  name: 'DialogAuthReq',
 }
 
 </script>

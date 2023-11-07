@@ -22,8 +22,8 @@ export default {
 	  btn_save: "Set PIN code",
 	  biometrics_unavailable: "Device Biometrics not available. Please enable them and restart the app.",
 	  failed: "Authentication failed",
-	  pin_init: 'PIN code initialized',
-	  pin_error: 'Error setting PIN code',
+	  pin_init: "PIN code initialized",
+	  pin_error: "Error setting PIN code",
 	},
 	store_auth: {
 	  biometrics_reason: "Allow HiveAuth to use your biometrics to Authenticate",
@@ -32,11 +32,10 @@ export default {
 	  biometrics_description: "Provide your FaceID or Touch ID to unlock HiveAuth",
 	},
   accounts: {
-    empty: 'No Accounts found',
-    empty_sessions: 'No sessions found',
-    keys: 'Keys',
-    sessions: 'Sessions',
-    expires: 'Expires',
+    empty: "No Accounts found",
+    empty_sessions: "No sessions found",
+    keys: "Keys",
+    sessions: "Sessions",
   },
 	accounts_key: {
 		confirm_delete_key: {
@@ -47,11 +46,15 @@ export default {
 			title: "Account deletion",
 			message: "Deleting that key will also delete the account. Do you want to continue?",
 		},
-    deleted: 'Key has been deleted',
+    deleted: "Key has been deleted",
 	},
-	sessions: {
+	account_session: {
+		expires: "Expires",
 		empty: "No sessions found",
-		valid: "Valid till",
+	  whilelists: {
+			title: "Whitelisted operations",
+			deleted: "Operation whitelist removed",
+		}
 	},
 	dialog_auth_req: {
 		text: "wants to authenticate on",
@@ -66,13 +69,13 @@ export default {
 	},
 	import_key: {
 		title: {
-			account: 'Import your Hive account and key',
-			key: 'Import your account key',
+			account: "Import your Hive account and key",
+			key: "Import your account key",
 		},
-		success: 'Key is securely stored',
-		failed: 'Failed to validate key',
-		no_match: 'No matching key',
-		invalid: 'Invalid {type} Key',
+		success: "Key is securely stored",
+		failed: "Failed to validate key",
+		no_match: "No matching key",
+		invalid: "Invalid {type} Key",
 		username: {
 			label: "Username",
 			placeholder: "Enter your Hive username",
@@ -83,10 +86,10 @@ export default {
 		}
 	},
 	main_page: {
-		no_pending_request: 'No pending request',
+		no_pending_request: "No pending request",
 	},
 	main_layout: {
-		registered: ' registered',
+		registered: " registered",
 	},
 	btn_ok: "OK",
 	btn_cancel: "Cancel",

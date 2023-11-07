@@ -189,7 +189,7 @@ function HASSend(message: string) {
   console.log(`[SEND] ${hideEncryptedData(message)}`);
   storeApp.logs.push({
     id: new Date().toISOString(),
-    log: `SENT: ${hideEncryptedData(message)}`,
+    message: `SENT: ${hideEncryptedData(message)}`,
   });
   wsClient.send(message);
 }
@@ -419,16 +419,15 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
   if(!validAuth) {
     // Add new auth into storage
     account.auths.push({
-      expire:auth_ack_data.expire,
-      key:auth_key,
-      app:auth_req_data.app,
+      expire: auth_ack_data.expire,
+      key: auth_key,
+      app: auth_req_data.app,
       whitelists: [],
-      ts_create: datetoISO(new Date()),
-      ts_lastused: datetoISO(new Date()),
-      ts_expire: datetoISO(new Date(auth_ack_data.expire))
+      created: Date.now(),
+      lastused: Date.now()
     })
   } else {
-    validAuth.ts_lastused = datetoISO(new Date())
+    validAuth.lastused = Date.now()
   }
   // Update storage
   storeAccounts.updateAccount(account)
@@ -804,7 +803,7 @@ async function startWebsocket() {
       console.log(`[RECV] ${hideEncryptedData(event.data)}`);
       storeApp.logs.push({
         id: new Date().toISOString(),
-        log: `RECV: ${hideEncryptedData(event.data)}`,
+        message: `RECV: ${hideEncryptedData(event.data)}`,
       });
       processMessage(event.data);
     };

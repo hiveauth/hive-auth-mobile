@@ -20,7 +20,7 @@
               <img src="~assets/btn-help-red.png" style="width: 60px; height: px" >
           </q-btn> -->
           <q-btn push round class="q-mx-lg" @click="$router.push({ name: 'scan' });">
-              <img src="~assets/btn-qr-red.png" style="width: 7rem; height: px" >
+              <img src="~assets/btn-qr-red-shadow.png" style="width: 7rem; height: px" >
           </q-btn>
         </div>
     </div>
