@@ -63,10 +63,24 @@ const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 const { t } = useI18n(), $t = t
 
+const KEYCHAIN_EXPORT = "keychain://add_account="
+
 enum KeyTypes {
   active = 'active',
   posting = 'posting',
   memo = 'memo'
+}
+
+interface IKeychainExport {
+  name: string
+  keys: {
+    active?: string
+    activePubkey?: string
+    posting?: string
+    postingPubkey?: string
+    memo?: string
+    memoPubkey?: string
+  }
 }
 
 // data
@@ -145,25 +159,49 @@ async function validateKey() {
         } else if (publicKey === publicKeys.memo) {
           account.keys.memo = private_key.value;
         } else {
-          // Check if provided value is a master password
-          let isMasterPassword = false
-          const keys = getKeys(username.value, private_key.value)
-          if(publicKeys.active == keys.active.public) {
-            isMasterPassword = true
-            account.keys.active = keys.active.private
-          }
-          if(publicKeys.posting == keys.posting.public) {
-            isMasterPassword = true
-            account.keys.posting = keys.posting.private
-          }
-          if(publicKeys.memo == keys.memo.public) {
-            isMasterPassword = true
-            account.keys.memo = keys.memo.private
-          }
-          // TODO: Enable import of keychain export
-
-          if (!isMasterPassword) {
-            throw new Error($t('import_key.no_match'));
+          // Check if provided value is a Keychain export
+          if (private_key.value.startsWith(KEYCHAIN_EXPORT)) {
+            const keychain = JSON.parse(private_key.value.split('=')[1]) as IKeychainExport
+            if (keychain.keys.active) {
+              if (publicKeys.active == PrivateKey.from(keychain.keys.active).createPublic().toString()) {
+                account.keys.active = keychain.keys.active
+              } else {
+                throw new Error($t('import_key.invalid_keychain_export'))
+              }
+            }
+            if (keychain.keys.posting) {
+              if (publicKeys.posting == PrivateKey.from(keychain.keys.posting).createPublic().toString()) {
+                account.keys.posting = keychain.keys.posting
+              } else {
+                throw new Error($t('import_key.invalid_keychain_export'))
+              }
+            }
+            if (keychain.keys.memo) {
+              if (publicKeys.memo == PrivateKey.from(keychain.keys.memo).createPublic().toString()) {
+                account.keys.memo = keychain.keys.memo
+              } else {
+                throw new Error($t('import_key.invalid_keychain_export'))
+              }
+            }
+          } else {
+            // Check if provided value is a master password
+            let isMasterPassword = false
+            const keys = getKeys(username.value, private_key.value)
+            if (publicKeys.active == keys.active.public) {
+              isMasterPassword = true
+              account.keys.active = keys.active.private
+            }
+            if (publicKeys.posting == keys.posting.public) {
+              isMasterPassword = true
+              account.keys.posting = keys.posting.private
+            }
+            if (publicKeys.memo == keys.memo.public) {
+              isMasterPassword = true
+              account.keys.memo = keys.memo.private
+            }
+            if (!isMasterPassword) {
+              throw new Error($t('import_key.no_match'));
+            }
           }
         }
     }
@@ -187,7 +225,7 @@ async function validateKey() {
     });
   } finally {
     $q.loading.hide('validateKey');
-    if(newAccount) storeApp.resetWebsocket = true
+    if (newAccount) storeApp.resetWebsocket = true
   }
 }
 
@@ -196,15 +234,23 @@ function scanKey() {
   $q.dialog({
     component: DialogScan
   })
-  .onOk(async (value) => {
+  .onOk(async (value: string) => {
     private_key.value = value
-    if(!username.value) {
+    if (value.startsWith(KEYCHAIN_EXPORT)) {
+      try {
+        const account = JSON.parse(value.split('=')[1]) as IKeychainExport
+        username.value = account.name
+      } catch(e) {
+        console.log('failed to parse keychain export')
+      }
+    }
+    if (!username.value) {
       // try to retrieve username from 
       try {
         // try to derive public key from entered valud
         const publicKey = PrivateKey.from(private_key.value).createPublic().toString()
         const res = await dhive.client.call('account_by_key_api','get_key_references', { "keys":[publicKey] } )
-        if(res.accounts.length > 0 ) {
+        if (res.accounts.length > 0 ) {
           username.value = res.accounts[0][0]
         }
       } catch(e) {
@@ -212,7 +258,7 @@ function scanKey() {
         console.log((e as Error).message)
       }
     }
-    if(username.value) {
+    if (username.value) {
       validateKey()
     }
   }).onDismiss(() => {
@@ -223,8 +269,12 @@ function scanKey() {
 // Hooks
 onMounted(() => {
   storeApp.headerSubtitle = 'Import Keys';
-  if(process.env.DEV && process.env.IMPORT_USERNAME) username.value = process.env.IMPORT_USERNAME
-  if(process.env.DEV && process.env.IMPORT_KEY) private_key.value = process.env.IMPORT_KEY
+  if (process.env.DEV && process.env.IMPORT_USERNAME) {
+    username.value = process.env.IMPORT_USERNAME
+  }
+  if (process.env.DEV && process.env.IMPORT_KEY) {
+    private_key.value = process.env.IMPORT_KEY
+  }
 })
 
 </script>

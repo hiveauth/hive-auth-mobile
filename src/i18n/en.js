@@ -76,6 +76,7 @@ export default {
 		failed: "Failed to validate key",
 		no_match: "No matching key",
 		invalid: "Invalid {type} Key",
+		invalid_keychain_export: "The keychain export contains an invalid key",
 		username: {
 			label: "Username",
 			placeholder: "Enter your Hive username",
