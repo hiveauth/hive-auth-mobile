@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { defineComponent, ref , onMounted} from 'vue';
-import { useQuasar } from 'quasar'
+import { useQuasar, uid } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
@@ -92,6 +92,8 @@ const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
 const HAS_PROTOCOL = [0.8, 1.0]        // supported HAS protocol versions
 const PING_RATE = 60 * 1000 			  // 1 minute
 const PING_TIMEOUT = 5 * PING_RATE  // 5 minutes
+
+const HAS_SUPPORT_V08 = true  // TODO: remove protocol v0.8 support
 
 const $q = useQuasar();
 const storeApp = useAppStore()
@@ -394,6 +396,12 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
     // If not provided, the default expiration time for an auth_key is 24 hours
     auth_ack_data = { expire: Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000)) }
   }
+  
+  // TODO: remove protocol v0.8 support
+  if(HAS_SUPPORT_V08) {
+    auth_ack_data.token = uid()
+  }
+  
   // Check if the app also requires the PKSA to sign a challenge
   if(auth_req_data.challenge) {
     const challenge_data = auth_req_data.challenge
@@ -553,6 +561,13 @@ async function validatePayload(payload: any) {
         if (decoded && decoded !== '') {
           const data = JSON.parse(decoded);
           if (data !== '') {
+            
+            // TODO: remove protocol v0.8 support
+            if(HAS_SUPPORT_V08 && !data.nonce) {
+              // create fake nonce
+              data.nonce = (auth.nonce || 0) + 1
+            }
+
             // Decryption succeeded, check payload against replay attack
             assert(data.nonce  > (auth.nonce || 0),'invalid (nonce)')
             // update auth in storage with current nonce
