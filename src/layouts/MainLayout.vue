@@ -164,14 +164,13 @@ const operations = [
 
 let key_server: string | null = null
 let wsClient: WebSocket | null = null
-let tsHeartbeat = 0
 
 // data
 const HASServer = ref(DEFAULT_HAS_SERVER)
 const HASProtocol = ref(0)
 
 // functions
-function datetoISO(date: Date) {
+function dateISO(date: Date) {
   return date.toISOString().replace(/T|Z/g, ' ')
 }
 
@@ -188,7 +187,7 @@ function HASSend(message: string) {
 
   console.log(`[SEND] ${hideEncryptedData(message)}`);
   storeApp.logs.push({
-    id: new Date().toISOString(),
+    id: Date.now(),
     message: `SENT: ${hideEncryptedData(message)}`,
   });
   wsClient.send(message);
@@ -802,7 +801,7 @@ async function startWebsocket() {
     wsClient.onmessage = async function (event) {
       console.log(`[RECV] ${hideEncryptedData(event.data)}`);
       storeApp.logs.push({
-        id: new Date().toISOString(),
+        id: Date.now(),
         message: `RECV: ${hideEncryptedData(event.data)}`,
       });
       processMessage(event.data);

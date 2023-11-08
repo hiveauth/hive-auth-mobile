@@ -15,7 +15,7 @@
     </q-item>
 
     <q-separator dark spaced />
-    <q-item clickable v-ripple @click="onWebSocketLogs">
+    <q-item clickable v-ripple @click="onLogs">
       <q-item-section avatar>
         <q-icon name="history" />
       </q-item-section>
@@ -60,9 +60,9 @@ function onAbout() {
   router.push({ name: 'about' });
 }
 
-function onWebSocketLogs() {
+function onLogs() {
   storeApp.menuOpen = false
-  router.push({ name: 'websocket-logs' });
+  router.push({ name: 'logs' });
 }
 
 </script>

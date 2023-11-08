@@ -8,7 +8,7 @@
         @click="copyKeyToClipboard(log.message)"
       >
         <q-item-section side top>
-          <q-item-label>{{ getDateInTimeAgoFormat(log.id) }}</q-item-label>
+          <q-item-label>{{ dayjs(log.id).fromNow() }}</q-item-label>
           <q-item-label style="overflow-wrap: break-word">{{
             log.message
           }}</q-item-label>
@@ -56,10 +56,6 @@ async function copyKeyToClipboard(string: string) {
       icon: 'report_problem',
     });
   }
-}
-
-function getDateInTimeAgoFormat(date: string) {
-  return dayjs(date).fromNow();
 }
 
 // hooks

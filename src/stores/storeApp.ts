@@ -14,7 +14,7 @@ const i18n = createI18n({locale: 'en-US', messages}).global
 const CREDENTIALS_SERVER = 'hiveauth.mobile'
 
 export interface logItem {
-  id: string;
+  id: number;
   message: string;
 }
 
