@@ -602,14 +602,19 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
     assert(opInfo, `Unknown operation ${opType}`)
     assert(opInfo.key!='owner', 'Transaction requires owner key')
 
-    level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
-    // Check if operation is already whitelisted
-    if (!auth.whitelists.includes(opType)) {
+    if (opType == 'custom_json' && (op[1] as any)?.required_auths.length > 0) {
+      level = 1
+    } else {
+      level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
+    }
+    if (level==1 || !auth.whitelists.includes(opType)) {
+      // ask approval for ops requiring active key or ops requiring posting but not whitelisted yet
       askApproval = true
-      // check is op can be whitelisted and manage special case of custom_json
-      if (opInfo.key == 'posting' && !(opType == 'custom_json' && (op[1] as any)?.required_auths.length > 0) ) {
+      if (level==0) {
+        // ops require posting key -> it can be whitelisted
         askWhitelist = true
-        opSet.add(opType)
+        // count distinct ops requiring posting key
+        opSet.add(opType) 
       }
     }
   }
@@ -622,16 +627,25 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
 
 async function approveSignRequest(payload: ISignReq, sign_req_data: ISignReqData, key_private: string) {
   if(sign_req_data.broadcast) {
-    const res = await dhiveClient.client.broadcast.sendOperations(sign_req_data.ops as Operation[], dhiveClient.privateKeyFromString(key_private))
-    const sign_ack = {cmd: 'sign_ack', uuid: payload.uuid, data: res.id as unknown, broadcast: sign_req_data.broadcast, pok: await getPOK(payload.account, payload.uuid)} as ISignAck
-    HASSend(JSON.stringify(sign_ack))
-    // Notify user
-    $q.notify({
-      color: 'positive',
-      message: $t('main_layout.sign_ack'),
-      timeout: 2000,
-      icon: 'check',
-    });
+    try {
+      const res = await dhiveClient.client.broadcast.sendOperations(sign_req_data.ops as Operation[], dhiveClient.privateKeyFromString(key_private))
+      const sign_ack = {cmd: 'sign_ack', uuid: payload.uuid, data: res.id as unknown, broadcast: sign_req_data.broadcast, pok: await getPOK(payload.account, payload.uuid)} as ISignAck
+      HASSend(JSON.stringify(sign_ack))
+      // Notify user
+      $q.notify({
+        color: 'positive',
+        message: $t('main_layout.sign_ack'),
+        timeout: 2000,
+        icon: 'check',
+      });
+    } catch(e) {
+      $q.notify({
+        color: 'negative',
+        position: 'bottom',
+        message: (e as Error).message,
+        icon: 'report_problem',
+      })
+    }
   } else {
     throw new Error('Transaction signing only is not enabled')
     // To enable transaction signing, comment the above line and uncomment the following code.
