@@ -430,6 +430,13 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
   }
   // Update storage
   storeAccounts.updateAccount(account)
+  // Notify user
+  $q.notify({
+    color: 'positive',
+    message: $t('main_layout.auth_ack'),
+    timeout: 2000,
+    icon: 'check',
+  });
 }
 
 function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
@@ -563,6 +570,7 @@ async function validatePayload(payload: any) {
         console.debug((e as Error).stack);
       }
     }
+    throw new Error($t('main_layout.auth_not_found'));
   }
   throw new Error('invalid (unknown account)');
 }
@@ -602,6 +610,13 @@ async function approveSignRequest(payload: ISignReq, sign_req_data: ISignReqData
     const res = await dhiveClient.client.broadcast.sendOperations(sign_req_data.ops as Operation[], dhiveClient.privateKeyFromString(key_private))
     const sign_ack = {cmd: 'sign_ack', uuid: payload.uuid, data: res.id as unknown, broadcast: sign_req_data.broadcast, pok: await getPOK(payload.account, payload.uuid)} as ISignAck
     HASSend(JSON.stringify(sign_ack))
+    // Notify user
+    $q.notify({
+      color: 'positive',
+      message: $t('main_layout.sign_ack'),
+      timeout: 2000,
+      icon: 'check',
+    });
   } else {
     throw new Error('Transaction signing only is not enabled')
     // To enable transaction signing, comment the above line and uncomment the following code.
@@ -694,6 +709,14 @@ async function approveChallengeRequest(payload: IChallengeReq, challenge_req_dat
   const data = CryptoJS.AES.encrypt(JSON.stringify(challenge_ack_data),auth.key).toString();
   const challenge_ack = { cmd:'challenge_ack', uuid:payload.uuid, data:data, pok: await getPOK(payload.account, payload.uuid)} as IChallengeAck
   HASSend(JSON.stringify(challenge_ack))
+  // Notify user
+  $q.notify({
+    color: 'positive',
+    message: $t('main_layout.challenge_ack'),
+    timeout: 2000,
+    icon: 'check',
+  });
+
 }
 
 async function handleChallengeReq(payload: IChallengeReq) {

@@ -66,8 +66,8 @@ const props = defineProps({
 // computed
 const keyMissing = computed(() => { return (props.keyValue?.length ?? 0)  === 0 });
 
-function onAddKey() {
-  router.push({name:'mport-key', query: {username: props.name, type: props.keyType}})
+function i() {
+  router.push({name:'import-key', query: {username: props.name, type: props.keyType}})
 }
 async function onDeleteKey() {
   let needReset = false;
