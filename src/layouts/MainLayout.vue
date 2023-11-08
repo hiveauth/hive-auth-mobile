@@ -7,7 +7,7 @@
           round
           dense
           icon="arrow_back_ios"
-          @click="$router.back();"
+          @click="$router.back()"
         />
         <q-toolbar-title>
           <q-item>
@@ -18,7 +18,7 @@
             </q-item-section>
             <q-item-section>
               <q-item-label>HiveAuth</q-item-label>
-              <q-item-label caption style="color: white">{{storeApp.path}}</q-item-label>
+              <q-item-label caption style="color: white">{{storeApp.headerSubtitle}}</q-item-label>
             </q-item-section>
           </q-item>
         </q-toolbar-title>
@@ -57,7 +57,7 @@
 import { defineComponent, ref , onMounted} from 'vue';
 import { useQuasar } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
-import { useAccountsStore, IAccount, IAccountAuth, IAccountKeys } from 'src/stores/storeAccounts';
+import { useAccountsStore, IAccount, IAccountAuth } from 'src/stores/storeAccounts';
 import { useRouter } from 'vue-router';
 
 import { Operation } from '@hiveio/dhive/lib/chain/operation';
@@ -189,7 +189,7 @@ function HASSend(message: string) {
   console.log(`[SEND] ${hideEncryptedData(message)}`);
   storeApp.logs.push({
     id: new Date().toISOString(),
-    log: `SENT: ${hideEncryptedData(message)}`,
+    message: `SENT: ${hideEncryptedData(message)}`,
   });
   wsClient.send(message);
 }
@@ -286,7 +286,7 @@ async function getDecryptedChallenge(challenge: string, key: string) {
 }
 
 async function checkKeys(account: IAccount) {
-  const publicKeys = await dhiveClient.getUserPublicKeys(account.name);
+  const publicKeys = await dhiveClient.getPublicKeys(account.name);
   if (account.keys.active) {
     assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.active))==publicKeys.active,'active')
   }
@@ -419,16 +419,15 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
   if(!validAuth) {
     // Add new auth into storage
     account.auths.push({
-      expire:auth_ack_data.expire,
-      key:auth_key,
-      app:auth_req_data.app,
+      expire: auth_ack_data.expire,
+      key: auth_key,
+      app: auth_req_data.app,
       whitelists: [],
-      ts_create: datetoISO(new Date()),
-      ts_lastused: datetoISO(new Date()),
-      ts_expire: datetoISO(new Date(auth_ack_data.expire))
+      created: Date.now(),
+      lastused: Date.now()
     })
   } else {
-    validAuth.ts_lastused = datetoISO(new Date())
+    validAuth.lastused = Date.now()
   }
   // Update storage
   storeAccounts.updateAccount(account)
@@ -469,8 +468,8 @@ function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
           auth_req_data: auth_req_data,
           expire: auth_req.expire,
         },
-      }).onOk(() => {
-        approveAuthRequest(auth_req, account, auth_key as string);
+      }).onOk((timeout) => {
+        approveAuthRequest(auth_req, account, auth_key as string, timeout);
       }).onCancel(async () => {
         const auth_nack_data = CryptoJS.AES.encrypt(auth_req.uuid,auth_key).toString()
         const auth_nack = {cmd: 'auth_nack', uuid: auth_req.uuid, data: auth_nack_data, pok: await getPOK(auth_req.account, auth_req.uuid)} as IAuthNack
@@ -804,7 +803,7 @@ async function startWebsocket() {
       console.log(`[RECV] ${hideEncryptedData(event.data)}`);
       storeApp.logs.push({
         id: new Date().toISOString(),
-        log: `RECV: ${hideEncryptedData(event.data)}`,
+        message: `RECV: ${hideEncryptedData(event.data)}`,
       });
       processMessage(event.data);
     };
@@ -835,21 +834,6 @@ async function startWebsocket() {
     // });
   } finally {
     busy = false
-  }
-}
-
-function heartbeat() {
-  if (tsHeartbeat && tsHeartbeat + PING_TIMEOUT < Date.now()
-  ) {
-    // HAS server no more responding - try to reconnect
-    console.log('Websocket - Connection lost');
-    wsClient = null;
-    startWebsocket();
-  } else {
-    if (wsClient && wsClient.readyState == 1) {
-      // Ping HAS server
-      wsClient.ping();
-    }
   }
 }
 

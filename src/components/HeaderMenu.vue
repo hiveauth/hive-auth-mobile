@@ -1,55 +1,41 @@
 <template>
   <q-list padding>
-    <q-item clickable v-ripple @click="navToManageAccounts">
-      <q-item-section avatar>
-        <q-icon name="key" />
-      </q-item-section>
-      <q-item-section> Manage Keys </q-item-section>
-    </q-item>
-
-    <q-item clickable v-ripple @click="navToActiveSessions">
+    <q-item clickable v-ripple @click="onAccounts">
       <q-item-section avatar>
         <q-icon name="people" />
       </q-item-section>
-
-      <q-item-section> Sessions </q-item-section>
+      <q-item-section>{{ $t('menu.accounts') }}</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple @click="navToImportKeys">
-      <q-item-section avatar>
-        <q-icon name="download" />
-      </q-item-section>
-      <q-item-section> Import Keys</q-item-section>
-    </q-item>
-    <q-item clickable v-ripple @click="navToAboutUs">
+    <q-item clickable v-ripple @click="onAbout">
       <q-item-section avatar>
         <q-icon name="info" />
       </q-item-section>
-      <q-item-section> About </q-item-section>
+      <q-item-section> {{ $t('menu.about') }} </q-item-section>
     </q-item>
 
     <q-separator dark spaced />
-    <q-item clickable v-ripple @click="navToWebSocketLogs">
+    <q-item clickable v-ripple @click="onWebSocketLogs">
       <q-item-section avatar>
         <q-icon name="history" />
       </q-item-section>
-      <q-item-section> WebSocket Logs </q-item-section>
+      <q-item-section> {{ $t('menu.logs') }} </q-item-section>
     </q-item>
 
     <q-separator dark spaced />
-    <q-item clickable v-ripple @click="lockApp">
+    <q-item clickable v-ripple @click="onLock">
       <q-item-section avatar>
         <q-icon name="lock" />
       </q-item-section>
-      <q-item-section> Lock App </q-item-section>
+      <q-item-section> {{ $t('menu.lock') }} </q-item-section>
     </q-item>
 
   </q-list>
   <div class="q-pl-lg q-pb-sm text-caption text-weight-light fixed-bottom">
     Version {{ storeApp.appVersion }}
-  </div>  
+  </div>
 </template>
-  
+
 <script setup lang="ts">
 import { defineComponent } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
@@ -59,34 +45,24 @@ const storeApp = useAppStore();
 const router = useRouter();
 
 // functions
-function lockApp() {
+function onLock() {
   storeApp.menuOpen = false
   storeApp.lockApp();
 }
 
-function navToManageAccounts() {
+function onAccounts() {
   storeApp.menuOpen = false
-  router.push({ name: 'manage-accounts' });
+  router.push({ name: 'accounts' });
 }
 
-function navToAboutUs() {
+function onAbout() {
   storeApp.menuOpen = false
   router.push({ name: 'about' });
 }
 
-function navToActiveSessions() {
-  storeApp.menuOpen = false
-  router.push({ name: 'active-sessions' });
-}
-
-function navToWebSocketLogs() {
+function onWebSocketLogs() {
   storeApp.menuOpen = false
   router.push({ name: 'websocket-logs' });
-}
-
-function navToImportKeys() {
-  storeApp.menuOpen = false
-  router.push({ name: 'import-key' });
 }
 
 </script>
@@ -96,4 +72,3 @@ export default defineComponent({
   name: 'header-menu'
 });
 </script>
-  

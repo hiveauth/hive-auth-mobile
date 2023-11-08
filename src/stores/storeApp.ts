@@ -5,6 +5,9 @@ import { Pendings } from '../classes/pendings'
 import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
 import packageJson from '../../package.json'
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
 
 const i18n = createI18n({locale: 'en-US', messages}).global
 
@@ -12,7 +15,7 @@ const CREDENTIALS_SERVER = 'hiveauth.mobile'
 
 export interface logItem {
   id: string;
-  log: string;
+  message: string;
 }
 
 export const useAppStore = defineStore('storeApp', {
@@ -22,8 +25,9 @@ export const useAppStore = defineStore('storeApp', {
     resetWebsocket: false,
     isUnlocked: false,
     isHASConnected: false,
+    isScanning: false,
     menuOpen: false,
-    path: '',
+    headerSubtitle: '',
     scanValue: '',
     passcode: '',
     hasPasscode: false,
@@ -38,6 +42,10 @@ export const useAppStore = defineStore('storeApp', {
         enteredPasscode === state.passcode
       ))
     },
+    // helper functions
+    getAvatar: () => { return (username: string) => `https://images.hive.blog/u/${username}/avatar/small` },
+    capitalize: () => { return (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() },
+    formatDate: () => { return (timestamp: number | string) => dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss') },
   },
 
   actions: {

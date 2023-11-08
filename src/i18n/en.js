@@ -1,4 +1,10 @@
 export default {
+	menu: {
+		accounts: "Accounts",
+		about: "About",
+		lock: "Lock application",
+		logs: "Logs",
+	},
 	logs: {
 	  success_copy_clipboard: "Data copied to clipboard",
 	  error_copy_clipboard: "Failed to copy data to clipboard",
@@ -16,8 +22,8 @@ export default {
 	  btn_save: "Set PIN code",
 	  biometrics_unavailable: "Device Biometrics not available. Please enable them and restart the app.",
 	  failed: "Authentication failed",
-	  pin_init: 'PIN code initialized',
-	  pin_error: 'Error setting PIN code',
+	  pin_init: "PIN code initialized",
+	  pin_error: "Error setting PIN code",
 	},
 	store_auth: {
 	  biometrics_reason: "Allow HiveAuth to use your biometrics to Authenticate",
@@ -25,9 +31,30 @@ export default {
 	  biometrics_subtitle: "", //"Unlock HiveAuth with your Biometrics",
 	  biometrics_description: "Provide your FaceID or Touch ID to unlock HiveAuth",
 	},
-	sessions: {
+  accounts: {
+    empty: "No Accounts found",
+    empty_sessions: "No sessions found",
+    keys: "Keys",
+    sessions: "Sessions",
+  },
+	accounts_key: {
+		confirm_delete_key: {
+			title: "Delete Key",
+			message:"Are you sure you want to delete this key?"
+		},
+		confirm_delete_account: {
+			title: "Account deletion",
+			message: "Deleting that key will also delete the account. Do you want to continue?",
+		},
+    deleted: "Key has been deleted",
+	},
+	account_session: {
+		expires: "Expires",
 		empty: "No sessions found",
-		valid: "Valid till",
+	  whilelists: {
+			title: "Whitelisted operations",
+			deleted: "Operation whitelist removed",
+		}
 	},
 	dialog_auth_req: {
 		text: "wants to authenticate on",
@@ -41,15 +68,29 @@ export default {
 		whitelist: "Do not prompt again for",
 	},
 	import_key: {
-		success: 'Key is securely stored',
-		failed: 'Failed to validate key',
-		no_match: 'no matching key',
+		title: {
+			account: "Import your Hive account and key",
+			key: "Import your account key",
+		},
+		success: "Key is securely stored",
+		failed: "Failed to validate key",
+		no_match: "No matching key",
+		invalid: "Invalid {type} Key",
+		username: {
+			label: "Username",
+			placeholder: "Enter your Hive username",
+		},
+		key: {
+			label: "Private {type} Key",
+			placeholder: "Enter or scan your private key",
+		},
+		btn_import: "Import",
 	},
 	main_page: {
-		no_pending_request: 'No pending request',
+		no_pending_request: "No pending request",
 	},
 	main_layout: {
-		registered: ' registered',
+		registered: " registered",
 	},
 	btn_ok: "OK",
 	btn_cancel: "Cancel",

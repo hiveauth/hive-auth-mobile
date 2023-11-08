@@ -1,28 +1,23 @@
 <template>
-  <q-page>
-    <div class="q-pa-lg">
-    </div>
-  </q-page>
+  <q-dialog ref="dialogRef" @hide="onDialogHide">
+    <div class="q-pa-lg"></div>
+  </q-dialog>
 </template>
 
-<script setup  lang="ts">
-import { defineComponent, onMounted, onUnmounted } from 'vue';
+<script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router';
-import { useAppStore } from 'src/stores/storeApp';
+import { useDialogPluginComponent } from 'quasar'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { useI18n } from 'vue-i18n'
 
-const $q = useQuasar()
+const $q = useQuasar();
 const { t } = useI18n(), $t = t
-const router = useRouter();
-const storeApp = useAppStore();
 
-// functions
 async function startScan() {
   try {
     var permissionResult = await BarcodeScanner.checkPermission({force: true});
-    if (permissionResult.granted === true || permissionResult.restricted === true) {
+    if (permissionResult.granted === true || permissionResult.restricted === true ) {
       BarcodeScanner.hideBackground();
       const result = await BarcodeScanner.startScan();
       if (result.hasContent) {
@@ -32,8 +27,7 @@ async function startScan() {
         //   message: `QR Result - ${result.content}`,
         //   icon: 'camera',
         // });
-        storeApp.scanValue = result.content;
-        router.back()
+        onDialogOK(result.content)
       } else {
         $q.notify({
           color: 'negative',
@@ -41,6 +35,7 @@ async function startScan() {
           message: $t('scan.error_scan'),
           icon: 'camera',
         });
+        onDialogCancel()
       }
     } else {
       $q.notify({
@@ -49,6 +44,7 @@ async function startScan() {
         message: $t('scan.error_permission_denied'),
         icon: 'camera',
       });
+      onDialogCancel()
     }
   } catch (e) {
     $q.notify({
@@ -57,23 +53,30 @@ async function startScan() {
       message: $t('scan.error_start_scan'),
       icon: 'camera',
     });
+    onDialogCancel()
   }
-};
+}
+
+// functions
+
+defineEmits([
+  ...useDialogPluginComponent.emits
+])
+
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
 // hooks
 onMounted(() => {
-  storeApp.headerSubtitle = 'Scan QR Code'
   startScan();
-})
+});
 
 onUnmounted(() => {
-  BarcodeScanner.stopScan()
-})
-
+  BarcodeScanner.stopScan();
+});
 </script>
 
 <script lang="ts">
-export default defineComponent({
-  name: 'page-scan'
-});
+export default {
+  name: 'DialogScan',
+};
 </script>
