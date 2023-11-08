@@ -90,7 +90,7 @@ async function onDeleteKey() {
         keys.memo = undefined;
         break;
       default:
-        throw new Error(`onConfirmDelete - Invalid keyType ${props.keyType}`);
+        throw new Error(`onDeleteKey - Invalid keyType ${props.keyType}`);
     }
     // Check if the account no more holds any key
     if(!keys.active && !keys.posting && !keys.memo) {

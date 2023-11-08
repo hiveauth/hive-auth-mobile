@@ -83,7 +83,8 @@ export default {
 		key: {
 			label: "Private {type} Key",
 			placeholder: "Enter or scan your private key",
-		}
+		},
+		btn_import: "Import",
 	},
 	main_page: {
 		no_pending_request: "No pending request",

@@ -36,7 +36,7 @@
           class="col q-pt-sm q-pb-sm"
           rounded
           color="primary"
-          label="Import"
+          :label="$t('import_key.btn_import')"
           :disable="private_key.length == 0 || username.length == 0"
           @click="validateKey()"
         />
