@@ -64,7 +64,7 @@ export default {
 		text: "wants to validate a challenge on",
 	},
 	dialog_sign_req: {
-		text: "wants to sign a transaction with the following operations:",
+		text: "wants to sign a transaction with the following operation(s):",
 		whitelist: "Do not prompt again for {type} operations",
 	},
 	import_key: {

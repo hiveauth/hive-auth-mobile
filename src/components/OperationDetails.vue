@@ -32,7 +32,6 @@
             <q-item-label lines="3"><span class="text-bold">Body:</span> {{ op[1].body }}</q-item-label>
           </div>
           <div v-else-if="op[0]=='transfer'">
-            <div><span class="text-bold">From:</span> {{ op[1].from }}</div>
             <div><span class="text-bold">To:</span> {{ op[1].to }}</div>
             <div><span class="text-bold">Amount:</span> {{ op[1].amount }}</div>
             <div><span class="text-bold">Memo:</span> {{ op[1].memo }}</div>

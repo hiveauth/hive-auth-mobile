@@ -86,7 +86,7 @@
   
   <script lang="ts">
   export default {
-    name: "DialogChallengeReq",
+    name: 'DialogChallengeReq',
   }
   
   </script>

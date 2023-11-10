@@ -551,7 +551,7 @@ async function handleAuthReq(auth_req: IAuthReq) {
  * @return the account, auth used to decrypt the payload and the decrypted payload data, or undefined is the payload couldn't be decrypted
  * @throws {Error} if the payload or the nonce is invalid
  */
-async function validatePayload(payload: any) {
+async function validatePayload(payload: ISignReq | IChallengeReq) {
   // Check if the account is managed by the PKSA
   const account = storeAccounts.accounts.find((o) => o.name === payload.account) as IAccount;
   if (account) {
@@ -596,7 +596,7 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
   let askWhitelist = false
   const opSet = new Set()
 
-  for(const op of sign_req_data.ops) {
+  for (const op of sign_req_data.ops) {
     const opType = op[0] as string
     const opInfo = operations.find(o => o.type == opType)
     assert(opInfo, `Unknown operation ${opType}`)
@@ -678,9 +678,9 @@ async function handleSignReq(payload: ISignReq) {
 
     // Check if the PKSA stores the requested private key
     //const key_private = getPrivateKey(payload.account, sign_req_data.key_type);
-    const key_type = KEYS_PA[check.level]
-    const key_private = getPrivateKey(payload.account, key_type);
-    assert(key_private,`Private ${key_type} key is missing`)
+    const keyType = KEYS_PA[check.level]
+    const key_private = getPrivateKey(payload.account, keyType);
+    assert(key_private,`Private ${keyType} key is missing`)
 
     if (!check.askApproval) {
       await approveSignRequest(payload, sign_req_data, key_private)

@@ -15,12 +15,6 @@
         </q-item-section>
       </q-item>
 
-      <!-- <q-card-section class="row items-center">
-        <q-avatar  size="24px">
-          <q-img :src="storeApp.getAvatar(username)" />
-        </q-avatar>
-        <span class="q-ml-xs text-bold">@{{ username }}</span>
-      </q-card-section> -->
       <q-card-section><span class="text-bold">@{{ username }}</span> {{ $t('dialog_sign_req.text') }}</q-card-section>
 
       <div class="q-mx-md">
@@ -31,11 +25,16 @@
             />
         </q-list>
       </div>      
+
       <div v-if="askWhitelist">
-        <q-card-section>
-          <q-checkbox v-model="whitelist" label="" />
-          {{$t('dialog_sign_req.whitelist', {type: opType})}}
-        </q-card-section>
+        <q-item>
+          <q-item-section avatar>
+            <q-checkbox v-model="whitelist" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label caption>{{$t('dialog_sign_req.whitelist', {type: opType})}}</q-item-label>
+          </q-item-section>
+        </q-item>          
         <q-separator />
       </div>
       <q-card-actions align="right">
@@ -97,15 +96,6 @@ const props = defineProps({
   },
 })
 
-// computed
-
-const ops = computed(() => {
-  const map = new Map()
-  for(const op of props.sign_req_data.ops) {
-    map.set(op[0], (map.get(op[0]) || 0) + 1)
-  }
-  return map
-})
 
 // functions
 
@@ -127,7 +117,7 @@ function onCancel() {
 
 <script lang="ts">
 export default {
-  name: "DialogSignReq",
+  name: 'DialogSignReq',
 }
 
 </script>
