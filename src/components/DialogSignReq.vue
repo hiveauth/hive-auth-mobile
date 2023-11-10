@@ -1,111 +1,138 @@
 <template>
-    <q-dialog ref="dialogRef" @hide="onDialogHide">
-      <q-card class="q-dialog-plugin">
-        <q-card-section class="row items-center">
-          <q-avatar  size="40px">
-            <q-img :src="storeApp.getAvatar(username)" />
-          </q-avatar>
-          <span class="q-ml-md text-bold">{{ username }}</span>
-        </q-card-section>
-        <q-item>{{ $t('dialog_sign_req.text') }}</q-item>
-        <q-card-section class="row items-center">
-          <q-avatar v-if="auth.app.icon" size="40px">
-            <q-img
-              :src="auth.app.icon"
-              spinner-color="white"
+  <q-dialog ref="dialogRef" @hide="onDialogHide">
+    <q-card class="q-dialog-plugin">
+      <q-item class="bg-grey-4">
+        <q-item-section avatar>
+          <q-img
+            :src="auth.app.icon"
+            spinner-color="white"
+            style="height: 32px; max-width: 32px"
+          />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label class="text-bold">{{ storeApp.capitalize(auth.app.name) }}</q-item-label>
+          <q-item-label v-if="auth.app.description" class="text-italic" lines=1>{{ auth.app.description }}</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <!-- <q-card-section class="row items-center">
+        <q-avatar  size="24px">
+          <q-img :src="storeApp.getAvatar(username)" />
+        </q-avatar>
+        <span class="q-ml-xs text-bold">@{{ username }}</span>
+      </q-card-section> -->
+      <q-card-section><span class="text-bold">@{{ username }}</span> {{ $t('dialog_sign_req.text') }}</q-card-section>
+
+      <div class="q-mx-md">
+        <q-list bordered style="max-height: 40vh" class="scroll">
+            <operation-details v-for="op in sign_req_data.ops" :key="op"
+              :op="op"
             />
-          </q-avatar>
-          <span class="q-ml-md  text-bold">{{ auth.app.name }}</span>
-          <span v-if="auth.app.description" class="q-ml-sm">{{ auth.app.description }}</span>
+        </q-list>
+      </div>      
+      <div v-if="askWhitelist">
+        <q-card-section>
+          <q-checkbox v-model="whitelist" label="" />
+          {{$t('dialog_sign_req.whitelist', {type: opType})}}
         </q-card-section>
         <q-separator />
-        <q-card-section style="max-height: 50vh" class="scroll">
-          <p>{{ JSON.stringify(sign_req_data.ops, null, 4) }}</p>
-        </q-card-section>
-        <q-separator />
-        <div v-if="askWhitelist">
-          <q-card-section>
-            <q-checkbox v-model="whitelist" label="" />
-            {{$t('dialog_sign_req.whitelist')}} {{ opType }}
-          </q-card-section>
-          <q-separator />
-        </div>
-        <q-card-actions align="right">
-          <q-btn
-            flat
-            :label="$t('btn_reject')"
-            color="primary"
-            @click="onCancel"
-          />
-          <q-btn
-            flat
-            :label = "$t('btn_approve')"
-            color="primary"
-            @click="onOK"
-          />
-        </q-card-actions>
+      </div>
+      <q-card-actions align="right">
+        <q-btn
+          flat
+          :label="$t('btn_reject')"
+          color="primary"
+          @click="onCancel"
+        />
+        <q-btn
+          flat
+          :label = "$t('btn_approve')"
+          color="primary"
+          @click="onOK"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+</template>
 
-      </q-card>
-    </q-dialog>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref } from 'vue';
-  import { useDialogPluginComponent } from 'quasar'
-  import { useAppStore } from 'src/stores/storeApp';
-  import { useI18n } from 'vue-i18n'
-  
-  const storeApp = useAppStore()
-  const { t } = useI18n(), $t = t
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useDialogPluginComponent } from 'quasar'
+import { useAppStore } from 'src/stores/storeApp';
+import { useI18n } from 'vue-i18n'
 
-  const whitelist = ref(false)
-  
-  const props = defineProps({
-    username: {
-      type: String,
-      required: true,
-    },
-    auth: {
-      type: Object,
-      required: true,
-    },
-    sign_req_data: {
-      type: Object,
-      required: true,
-    },
-    askWhitelist: {
-      type: Boolean,
-      required: true,
-    },
-    opType: {
-      type: String,
-      required: true,
-    },
-    expire: {
-      type: Number,
-      required: true,
-    },
-  })
-  
-  defineEmits([
-    ...useDialogPluginComponent.emits
-  ])
-  
-  const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+import OperationDetails from 'components/OperationDetails.vue';
 
-  function onOK () {
-    onDialogOK(whitelist.value)
+
+const storeApp = useAppStore()
+const { t } = useI18n(), $t = t
+
+const whitelist = ref(false)
+
+const props = defineProps({
+  username: {
+    type: String,
+    required: true,
+  },
+  auth: {
+    type: Object,
+    required: true,
+  },
+  sign_req_data: {
+    type: Object,
+    required: true,
+  },
+  askWhitelist: {
+    type: Boolean,
+    required: true,
+  },
+  opType: {
+    type: String,
+    required: true,
+  },
+  expire: {
+    type: Number,
+    required: true,
+  },
+})
+
+// computed
+
+const ops = computed(() => {
+  const map = new Map()
+  for(const op of props.sign_req_data.ops) {
+    map.set(op[0], (map.get(op[0]) || 0) + 1)
   }
-  
-  function onCancel() {
-    onDialogCancel()
-  }
-  
-  </script>
-  
-  <script lang="ts">
-  export default {
-    name: "DialogSignReq",
-  }
-  
-  </script>
+  return map
+})
+
+// functions
+
+defineEmits([
+  ...useDialogPluginComponent.emits
+])
+
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+function onOK () {
+  onDialogOK(whitelist.value)
+}
+
+function onCancel() {
+  onDialogCancel()
+}
+
+</script>
+
+<script lang="ts">
+export default {
+  name: "DialogSignReq",
+}
+
+</script>
+
+<style scoped>
+.background {
+  background-color: red-10
+}
+</style>

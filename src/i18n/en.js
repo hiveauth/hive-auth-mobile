@@ -64,8 +64,8 @@ export default {
 		text: "wants to validate a challenge on",
 	},
 	dialog_sign_req: {
-		text: "wants to sign a transaction on",
-		whitelist: "Do not prompt again for",
+		text: "wants to sign a transaction with the following operations:",
+		whitelist: "Do not prompt again for {type} operations",
 	},
 	import_key: {
 		title: {
@@ -86,6 +86,10 @@ export default {
 			placeholder: "Enter or scan your private key",
 		},
 		btn_import: "Import",
+	},
+	operation_details: {
+		pretty: "Pretty",
+		raw: "Raw",
 	},
 	main_page: {
 		no_pending_request: "No pending request",
