@@ -27,6 +27,7 @@
         <q-list bordered style="max-height: 40vh" class="scroll">
             <operation-details v-for="op in sign_req_data.ops" :key="op"
               :op="op"
+              class="bg-grey-2"
             />
         </q-list>
       </div>      

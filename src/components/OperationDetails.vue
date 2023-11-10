@@ -15,8 +15,8 @@
         align="justify"
         narrow-indicator
       >
-        <q-tab name="pretty" :label="$t('operation_details.pretty')" />
-        <q-tab name="raw" :label="$t('operation_details.raw')" /> />
+        <q-tab name="pretty" :label="$t('operation_details.pretty')" no-caps />
+        <q-tab name="raw" :label="$t('operation_details.raw')" no-caps />
       </q-tabs>
       <q-separator />
       <q-tab-panels v-model="tab" animated>
@@ -42,12 +42,12 @@
           </div>
         </q-tab-panel>
         <q-tab-panel name="raw">
-          {{ JSON.stringify(op) }}
+          <div  class="raw">{{ JSON.stringify(op[1]) }}</div>
         </q-tab-panel>
       </q-tab-panels>      
     </div>
     <div v-else class="q-mx-md">
-      {{ JSON.stringify(op) }}
+      {{ JSON.stringify(op[1]) }}
     </div>
   </q-expansion-item>
 </template>
@@ -79,4 +79,9 @@ export default {
   name: 'OperationDetails',
 };
 </script>
-<style scoped></style>
+
+<style scoped>
+.raw {
+  word-break: break-all;
+}
+</style>
