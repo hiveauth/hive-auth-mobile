@@ -36,6 +36,12 @@
             <div><span class="text-bold">Amount:</span> {{ op[1].amount }}</div>
             <div><span class="text-bold">Memo:</span> {{ op[1].memo }}</div>
           </div>
+
+          <!-- Custom jsons -->
+          <div v-else-if="op[0]=='custom_json'">
+            <operation-pretty-custom-json :data="op[1]" />
+          </div>
+          <!-- Other ops -->
           <div v-else>
             <p>{{ JSON.stringify(op[1]) }}</p>
           </div>
@@ -54,7 +60,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-const prettyView = ['comment','vote', 'transfer']
+import OperationPrettyCustomJson from 'components/OperationsPrettyCustomJson.vue';
+
+const prettyView = ['comment','vote', 'transfer', 'custom_json']
 
 const props = defineProps({
   op: {

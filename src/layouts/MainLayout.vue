@@ -187,11 +187,7 @@ function hideEncryptedData(str: string) {
 function HASSend(message: string) {
   assert(wsClient, 'Websocket not initialized')
 
-  console.log(`[SEND] ${hideEncryptedData(message)}`);
-  storeApp.logs.push({
-    id: Date.now(),
-    message: `SENT: ${hideEncryptedData(message)}`,
-  });
+  storeApp.log(`SEND: ${hideEncryptedData(message)}`);
   wsClient.send(message);
 }
 
@@ -851,11 +847,7 @@ async function startWebsocket() {
     };
 
     wsClient.onmessage = async function (event) {
-      console.log(`[RECV] ${hideEncryptedData(event.data)}`);
-      storeApp.logs.push({
-        id: Date.now(),
-        message: `RECV: ${hideEncryptedData(event.data)}`,
-      });
+      storeApp.log(`RECV: ${hideEncryptedData(event.data)}`);
       processMessage(event.data);
     };
 
@@ -903,19 +895,26 @@ function processQRDL(value: string) {
       account: result.account,
       uuid: result.uuid,
       key: result.key,
-      host: result.host,
+      host: result.host?.replace(/\/$/, ""),  // remove trailing slash
     }  as IAuthReqPayload;
 
     // IF the PKSA is not yet connected to a HAS node, use the provided host and connect
     if (!wsClient) {
-      HASServer.value = auth_req_payload?.host || DEFAULT_HAS_SERVER;
+      HASServer.value = auth_req_payload.host || DEFAULT_HAS_SERVER;
       startWebsocket();
     }
     else {
-      // // Reconnect only if HAS Server is a different server
-      // if (auth_req_payload?.host && auth_req_payload?.host != HASServer.value) {
-      //   TODO: connect to new host
-      // }
+      // Check if the App is connected to another HAS node
+      if (auth_req_payload.host && auth_req_payload.host != HASServer.value) {
+        // TODO: Implement node switching - connect to new node
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: `Node switching not implemented yet`,
+          icon: 'report_problem',
+        })
+        return
+      }
     }
     processAuthReqPayload(auth_req_payload)
   }

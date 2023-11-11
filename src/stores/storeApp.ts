@@ -49,6 +49,14 @@ export const useAppStore = defineStore('storeApp', {
   },
 
   actions: {
+    log(message: string) {
+      console.log(message);
+      this.logs.push({
+        id: Date.now(),
+        message: message,
+      })
+    },
+
     unlockApp() {
       this.appVersion = packageJson.version
       this.isUnlocked = true;
