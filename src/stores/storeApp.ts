@@ -20,7 +20,8 @@ export interface logItem {
 
 export const useAppStore = defineStore('storeApp', {
   state: () => ({
-    pendings: new Pendings(),
+    pendingsAuthReq: new Pendings(),
+    pendingsAuthPayload: new Pendings(),
     logs: [] as logItem[],
     resetWebsocket: false,
     isUnlocked: false,
@@ -32,6 +33,7 @@ export const useAppStore = defineStore('storeApp', {
     passcode: '',
     hasPasscode: false,
     appVersion: '',
+    nodeTimeout: 0,
   }),
 
   getters: {

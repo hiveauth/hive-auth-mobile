@@ -1,12 +1,12 @@
 import assert from 'assert';
-import { IAuthReq} from '../interfaces/has.interfaces'
+import { IAuthReq, IAuthReqPayloadPending} from '../interfaces/has.interfaces'
 
 // const Mutex = require('async-mutex').Mutex
 // const lock = new Mutex()
 
 export class Pendings {
   // Private properties
-  private pendings = [] as IAuthReq[]
+  private pendings = [] as any[]
   private debug = false
 
   /**
@@ -24,13 +24,15 @@ export class Pendings {
         console.debug(`cleaned ${JSON.stringify({ account: p.account, uuid: p.uuid })}`)
       })
     }
-    this.pendings = this.pendings.filter(o => o.expire > Date.now()) as IAuthReq[]
+    this.pendings = this.pendings.filter(o => o.expire > Date.now())
   }
 
-  push(request: IAuthReq) {
+  push(item: any) {
     this.clean()
-    assert(!this.pendings.some(o => o.uuid == request.uuid),`duplicate pending uuid ${request.uuid}`)
-    this.pendings.push(request)
+    assert(item.uuid,'invalid pending (missing uuid)')
+    assert(item.expire,'invalid pending (missing expire)')
+    assert(!this.pendings.some(o => o.uuid == item.uuid),`duplicate pending uuid ${item.uuid}`)
+    this.pendings.push(item)
   }
 
   // WARNING: Be carefull if reactivating locks and making pop async -> add await to external calls

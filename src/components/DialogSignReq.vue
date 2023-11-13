@@ -1,19 +1,7 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin">
-      <q-item class="bg-grey-4">
-        <q-item-section avatar>
-          <q-img
-            :src="auth.app.icon"
-            spinner-color="white"
-            style="height: 32px; max-width: 32px"
-          />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label class="text-bold">{{ storeApp.capitalize(auth.app.name) }}</q-item-label>
-          <q-item-label v-if="auth.app.description" class="text-italic" lines=1>{{ auth.app.description }}</q-item-label>
-        </q-item-section>
-      </q-item>
+      <avatar-app class="bg-grey-4" :app="auth.app" />
 
       <q-card-section><span class="text-bold">@{{ username }}</span> {{ $t('dialog_sign_req.text') }}</q-card-section>
 
@@ -37,37 +25,51 @@
         </q-item>          
         <q-separator />
       </div>
-      <q-card-actions align="right">
-        <q-btn
-          flat
-          :label="$t('btn_reject')"
-          color="primary"
-          @click="onCancel"
-        />
-        <q-btn
-          flat
-          :label = "$t('btn_approve')"
-          color="primary"
-          @click="onOK"
-        />
-      </q-card-actions>
+      <q-card-section horizontal>
+        <q-card-section>
+          <q-circular-progress
+            show-value
+            :value="timeout"
+            :max="storeApp.nodeTimeout"
+            size="sm"
+            color="primary"
+            center-color="grey-2"
+          />
+        </q-card-section>
+        <q-space />
+        <q-card-actions align="right">
+          <q-btn 
+            flat
+            :label="$t('btn_reject')"
+            color="primary"
+            @click="onCancel"
+          />
+          <q-btn
+            flat
+            :label = "$t('btn_approve')"
+            color="primary"
+            @click="onOK"
+          />
+        </q-card-actions>
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { useQuasar } from 'quasar'
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import { useAppStore } from 'src/stores/storeApp';
 import { useI18n } from 'vue-i18n'
 
+import AvatarApp from 'components/AvatarApp.vue';
 import OperationDetails from 'components/OperationDetails.vue';
 
 
+const $q = useQuasar();
 const storeApp = useAppStore()
 const { t } = useI18n(), $t = t
-
-const whitelist = ref(false)
 
 const props = defineProps({
   username: {
@@ -96,6 +98,11 @@ const props = defineProps({
   },
 })
 
+let interval:  NodeJS.Timeout
+
+// data
+const whitelist = ref(false)
+const timeout = ref(0)
 
 // functions
 
@@ -112,6 +119,30 @@ function onOK () {
 function onCancel() {
   onDialogCancel()
 }
+
+// hooks
+onMounted(() => {
+  timeout.value = ((props.expire - Date.now()) / 1000) | 0;
+  interval = setInterval(() => {
+      if(timeout.value > 0) {
+        timeout.value--
+      } else {
+        $q.notify({
+          color: 'negative',
+          position: 'bottom',
+          message: $t('request_expired'),
+          timeout: 1000
+        });
+        clearInterval(interval)
+        onDialogHide()
+      }
+    }, 1000)
+  
+});
+
+onUnmounted(() => {
+  clearInterval(interval)
+});
 
 </script>
 

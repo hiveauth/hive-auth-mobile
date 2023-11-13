@@ -444,48 +444,52 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
 }
 
 function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
-  assert(typeof auth_req_payload?.account == 'string', 'invalid auth_req_payload (account)')
-  assert(typeof auth_req_payload?.uuid == 'string', 'invalid auth_req_payload (uuid)')
-  assert(typeof auth_req_payload?.key == 'string', 'invalid auth_req_payload (key)')
-  assert(typeof auth_req_payload?.host == 'string', 'invalid auth_req_payload (host)')
+  try {
+    assert(typeof auth_req_payload?.account == 'string', 'invalid auth_req_payload (account)')
+    assert(typeof auth_req_payload?.uuid == 'string', 'invalid auth_req_payload (uuid)')
+    assert(typeof auth_req_payload?.key == 'string', 'invalid auth_req_payload (key)')
+    assert(typeof auth_req_payload?.host == 'string', 'invalid auth_req_payload (host)')
 
-  const account = storeAccounts.accounts.find(o => o.name === auth_req_payload.account);
-  if(!account) {
-    console.log(`account not managed (${auth_req_payload.account})`)
-    return // account is no more managed by PKSA
-  }
-
-  // search for matching request in pendings
-  const pending = storeApp.pendings.pop(auth_req_payload.uuid)
-  if(pending) {
-    const auth_req = (pending as unknown as IAuthReq)
-    // Try to descript the pending request with the payload auth_key
-    const decrypted = tryDecrypt(auth_req.data, auth_req_payload.key)
-    if (decrypted) {
-      // Successfuly decripted
-      const auth_key = auth_req_payload.key;
-      // ask user to approve or reject authentication request
-      const auth_req_data = JSON.parse(decrypted) as IAuthReqData
-      assert(typeof auth_req_data?.app?.name == 'string', 'invalid payload (auth_req_data.app.name)');
-
-      $q.dialog({
-        component: DialogAuthReq,
-        componentProps: {
-          // dialog props
-          persistent: true,
-          // custom props
-          username: auth_req.account,
-          auth_req_data: auth_req_data,
-          expire: auth_req.expire,
-        },
-      }).onOk((timeout) => {
-        approveAuthRequest(auth_req, account, auth_key as string, timeout);
-      }).onCancel(async () => {
-        const auth_nack_data = CryptoJS.AES.encrypt(auth_req.uuid,auth_key).toString()
-        const auth_nack = {cmd: 'auth_nack', uuid: auth_req.uuid, data: auth_nack_data, pok: await getPOK(auth_req.account, auth_req.uuid)} as IAuthNack
-        HASSend(JSON.stringify(auth_nack))
-      })
+    const account = storeAccounts.accounts.find(o => o.name === auth_req_payload.account);
+    if(!account) {
+      console.log(`account not managed (${auth_req_payload.account})`)
+      return // account is no more managed by PKSA
     }
+
+    // search for matching request in pendings
+    const pending = storeApp.pendingsAuthReq.pop(auth_req_payload.uuid)
+    if(pending) {
+      const auth_req = (pending as unknown as IAuthReq)
+      // Try to descript the pending request with the payload auth_key
+      const decrypted = tryDecrypt(auth_req.data, auth_req_payload.key)
+      if (decrypted) {
+        // Successfuly decripted
+        const auth_key = auth_req_payload.key;
+        // ask user to approve or reject authentication request
+        const auth_req_data = JSON.parse(decrypted) as IAuthReqData
+        assert(typeof auth_req_data?.app?.name == 'string', 'invalid payload (auth_req_data.app.name)');
+
+        $q.dialog({
+          component: DialogAuthReq,
+          componentProps: {
+            // dialog props
+            persistent: true,
+            // custom props
+            username: auth_req.account,
+            auth_req_data: auth_req_data,
+            expire: auth_req.expire,
+          },
+        }).onOk((timeout) => {
+          approveAuthRequest(auth_req, account, auth_key as string, timeout);
+        }).onCancel(async () => {
+          const auth_nack_data = CryptoJS.AES.encrypt(auth_req.uuid,auth_key).toString()
+          const auth_nack = {cmd: 'auth_nack', uuid: auth_req.uuid, data: auth_nack_data, pok: await getPOK(auth_req.account, auth_req.uuid)} as IAuthNack
+          HASSend(JSON.stringify(auth_nack))
+        })
+      }
+    }
+  } catch(e) {
+    console.error((e as Error).message)
   }
 }
 
@@ -527,8 +531,13 @@ async function handleAuthReq(auth_req: IAuthReq) {
       // We have an auth_key - automaticaly approve request
       approveAuthRequest(auth_req, account, auth_key);
     } else {
-      // No auth key found, add the request to pendings and wait for scan or deeplink
-      storeApp.pendings.push(auth_req)
+      // No auth key found - add the request to pendings and wait for scan or deeplink
+        storeApp.pendingsAuthReq.push(auth_req)
+      // Check if we already got the auth_payload
+      const payload = storeApp.pendingsAuthPayload.pop(auth_req.uuid)
+      if (payload) {
+        processAuthReqPayload(payload)
+      }
     }
   } catch (e) {
     $q.notify({
@@ -806,6 +815,7 @@ async function processMessage(message: string) {
         // TODO: validate HAS "protocol" value
         assert(HAS_PROTOCOL.includes(payload.protocol || 0 ),'Unsupported HAS protocol')
         HASProtocol.value = payload.protocol
+        storeApp.nodeTimeout = payload.timeout
         return;
       case 'error':
         return;
@@ -916,6 +926,10 @@ function processQRDL(value: string) {
         return
       }
     }
+    // Push payload in pendings in case the auth_req is sent later
+    (auth_req_payload as any).expire = Date.now() + storeApp.nodeTimeout
+    storeApp.pendingsAuthPayload.push(auth_req_payload)
+    // try to process the payload immediately
     processAuthReqPayload(auth_req_payload)
   }
 

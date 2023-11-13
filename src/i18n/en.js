@@ -61,7 +61,7 @@ export default {
 		timeout: "Session validity",
 	},
 	dialog_challenge_req: {
-		text: "wants to validate a challenge on",
+		text: "wants to validate a challenge",
 	},
 	dialog_sign_req: {
 		text: "wants to sign a transaction with the following operation(s):",
@@ -109,5 +109,6 @@ export default {
 	btn_approve: "Approve",
 	btn_reject: "Reject",
 
-	not_supported: "Feature not supported yet"
+	not_supported: "Feature not supported yet",
+	request_expired: "Request expired",
 }
