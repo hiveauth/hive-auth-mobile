@@ -106,5 +106,12 @@ export const useAccountsStore = defineStore('storeAccounts', {
       this.accounts = this.accounts.filter((o) => o.name != name)
       this.write()
     },
+
+    async reset() {
+      this.accounts = []
+      this.lastAccountName = ''
+      this.lastAccountTab = ''
+      await this.write()
+    }
   },
 });

@@ -76,11 +76,7 @@ export const useAppStore = defineStore('storeApp', {
 
     async readCode() {
       try {
-        const value = (await SecureStorage.get(
-          'passcode',
-          true,
-          false
-        )) as string;
+        const value = (await SecureStorage.get( 'passcode', true, false )) as string;
         if (value === null) {
           return;
         }
@@ -106,9 +102,7 @@ export const useAppStore = defineStore('storeApp', {
 
     async readPasscodeFromBiometrics() {
       try {
-        const credentials = await NativeBiometric.getCredentials({
-          server: CREDENTIALS_SERVER,
-        });
+        const credentials = await NativeBiometric.getCredentials({ server: CREDENTIALS_SERVER });
         const passcode = credentials.password;
         if (passcode === null) {
           return;
@@ -138,6 +132,11 @@ export const useAppStore = defineStore('storeApp', {
       } catch (e) {
         console.error(`Error saving passcode - ${(e as Error).message}. `);
       }
+    },
+
+    async reset() {
+      await this.setPasscode('')
+      this.hasPasscode = false
     },
   },
 });

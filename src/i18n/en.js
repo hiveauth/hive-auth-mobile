@@ -19,11 +19,16 @@ export default {
 	  pin_placeholder: "Enter your six digit PIN code",
 	  pin_repeat_label: "Confirm PIN code",
 	  pin_repeat_placeholder: "Confirm your six digit PIN code",
+		pin_forgotten: "Forgotten pin code?",
 	  btn_save: "Set PIN code",
 	  biometrics_unavailable: "Device Biometrics not available. Please enable them and restart the app.",
 	  failed: "Authentication failed",
 	  pin_init: "PIN code initialized",
 	  pin_error: "Error setting PIN code",
+		confirm_reset: {
+			title: "Confirm PIN reset",
+			message: '<span class="text-red"><b>WARNING:</b></span> If you reset your PIN, all data including keys and authentications will be cleared.<br>You will then need to re-import your keys.'
+		}
 	},
 	store_auth: {
 	  biometrics_reason: "Allow HiveAuth to use your biometrics to Authenticate",

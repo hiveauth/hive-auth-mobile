@@ -53,6 +53,17 @@
       </template>
     </q-input>
 
+    <div v-if="storeApp.hasPasscode" class="row q-mt-lg">
+      <q-btn
+        class="col"
+        flat
+        no-caps
+        color="primary"
+        :label="$t('login.pin_forgotten')"
+        @click="onForgotPin()"
+      />
+    </div>
+
     <div v-if="!storeApp.hasPasscode" class="row q-mt-lg">
       <q-btn
         class="col q-pt-sm q-pb-sm"
@@ -134,6 +145,23 @@ async function setPasscode() {
       icon: 'report_problem',
     });
   }
+}
+
+function onForgotPin() {
+  $q.dialog({
+        title: $t('login.confirm_reset.title'),
+        message: $t('login.confirm_reset.message'),
+        cancel: true,
+        focus: 'cancel',
+        color: 'red',
+        html: true,
+      }).onOk(async () => {
+        await storeAccounts.reset()
+        await storeApp.reset()
+        PIN.value = ''
+        PIN_repeat.value = ''
+      })
+
 }
 
 // hooks
