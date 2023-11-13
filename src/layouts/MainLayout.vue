@@ -452,8 +452,8 @@ function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
 
     const account = storeAccounts.accounts.find(o => o.name === auth_req_payload.account);
     if(!account) {
-      console.log(`account not managed (${auth_req_payload.account})`)
-      return // account is no more managed by PKSA
+      // account is no more managed by PKSA
+      throw new Error($t('main_layout.account_not_found', {name: auth_req_payload.account}))
     }
 
     // search for matching request in pendings
@@ -489,7 +489,12 @@ function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
       }
     }
   } catch(e) {
-    console.error((e as Error).message)
+    $q.notify({
+        color: 'negative',
+        position: 'bottom',
+        message: (e as Error).message,
+        icon: 'report_problem',
+      })      
   }
 }
 
@@ -583,7 +588,7 @@ async function validatePayload(payload: ISignReq | IChallengeReq) {
           }
         }
       } catch (e) {
-        if (e.code == 'ERR_ASSERTION') {
+        if ((e as any).code == 'ERR_ASSERTION') {
           // Invalid nonce expected error, rethrow it
           throw e;
         }

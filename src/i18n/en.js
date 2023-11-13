@@ -99,7 +99,8 @@ export default {
 		auth_ack: "Authentication approved",
 		sign_ack: "Transaction broadcasted",
 		challenge_ack: "Challenge signed",
-		auth_not_found: "No valid authentication found"
+		auth_not_found: "No valid authentication found",
+		account_not_found: "Account {name} is not managed",
 	},
 	btn_ok: "OK",
 	btn_cancel: "Cancel",

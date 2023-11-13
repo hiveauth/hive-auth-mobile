@@ -1,5 +1,4 @@
 import assert from 'assert';
-import { IAuthReq, IAuthReqPayloadPending} from '../interfaces/has.interfaces'
 
 // const Mutex = require('async-mutex').Mutex
 // const lock = new Mutex()

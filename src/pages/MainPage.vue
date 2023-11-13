@@ -49,7 +49,7 @@ function toggleMenu () {
 // hooks
 onMounted(() => {
   if (storeApp.isUnlocked && storeAccounts.accounts.length == 0) {
-    router.push('accounts')
+    // router.push('accounts')
   }
 });
 
