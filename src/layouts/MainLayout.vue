@@ -79,14 +79,9 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n(), $t = t
 
-interface PrivateKey {
-  key_type: string;
-  key_private: string;
-}
-
 const PKSA_NAME = 'HiveAuth Mobile'
-const KEYS_MPA = ['memo','posting','active'] // Types sorted by permission level - do not change it
-const KEYS_PA = ['posting','active'] // Types sorted by permission level - do not change it
+const KEYTYPES_MPA = ['memo','posting','active'] // Types sorted by permission level - do not change it
+const KEYTYPES_PA = ['posting','active'] // Types sorted by permission level - do not change it
 const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
 
 const HAS_PROTOCOL = [0.8, 1.0]     // supported HAS protocol versions
@@ -224,9 +219,9 @@ function getPrivateKey(name: string, type: string) {
 }
 
 function getLowestPrivateKey(name: string) {
-  for (const key_type of KEYS_MPA) {
-    const key_private = getPrivateKey(name, key_type);
-    if (key_private) return { key_type, key_private } as PrivateKey;
+  for (const type of KEYTYPES_MPA) {
+    const key = getPrivateKey(name, type);
+    if (key) return key
   }
   return undefined;
 }
@@ -235,13 +230,12 @@ async function getPOK(name: string, value: string) {
   if (value.length === 0) {
     value = Date.now().toString();
   }
-  const result = getLowestPrivateKey(name);
-  const key_private = result?.key_private;
-  assert(key_private, `No private key available for ${name}`);
+  const key = getLowestPrivateKey(name);
+  assert(key, `No private key available for ${name}`);
   const response = await HASCustomPlugin.callPlugin({
     callId: Date.now().toString(),
     method: 'getProofOfKey',
-    privateKey: key_private,
+    privateKey: key,
     publicKey: key_server ?? '',
     memo: `#${value}`,
     accountName: '',
@@ -401,7 +395,7 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
   // Check if the app also requires the PKSA to sign a challenge
   if(auth_req_data.challenge) {
     const challenge_data = auth_req_data.challenge
-    assert(challenge_data.key_type && typeof(challenge_data.key_type)=='string' && KEYS_MPA.includes(challenge_data.key_type), 'invalid payload (challenge_data.key_type)')
+    assert(challenge_data.key_type && typeof(challenge_data.key_type)=='string' && KEYTYPES_MPA.includes(challenge_data.key_type), 'invalid payload (challenge_data.key_type)')
     assert(challenge_data.challenge && typeof(challenge_data.challenge)=='string', 'invalid payload (challenge_data.challenge)')
     // Check if the PKSA stores the requested private key
     const key_private = getPrivateKey(payload.account,challenge_data.key_type)
@@ -617,7 +611,7 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
     if (opType == 'custom_json' && op[1].required_auths.length > 0) {
       level = 1
     } else {
-      level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
+      level = Math.max(level, KEYTYPES_PA.indexOf(opInfo.key))
     }
     if (level==1 || !auth.whitelists.includes(opType)) {
       // ask approval for ops requiring active key or ops requiring posting but not whitelisted yet
@@ -682,7 +676,7 @@ async function handleSignReq(payload: ISignReq) {
 
     if (!auth) return;
     // validate decrypted sign_req_data (nonce has already been validated by validatePayload)
-    assert(sign_req_data.key_type && typeof sign_req_data.key_type == 'string' && KEYS_PA.includes(sign_req_data.key_type), 'invalid data (key_type)');
+    assert(sign_req_data.key_type && typeof sign_req_data.key_type == 'string' && KEYTYPES_PA.includes(sign_req_data.key_type), 'invalid data (key_type)');
     assert(sign_req_data.ops && sign_req_data.ops.length > 0, 'invalid data (ops)');
     assert(sign_req_data.broadcast!=undefined, 'invalid data (broadcast)')
 
@@ -690,7 +684,7 @@ async function handleSignReq(payload: ISignReq) {
 
     // Check if the PKSA stores the requested private key
     //const key_private = getPrivateKey(payload.account, sign_req_data.key_type);
-    const keyType = KEYS_PA[check.level]
+    const keyType = KEYTYPES_PA[check.level]
     const key_private = getPrivateKey(payload.account, keyType);
     assert(key_private,`Private ${keyType} key is missing`)
 
@@ -773,7 +767,7 @@ async function handleChallengeReq(payload: IChallengeReq) {
 
     if (!auth) return;
     // validate decrypted challenge_req_data (nonce has already been validated by validatePayload)
-    assert(challenge_req_data.key_type  && typeof challenge_req_data.key_type == 'string' && KEYS_MPA.includes(challenge_req_data.key_type), 'invalid data (key_type)')
+    assert(challenge_req_data.key_type  && typeof challenge_req_data.key_type == 'string' && KEYTYPES_MPA.includes(challenge_req_data.key_type), 'invalid data (key_type)')
     assert(challenge_req_data.challenge && typeof(challenge_req_data.challenge)=='string' && challenge_req_data.challenge.length > 0, 'invalid data (challenge)')
     // Check if the PKSA stores the requested private key
     const key_private = getPrivateKey(payload.account, challenge_req_data.key_type);
