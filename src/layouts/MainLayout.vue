@@ -89,7 +89,7 @@ const KEYS_MPA = ['memo','posting','active'] // Types sorted by permission level
 const KEYS_PA = ['posting','active'] // Types sorted by permission level - do not change it
 const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
 
-const HAS_PROTOCOL = [0.8, 1.0]        // supported HAS protocol versions
+const HAS_PROTOCOL = [0.8, 1.0]     // supported HAS protocol versions
 const PING_RATE = 60 * 1000 			  // 1 minute
 const PING_TIMEOUT = 5 * PING_RATE  // 5 minutes
 
@@ -606,13 +606,15 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
   let askWhitelist = false
   const opSet = new Set()
 
-  for (const op of sign_req_data.ops) {
-    const opType = op[0] as string
+  type Op = [string, any]
+
+  for (const op of (sign_req_data.ops as Op[])) {
+    const opType = op[0]
     const opInfo = operations.find(o => o.type == opType)
     assert(opInfo, `Unknown operation ${opType}`)
     assert(opInfo.key!='owner', 'Transaction requires owner key')
 
-    if (opType == 'custom_json' && (op[1] as any)?.required_auths.length > 0) {
+    if (opType == 'custom_json' && op[1].required_auths.length > 0) {
       level = 1
     } else {
       level = Math.max(level, KEYS_PA.indexOf(opInfo.key))
