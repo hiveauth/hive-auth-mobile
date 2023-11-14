@@ -14,6 +14,7 @@
       <q-item-section> {{ $t('menu.about') }} </q-item-section>
     </q-item>
 
+    <div v-if="tapCount > 2">
     <q-separator dark spaced />
     <q-item clickable v-ripple @click="onLogs">
       <q-item-section avatar>
@@ -21,6 +22,7 @@
       </q-item-section>
       <q-item-section> {{ $t('menu.logs') }} </q-item-section>
     </q-item>
+    </div>
 
     <q-separator dark spaced />
     <q-item clickable v-ripple @click="onLock">
@@ -32,17 +34,20 @@
 
   </q-list>
   <div class="q-pl-lg q-pb-sm text-caption text-weight-light fixed-bottom">
-    Version {{ storeApp.appVersion }}
+    <div clickable @click="onClickVersion()">Version {{ storeApp.appVersion }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineComponent } from 'vue';
+import { ref, defineComponent } from 'vue';
 import { useAppStore } from 'src/stores/storeApp';
 import { useRouter } from 'vue-router';
 
 const storeApp = useAppStore();
 const router = useRouter();
+
+// data
+const tapCount = ref(0)
 
 // functions
 function onLock() {
@@ -63,6 +68,10 @@ function onAbout() {
 function onLogs() {
   storeApp.menuOpen = false
   router.push({ name: 'logs' });
+}
+
+function onClickVersion() {
+  tapCount.value += 1
 }
 
 </script>
