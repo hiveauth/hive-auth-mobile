@@ -29,6 +29,7 @@
 import { defineComponent, ref, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router';
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
 
@@ -36,6 +37,7 @@ import InputPinKeyboard from 'components/InputPinKeyboard.vue';
 
 const $q = useQuasar();
 const { t } = useI18n(), $t = t
+const router = useRouter();
 const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 
@@ -109,6 +111,7 @@ async function setPasscode() {
     await storeApp.readPasscodeFromBiometrics();
     await storeAccounts.read();
     storeApp.unlockApp();
+    router.push({name: "import-key"})
     $q.notify({
       color: 'positive',
       position: 'bottom',

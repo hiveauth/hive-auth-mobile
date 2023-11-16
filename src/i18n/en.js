@@ -37,6 +37,7 @@ export default {
 	  biometrics_description: "Provide your FaceID or Touch ID to unlock HiveAuth",
 	},
   accounts: {
+		btn_add: "Add an Account",
     empty: "No Accounts found",
     empty_sessions: "No sessions found",
     keys: "Keys",

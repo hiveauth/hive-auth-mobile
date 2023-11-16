@@ -36,7 +36,7 @@
         class="full_width"
           color="primary"
           icon="add"
-          label="Add an Account"
+          :label="$t('accounts.btn_add')"
           @click="onAddAccount"
         />
       </div>
@@ -99,6 +99,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import AccountKey from 'components/AccountKey.vue';
 import AccountSession from 'components/AccountSession.vue';
+import { route } from 'quasar/wrappers';
 
 const router = useRouter();
 const storeApp = useAppStore();

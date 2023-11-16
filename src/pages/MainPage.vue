@@ -43,14 +43,6 @@ function toggleMenu () {
   storeApp.menuOpen = !storeApp.menuOpen
 }
 
-// hooks
-onMounted(() => {
-  if (storeApp.isUnlocked && storeAccounts.accounts.length == 0) {
-    // TODO: Ask user to add new account
-    // router.push('accounts')
-  }
-});
-
 </script>
 
 <script>
