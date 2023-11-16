@@ -38,7 +38,6 @@ export default {
 	},
   accounts: {
 		btn_add: "Add an Account",
-    empty: "No Accounts found",
     empty_sessions: "No sessions found",
     keys: "Keys",
     sessions: "Sessions",
