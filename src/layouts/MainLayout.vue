@@ -44,8 +44,8 @@
           flat
           round
           dense
-          icon="public"
-          :color="storeApp.isHASConnected ? 'green' : 'red'"
+          icon="fa fa-circle-nodes"
+          :color="storeApp.isHASConnected ? 'grey-4' : 'red'"
         />
         <div>{{ HASServer?.replaceAll('wss://', '') }} ({{Number(HASProtocol).toFixed(1)}})</div>
       </q-toolbar>

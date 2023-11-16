@@ -1,58 +1,14 @@
 <template>
-  <div v-if="doWeHaveDeviceBiometrics" class="q-pa-lg">
-    <q-input
-      outlined
-      dark
-      autofocus
-      v-model="PIN"
-      :label="$t('login.pin_label')"
-      :placeholder="$t('login.pin_placeholder')"
-      class="q-pt-lg"
-      :type="isPasscodeVisible ? 'text' : 'password'"
-      inputmode="numeric"
-      pattern="[0-9]*"
-      autocomplete="off"
-      maxlength="6"
-      @update:model-value="digitsChanged"
-    >
-      <template v-slot:prepend>
-        <q-icon name="pin" />
-      </template>
-      <template v-slot:append>
-        <q-icon
-          :name="isPasscodeVisible ? 'visibility_off' : 'visibility'"
-          class="cursor-pointer"
-          @click="isPasscodeVisible = !isPasscodeVisible"
-        />
-      </template>
-    </q-input>
-
-    <q-input
-      v-if="!storeApp.hasPasscode"
-      outlined
-      dark
-      v-model="PIN_repeat"
-      :label="$t('login.pin_repeat_label')"
-      :placeholder="$t('login.pin_repeat_placeholder')"
-      class="q-pt-lg"
-      :type="isPasscodeVisible ? 'text' : 'password'"
-      inputmode="numeric"
-      pattern="[0-9]*"
-      autocomplete="off"
-      maxlength="6"
-    >
-      <template v-slot:prepend>
-        <q-icon name="pin" />
-      </template>
-      <template v-slot:append>
-        <q-icon
-          :name="isPasscodeVisible ? 'visibility_off' : 'visibility'"
-          class="cursor-pointer"
-          @click="isPasscodeVisible = !isPasscodeVisible"
-        />
-      </template>
-    </q-input>
-
+  <div v-if="isBiometricsAvailable" class="q-pa-lg">
+    <div v-if="askPIN">
+      <div v-if="storeApp.hasPasscode" class="text-center text-white text-h5">{{ $t('login.pin_enter') }}</div>
+      <div v-else class="text-center text-white text-h5">{{ $t('login.pin_create') }}</div>
+      <input-pin-keyboard v-model="PIN" />
+    </div>
+    <div v-if="confirmPIN">
+      <div class="text-center text-white text-h5">{{ $t('login.pin_confirm') }}</div>
+      <input-pin-keyboard v-model="PIN_repeat" />
+    </div>
     <div v-if="storeApp.hasPasscode" class="row q-mt-lg">
       <q-btn
         class="col"
@@ -63,17 +19,6 @@
         @click="onForgotPin()"
       />
     </div>
-
-    <div v-if="!storeApp.hasPasscode" class="row q-mt-lg">
-      <q-btn
-        class="col q-pt-sm q-pb-sm"
-        rounded
-        color="primary"
-        :label="$t('login.btn_save')"
-        :disable="PIN.length !== 6 || PIN !== PIN_repeat"
-        @click="setPasscode()"
-      />
-    </div>
   </div>
   <div v-else class="q-pa-lg" style="color: white">
     {{$t('login.biometrics_unavailable')}}
@@ -81,11 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from 'src/stores/storeApp';
 import { useAccountsStore } from 'src/stores/storeAccounts';
+
+import InputPinKeyboard from 'components/InputPinKeyboard.vue';
 
 const $q = useQuasar();
 const { t } = useI18n(), $t = t
@@ -93,20 +40,51 @@ const storeApp = useAppStore();
 const storeAccounts = useAccountsStore();
 
 // data
-const doWeHaveDeviceBiometrics = ref(false)
-const isPasscodeVisible = ref(false)
+const isBiometricsAvailable = ref(false)
 const PIN = ref('')
 const PIN_repeat = ref('')
+const askPIN = ref(true)
+const confirmPIN = ref(false)
+
+// watchers
+watch(PIN, (newValue) => { 
+  if(PIN.value.length == 6) {
+    if(storeApp.hasPasscode) {
+      verifyCode();
+    } else {
+      askPIN.value = false
+      confirmPIN.value = true
+    }
+  }
+})
+
+watch(PIN_repeat, (newValue) => { 
+  if(PIN_repeat.value.length == 6) {
+    if(PIN.value == PIN_repeat.value) {
+      setPasscode();
+    } else {
+      $q.notify({
+        color: 'negative',
+        position: 'bottom',
+        message: $t('login.pin_mismatch'),
+        icon: 'dangerous',
+        timeout: 1500,
+      });
+      PIN.value = ''
+      PIN_repeat.value = ''
+      askPIN.value = true
+      confirmPIN.value = false
+    }
+  }
+})
 
 // functions
-function digitsChanged(newValue: string | number | null) {
-  if (
-    storeApp.hasPasscode &&
-    typeof newValue === 'string' &&
-    newValue.length === 6
-  ) {
-    verifyCode();
-  }
+
+function reset() {
+  PIN.value = ''
+  PIN_repeat.value = ''
+  askPIN.value = true
+  confirmPIN.value = false
 }
 
 async function verifyCode() {
@@ -115,7 +93,7 @@ async function verifyCode() {
     await storeAccounts.read();
     storeApp.unlockApp();
   } else {
-    PIN.value=''
+    reset()
     $q.notify({
       color: 'negative',
       position: 'bottom',
@@ -144,29 +122,35 @@ async function setPasscode() {
       message: $t('login.pin_error'),
       icon: 'report_problem',
     });
+    reset()
   }
 }
 
 function onForgotPin() {
   $q.dialog({
-        title: $t('login.confirm_reset.title'),
-        message: $t('login.confirm_reset.message'),
-        cancel: true,
-        focus: 'cancel',
-        color: 'red',
-        html: true,
-      }).onOk(async () => {
-        await storeAccounts.reset()
-        await storeApp.reset()
-        PIN.value = ''
-        PIN_repeat.value = ''
-      })
-
+    title: $t('login.confirm_reset.title'),
+    message: $t('login.confirm_reset.message'),
+    cancel: true,
+    focus: 'cancel',
+    color: 'red',
+    html: true,
+  }).onOk(async () => {
+    await storeAccounts.reset()
+    await storeApp.reset()
+    reset()
+    $q.notify({
+      color: 'positive',
+      position: 'bottom',
+      message: $t('login.pin_reset'),
+      icon: 'check',
+      timeout: 1000,
+    });
+  })
 }
 
 // hooks
 onMounted(async () => {
-  doWeHaveDeviceBiometrics.value = await storeApp.doWeHaveNativeBiometrics();
+  isBiometricsAvailable.value = await storeApp.isBiometricsAvailable();
 })
 
 </script>
