@@ -1,6 +1,7 @@
 <template>
-    <div class="q-mx-md">
-      <q-btn-dropdown v-if="accounts.length > 0" class="q-my-md full_width"
+  <div class="q-mx-md">
+    <div class="row items-center q-my-md">
+      <q-btn-dropdown class="col-10"
         no-caps
         rounded
       >
@@ -31,64 +32,60 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
-      <div class="q-py-md">
-        <q-btn
-        class="full_width"
-          color="primary"
-          icon="add"
-          label="Add an Account"
-          @click="onAddAccount"
+      <q-space />
+      <q-btn class="col-1 q-mr-md"
+        color="primary"
+        icon="add"
+        dense
+        rounded
+        push
+        @click="onAddAccount"
+      />
+    </div>
+    <q-tabs 
+      v-model="tab" 
+      inline-label
+      @update ="onTabUpdate"
+    >
+      <q-tab name="sessions" icon="fa-solid fa-id-card" :label="$t('accounts.sessions')" />
+      <q-tab name="keys" icon="key" :label="$t('accounts.keys')" />
+    </q-tabs>
+    <div v-if="tab === 'keys'" class="q-my-md" >
+      <q-list bordered>
+        <AccountKey
+          :name="selectedAccount.name"
+          keyType="active"
+          :keyValue="selectedAccount.keys.active"
         />
+        <q-separator />
+        <AccountKey
+          :name="selectedAccount.name"
+          keyType="posting"
+          :keyValue="selectedAccount.keys.posting"
+        />
+        <q-separator />
+        <AccountKey
+          :name="selectedAccount.name"
+          keyType="memo"
+          :keyValue="selectedAccount.keys.memo"
+        />
+        <q-separator />
+      </q-list>
+    </div>
+    <div v-if="tab === 'sessions'"  class="q-my-md">
+      <div v-if="auths.length > 0">
+        <q-list bordered>
+          <AccountSession v-for="(auth) in auths" :key = "auth.key"
+            :account = "selectedAccount"
+            :auth = "auth"
+          />
+        </q-list>
       </div>
-      <div v-if="accounts.length === 0" class="absolute-center">
-        {{ $t('accounts.empty') }}
-      </div>
-      <div v-else>
-        <q-tabs 
-          v-model="tab" 
-          inline-label
-          @update ="onTabUpdate"
-        >
-          <q-tab name="sessions" icon="fa-solid fa-id-card" :label="$t('accounts.sessions')" />
-          <q-tab name="keys" icon="key" :label="$t('accounts.keys')" />
-        </q-tabs>
-        <div v-if="tab === 'keys'" class="q-my-md" >
-          <q-list bordered>
-            <AccountKey
-              :name="selectedAccount.name"
-              keyType="active"
-              :keyValue="selectedAccount.keys.active"
-            />
-            <q-separator />
-            <AccountKey
-              :name="selectedAccount.name"
-              keyType="posting"
-              :keyValue="selectedAccount.keys.posting"
-            />
-            <q-separator />
-            <AccountKey
-              :name="selectedAccount.name"
-              keyType="memo"
-              :keyValue="selectedAccount.keys.memo"
-            />
-            <q-separator />
-          </q-list>
-        </div>
-        <div v-if="tab === 'sessions'"  class="q-my-md">
-          <div v-if="auths.length > 0">
-            <q-list bordered>
-              <AccountSession v-for="(auth) in auths" :key = "auth.key"
-                :account = "selectedAccount"
-                :auth = "auth"
-              />
-            </q-list>
-          </div>
-          <div v-else class="absolute-center" >
-            {{ $t('accounts.empty_sessions') }}
-          </div>
-        </div>
+      <div v-else class="absolute-center" >
+        {{ $t('accounts.empty_sessions') }}
       </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">

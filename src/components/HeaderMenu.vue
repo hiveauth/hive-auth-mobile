@@ -40,11 +40,13 @@
 
 <script setup lang="ts">
 import { ref, defineComponent } from 'vue';
-import { useAppStore } from 'src/stores/storeApp';
 import { useRouter } from 'vue-router';
+import { useAppStore } from 'src/stores/storeApp';
+import { useAccountsStore } from 'src/stores/storeAccounts';
 
-const storeApp = useAppStore();
 const router = useRouter();
+const storeApp = useAppStore();
+const storeAccounts = useAccountsStore();
 
 // data
 const tapCount = ref(0)
@@ -57,7 +59,11 @@ function onLock() {
 
 function onAccounts() {
   storeApp.menuOpen = false
-  router.push({ name: 'accounts' });
+  if(storeAccounts.accounts.length > 0) {
+    router.push({ name: 'accounts' });
+  } else {
+    router.push({ name: 'import-key' });
+  }
 }
 
 function onAbout() {

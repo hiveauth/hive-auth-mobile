@@ -15,16 +15,16 @@ export default {
 	  error_start_scan: "Permissions denied or Error when getting camera permissions",
 	},
 	login: {
-	  pin_label: "PIN code",
-	  pin_placeholder: "Enter your six digit PIN code",
-	  pin_repeat_label: "Confirm PIN code",
-	  pin_repeat_placeholder: "Confirm your six digit PIN code",
+		pin_create: "Choose your PIN code",
+		pin_confirm: "Confirm your PIN code",
+		pin_enter: "Enter your PIN code",
+		pin_mismatch: "PIN codes do not match!",
 		pin_forgotten: "Forgotten pin code?",
-	  btn_save: "Set PIN code",
-	  biometrics_unavailable: "Device Biometrics not available. Please enable them and restart the app.",
-	  failed: "Authentication failed",
 	  pin_init: "PIN code initialized",
-	  pin_error: "Error setting PIN code",
+	  pin_reset: "Reset done",
+	  pin_error: "Error initializing PIN code",
+	  failed: "Authentication failed",
+	  biometrics_unavailable: "Device Biometrics not available. Please enable them and restart the app.",
 		confirm_reset: {
 			title: "Confirm PIN reset",
 			message: '<span class="text-red"><b>WARNING:</b></span> If you reset your PIN, all data including keys and authentications will be cleared.<br>You will then need to re-import your keys.'
@@ -37,7 +37,7 @@ export default {
 	  biometrics_description: "Provide your FaceID or Touch ID to unlock HiveAuth",
 	},
   accounts: {
-    empty: "No Accounts found",
+		btn_add: "Add an Account",
     empty_sessions: "No sessions found",
     keys: "Keys",
     sessions: "Sessions",

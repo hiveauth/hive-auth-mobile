@@ -69,7 +69,7 @@ export const useAppStore = defineStore('storeApp', {
       this.hasPasscode = true;
     },
 
-    async doWeHaveNativeBiometrics() {
+    async isBiometricsAvailable() {
       const result = await NativeBiometric.isAvailable();
       return result.isAvailable === true;
     },
