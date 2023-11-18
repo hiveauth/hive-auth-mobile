@@ -56,6 +56,7 @@ import { useAccountsStore } from 'src/stores/storeAccounts';
 import { KeyRole, PrivateKey } from '@hiveio/dhive';
 
 import DialogScan from 'components/DialogScan.vue';
+import { idText } from 'typescript';
 
 const $q = useQuasar();
 const router = useRouter();
@@ -117,10 +118,10 @@ async function validateKey() {
     const publicKeys = await dhive.getPublicKeys(username.value);
     let publicKey: string | undefined = undefined
     try {
-      // try to derive public key from entered valud
+      // try to derive public key from entered value
       publicKey = PrivateKey.from(private_key.value).createPublic().toString()
     } catch(e) {
-      // failed - nothing to do as user can enter a master password or a keychain export
+      // failed - nothing to do as user can enter/scan a master password or a keychain export
     }
 
     let account = storeAccounts.accounts.find((o) => o.name === username.value);
@@ -152,7 +153,9 @@ async function validateKey() {
         account.keys.memo = private_key.value
         break
       default:
-        if (publicKey === publicKeys.active) {
+        if (publicKey === publicKeys.owner) {
+          throw new Error($t('import_key.error_owner_key'))
+        } else if (publicKey === publicKeys.active) {
           account.keys.active = private_key.value;
         } else if (publicKey === publicKeys.posting) {
           account.keys.posting = private_key.value;
@@ -245,16 +248,16 @@ function scanKey() {
       }
     }
     if (!username.value) {
-      // try to retrieve username from 
+      // try to retrieve username from the blockchain
       try {
-        // try to derive public key from entered valud
+        // try to derive public key from entered value
         const publicKey = PrivateKey.from(private_key.value).createPublic().toString()
         const res = await dhive.client.call('account_by_key_api','get_key_references', { "keys":[publicKey] } )
         if (res.accounts.length > 0 ) {
           username.value = res.accounts[0][0]
         }
       } catch(e) {
-        // failed - nothing to do as user can enter a master password or a keychain export
+        // failed - nothing to do as user can enter/scan a master password or a keychain export
         console.log((e as Error).message)
       }
     }

@@ -80,6 +80,7 @@ export default {
 		success: "Key is securely stored",
 		failed: "Failed to validate key",
 		no_match: "No matching key",
+		error_owner_key: "Importing an owner key is not allowed",
 		invalid: "Invalid {type} Key",
 		invalid_keychain_export: "The keychain export contains an invalid key",
 		username: {
