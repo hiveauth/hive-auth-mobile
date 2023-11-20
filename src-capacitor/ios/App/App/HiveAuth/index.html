@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HiveAuth App</title>
+  </head>
+  <body>
+    HiveAuth App
+  </body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.1.0/uuidv4.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+    integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js@2.0.7/dist/hive.min.js"></script>
+  <script>
+    function getProofOfKey(privateKey, publicKey, memo) {
+      const proofOfKey = hive.memo.encode(privateKey, publicKey, `#${memo}`);
+      replyToNative({
+        type: 'getProofOfKey',
+        error: '',
+        data: proofOfKey,
+      });
+    }
+
+    function decrypt(data, key) {
+      const result = CryptoJS.AES.decrypt(data, key).toString(
+        CryptoJS.enc.Utf8
+      );
+      replyToNative({
+        type: 'decrypt',
+        error: '',
+        data: result,
+      });
+    }
+
+    function encrypt(data, key) {
+      const result = CryptoJS.AES.encrypt(data, key).toString();
+      replyToNative({
+        type: 'encrypt',
+        error: '',
+        data: result,
+      });
+    }
+
+    function getPublicKey(key) {
+      const publicKey = hive.auth.wifToPublic(key);
+      replyToNative({
+        type: 'getPublicKey',
+        error: '',
+        data: publicKey,
+      });
+    }
+
+    function signChallenge(message, key) {
+      const publicKey = hive.auth.wifToPublic(key);
+      const sigHex = hive.auth.signMessage(message, key);
+      replyToNative({
+        type: 'signChallenge',
+        error: '',
+        data: `${publicKey}___${sigHex}`,
+      });
+    }
+
+    function validateHiveKey(account, userKey) {
+      hive.api
+        .getAccountsAsync([account])
+        .then(function (accounts) {
+          console.log('Accounts: ', accounts);
+          const publicPosting = accounts[0].posting.key_auths[0][0];
+          const publicActive = accounts[0].active.key_auths[0][0];
+          const publicMemo = accounts[0].memo_key;
+          const isItPostingKey = hive.auth.wifIsValid(userKey, publicPosting);
+          const isItActiveKey = hive.auth.wifIsValid(userKey, publicActive);
+          const isItMemoKey = hive.auth.wifIsValid(userKey, publicMemo);
+          const noKey = !isItPostingKey && !isItActiveKey && !isItMemoKey;
+          const keyType = isItPostingKey
+            ? 'posting'
+            : isItActiveKey
+            ? 'active'
+            : isItMemoKey
+            ? 'memo'
+            : '';
+          replyToNative({
+            type: 'validateHiveKey',
+            error: noKey ? 'Invalid Key' : '',
+            data: keyType,
+          });
+        })
+        .catch(function (err) {
+          console.log('Error: ', err);
+          replyToNative({
+            type: 'validateHiveKey',
+            error: err.message,
+            data: '',
+          });
+        });
+    }
+
+    function replyToNative(result) {
+      window.webkit.messageHandlers.app.postMessage(result);
+      // Android.postMessage(JSON.stringify(result));
+    }
+  </script>
+</html>
