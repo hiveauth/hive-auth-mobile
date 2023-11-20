@@ -861,6 +861,7 @@ async function processMessage(message: string) {
 let busy = false
 
 async function startWebsocket() {
+  console.log('websocket string');
   try {
     if (busy || wsClient!= null) return
     busy = true

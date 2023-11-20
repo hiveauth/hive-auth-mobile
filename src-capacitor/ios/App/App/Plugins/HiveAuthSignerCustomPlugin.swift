@@ -1,5 +1,5 @@
 //
-//  EchoPlugin.swift
+//  HiveAuthSignerCustomPlugin.swift
 //  App
 //
 //  Created by Sagar on 16/11/23.
@@ -9,8 +9,8 @@ import Foundation
 
 import Capacitor
 
-@objc(HASCustomPlugin)
-public class HASCustomPlugin: CAPPlugin {
+@objc(HiveAuthSignerCustomPlugin)
+public class HiveAuthSignerCustomPlugin: CAPPlugin {
 
     var pluginViewController = UIStoryboard(
         name: "Main",
@@ -38,12 +38,19 @@ public class HASCustomPlugin: CAPPlugin {
             let key = call.getString("key")
         else { return }
 
-        pluginViewController?.handlers[callId] = { result in
+        if method != "getDeepLinkData" {
+            pluginViewController?.handlers[callId] = { result in
+                call.resolve([
+                    "callId": callId,
+                    "info": [
+                        "dataString": result
+                    ]
+                ])
+            }
+        } else {
             call.resolve([
                 "callId": callId,
-                "info": [
-                    "dataString": result
-                ]
+                "dataString": ""
             ])
         }
 
@@ -59,8 +66,10 @@ public class HASCustomPlugin: CAPPlugin {
         } else if method == "getPublicKey" {
             pluginViewController?.webView?
                 .evaluateJavaScript("getPublicKey('\(privateKey)');")
-        } else if method == "getDeepLinkData" {
-            // TO-DO: - How do we do this? 🤷‍♂️
-        }
+        } 
+
+//        else if method == "getDeepLinkData" {
+//            // TO-DO: - How do we do this? 🤷‍♂️
+//        }
     }
 }

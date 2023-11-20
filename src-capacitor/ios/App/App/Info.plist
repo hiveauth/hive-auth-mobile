@@ -47,5 +47,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Allow HiveAuth to Scan Barcodes</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Allow HiveAuth to perform FaceID/TouchID</string>
 </dict>
 </plist>
