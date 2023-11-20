@@ -46,8 +46,19 @@
           dense
           icon="fa fa-circle-nodes"
           :color="storeApp.isHASConnected ? 'grey-4' : 'red'"
+          @click="onClickNode"
         />
-        <div>{{ HASServer?.replaceAll('wss://', '') }} ({{Number(HASProtocol).toFixed(1)}})</div>
+        <div v-if="showNode">
+          {{ HASServer?.replaceAll('wss://', '') }} ({{Number(HASProtocol).toFixed(1)}})
+        </div>
+        <div v-else>
+          <div v-if="storeApp.isHASConnected" class="text-grey-4">
+            {{ $t('main_layout.connected') }}
+          </div>
+          <div v-else class="text-red">
+            {{ $t('main_layout.disconnected') }}
+          </div>
+        </div>
       </q-toolbar>
     </q-footer>
   </q-layout>
@@ -165,10 +176,15 @@ let wsClient: WebSocket | null = null
 // data
 const HASServer = ref(DEFAULT_HAS_SERVER)
 const HASProtocol = ref(0)
+const showNode = ref(false)
 
 // functions
 function dateISO(date: Date) {
   return date.toISOString().replace(/T|Z/g, ' ')
+}
+
+function onClickNode() {
+  showNode.value = !showNode.value
 }
 
 function hideEncryptedData(str: string) {
@@ -386,12 +402,12 @@ async function approveAuthRequest(payload: IAuthReq, account: IAccount, auth_key
     // If not provided, the default expiration time for an auth_key is 24 hours
     auth_ack_data = { expire: Date.now() + (timeout ? timeout : (24 * 60 * 60 * 1000)) }
   }
-  
+
   // TODO: remove protocol v0.8 support
   if(HAS_SUPPORT_V08) {
     auth_ack_data.token = uid()
   }
-  
+
   // Check if the app also requires the PKSA to sign a challenge
   if(auth_req_data.challenge) {
     const challenge_data = auth_req_data.challenge
@@ -488,7 +504,7 @@ function processAuthReqPayload(auth_req_payload: IAuthReqPayload) {
         position: 'bottom',
         message: (e as Error).message,
         icon: 'report_problem',
-      })      
+      })
   }
 }
 
@@ -565,7 +581,7 @@ async function validatePayload(payload: ISignReq | IChallengeReq) {
         if (decoded && decoded !== '') {
           const data = JSON.parse(decoded);
           if (data !== '') {
-            
+
             // TODO: remove protocol v0.8 support
             if(HAS_SUPPORT_V08 && !data.nonce) {
               // create fake nonce
@@ -620,7 +636,7 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
         // ops require posting key -> it can be whitelisted
         askWhitelist = true
         // count distinct ops requiring posting key
-        opSet.add(opType) 
+        opSet.add(opType)
       }
     }
   }
@@ -906,7 +922,7 @@ function processQRDL(value: string) {
       account: result.account,
       uuid: result.uuid,
       key: result.key,
-      host: result.host?.replace(/\/$/, ""),  // remove trailing slash
+      host: result.host?.replace(/\/$/, ''),  // remove trailing slash
     }  as IAuthReqPayload;
 
     // IF the PKSA is not yet connected to a HAS node, use the provided host and connect
@@ -921,7 +937,7 @@ function processQRDL(value: string) {
         $q.notify({
           color: 'negative',
           position: 'bottom',
-          message: `Node switching not implemented yet`,
+          message: 'Node switching not implemented yet',
           icon: 'report_problem',
         })
         return

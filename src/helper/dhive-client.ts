@@ -1,8 +1,9 @@
 import { Client, PrivateKey } from '@hiveio/dhive';
 
 export interface IPublicKeys {
-  posting: string;
+  owner: string;
   active: string;
+  posting: string;
   memo: string;
 }
 const client = new Client([
@@ -32,6 +33,7 @@ async function getPublicKeys(username: string): Promise<IPublicKeys> {
       throw new Error(`User '${username}' not found.`);
     }
     return {
+      owner: account[0].owner.key_auths[0][0],
       active: account[0].active.key_auths[0][0],
       memo: account[0].memo_key,
       posting: account[0].posting.key_auths[0][0],
