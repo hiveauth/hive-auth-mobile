@@ -48,10 +48,22 @@ public class HiveAuthSignerCustomPlugin: CAPPlugin {
                 ])
             }
         } else {
-            call.resolve([
-                "callId": callId,
-                "dataString": ""
-            ])
+            OperationQueue.main.addOperation {
+                guard
+                    let appDel = UIApplication.shared.delegate as? AppDelegate
+                else {
+                    call.resolve([
+                        "callId": callId,
+                        "dataString": ""
+                    ])
+                    return
+                }
+                call.resolve([
+                    "callId": callId,
+                    "dataString": appDel.deeplink ?? ""
+                ])
+                appDel.deeplink = nil
+            }
         }
 
         if method == "getProofOfKey" {
