@@ -25,6 +25,7 @@ class PluginViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupWebView()
     }
 
     func setupWebView() {

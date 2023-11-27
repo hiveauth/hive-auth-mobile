@@ -42,9 +42,7 @@ public class HiveAuthSignerCustomPlugin: CAPPlugin {
             pluginViewController?.handlers[callId] = { result in
                 call.resolve([
                     "callId": callId,
-                    "info": [
-                        "dataString": result
-                    ]
+                    "dataString": result
                 ])
             }
         } else {
@@ -67,18 +65,26 @@ public class HiveAuthSignerCustomPlugin: CAPPlugin {
         }
 
         if method == "getProofOfKey" {
-            pluginViewController?.webView?
-                .evaluateJavaScript("getProofOfKey('\(privateKey)','\(publicKey)','\(memo)');")
+            OperationQueue.main.addOperation {
+                self.pluginViewController?.webView?
+                    .evaluateJavaScript("getProofOfKey('\(privateKey)','\(publicKey)','\(memo)', '\(callId)');")
+            }
         } else if method == "signChallenge" {
-            pluginViewController?.webView?
-                .evaluateJavaScript("signChallenge('\(challenge)','\(key)');")
+            OperationQueue.main.addOperation {
+                self.pluginViewController?.webView?
+                    .evaluateJavaScript("signChallenge('\(challenge)','\(key)', '\(callId)');")
+            }
         } else if method == "decrypt" {
-            pluginViewController?.webView?
-                .evaluateJavaScript("decrypt('\(challenge)','\(privateKey)');")
+            OperationQueue.main.addOperation {
+                self.pluginViewController?.webView?
+                    .evaluateJavaScript("decrypt('\(challenge)','\(privateKey)', '\(callId)');")
+            }
         } else if method == "getPublicKey" {
-            pluginViewController?.webView?
-                .evaluateJavaScript("getPublicKey('\(privateKey)');")
-        } 
+            OperationQueue.main.addOperation {
+                self.pluginViewController?.webView?
+                    .evaluateJavaScript("getPublicKey('\(privateKey)', '\(callId)');")
+            }
+        }
 
 //        else if method == "getDeepLinkData" {
 //            // TO-DO: - How do we do this? 🤷‍♂️

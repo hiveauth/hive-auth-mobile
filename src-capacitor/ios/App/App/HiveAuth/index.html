@@ -18,16 +18,17 @@
   ></script>
   <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js@2.0.7/dist/hive.min.js"></script>
   <script>
-    function getProofOfKey(privateKey, publicKey, memo) {
+    function getProofOfKey(privateKey, publicKey, memo, id) {
       const proofOfKey = hive.memo.encode(privateKey, publicKey, `#${memo}`);
       replyToNative({
         type: 'getProofOfKey',
         error: '',
         data: proofOfKey,
+        id: id,
       });
     }
 
-    function decrypt(data, key) {
+    function decrypt(data, key, id) {
       const result = CryptoJS.AES.decrypt(data, key).toString(
         CryptoJS.enc.Utf8
       );
@@ -35,38 +36,42 @@
         type: 'decrypt',
         error: '',
         data: result,
+        id: id,
       });
     }
 
-    function encrypt(data, key) {
+    function encrypt(data, key, id) {
       const result = CryptoJS.AES.encrypt(data, key).toString();
       replyToNative({
         type: 'encrypt',
         error: '',
         data: result,
+        id: id,
       });
     }
 
-    function getPublicKey(key) {
+    function getPublicKey(key, id) {
       const publicKey = hive.auth.wifToPublic(key);
       replyToNative({
         type: 'getPublicKey',
         error: '',
         data: publicKey,
+        id: id,
       });
     }
 
-    function signChallenge(message, key) {
+    function signChallenge(message, key, id) {
       const publicKey = hive.auth.wifToPublic(key);
       const sigHex = hive.auth.signMessage(message, key);
       replyToNative({
         type: 'signChallenge',
         error: '',
         data: `${publicKey}___${sigHex}`,
+        id: id,
       });
     }
 
-    function validateHiveKey(account, userKey) {
+    function validateHiveKey(account, userKey, id) {
       hive.api
         .getAccountsAsync([account])
         .then(function (accounts) {
@@ -89,6 +94,7 @@
             type: 'validateHiveKey',
             error: noKey ? 'Invalid Key' : '',
             data: keyType,
+            id: id,
           });
         })
         .catch(function (err) {
@@ -97,6 +103,7 @@
             type: 'validateHiveKey',
             error: err.message,
             data: '',
+            id: id,
           });
         });
     }
