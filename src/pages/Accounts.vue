@@ -23,7 +23,7 @@
           >
             <q-item-section avatar>
               <q-avatar>
-                <q-img :src="storeApp.getAvatar(account.name)" />
+                <q-img :src="storeApp.getAvatar(account.name)" no-spinner />
               </q-avatar>
             </q-item-section>
             <q-item-section>

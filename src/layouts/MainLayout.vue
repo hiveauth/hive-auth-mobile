@@ -13,7 +13,7 @@
           <q-item>
             <q-item-section top avatar>
               <q-avatar size="40px" class="q-mb-sm">
-                <q-img src="~assets/logo.svg" />
+                <q-img src="~assets/logo.svg" no-spinner />
               </q-avatar>
             </q-item-section>
             <q-item-section>

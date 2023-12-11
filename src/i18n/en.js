@@ -44,14 +44,14 @@ export default {
   },
 	accounts_key: {
 		confirm_delete_key: {
-			title: 'Delete Key',
-			message:'Are you sure you want to delete this key?'
+			title: 'Remove Key',
+			message:'Are you sure you want to remove this key?'
 		},
 		confirm_delete_account: {
-			title: 'Account deletion',
-			message: 'Deleting that key will also delete the account. Do you want to continue?',
+			title: 'Remove Account',
+			message: 'Removing that key will also remove the account. Do you want to continue?',
 		},
-    deleted: 'Key has been deleted',
+    deleted: 'The key has been removed',
 	},
 	account_session: {
 		expires: 'Expires',
@@ -105,7 +105,7 @@ export default {
     disconnected: 'disconnected',
 		registered: ' registered',
 		auth_ack: 'Authentication approved',
-		sign_ack: 'Transaction broadcasted',
+		sign_ack: 'Transaction signed',
 		challenge_ack: 'Challenge signed',
 		auth_not_found: 'No valid authentication found',
 		account_not_found: 'Account {name} is not managed',

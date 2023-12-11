@@ -2,8 +2,8 @@
   <q-expansion-item group="sessions-group" class="q-py-sm" dense-toggle>
     <template v-slot:header>
       <q-item-section avatar>
-        <q-img v-if="auth.app.icon" :src="auth.app.icon" style="height: 40px; max-width: 40px" />
-        <q-img v-else src="~assets/app-noicon.png" style="height: 40px; max-width: 40px"/>
+        <q-img v-if="auth.app.icon" :src="auth.app.icon" no-spinner style="height: 40px; max-width: 40px" />
+        <q-img v-else src="~assets/app-noicon.png" no-spinner style="height: 40px; max-width: 40px"/>
       </q-item-section>
       <q-item-section>
         <q-item-label class="text-bold">{{ storeApp.capitalize(auth.app.name) }} </q-item-label>

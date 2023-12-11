@@ -3,7 +3,7 @@
     <q-card class="q-dialog-plugin">
       <q-card-section class="row items-center">
         <q-avatar size="40px">
-          <q-img :src="storeApp.getAvatar(username)" />
+          <q-img :src="storeApp.getAvatar(username)" no-spinner />
         </q-avatar>
         <span class="q-ml-md text-bold">{{ username }}</span>
       </q-card-section>
