@@ -1,5 +1,10 @@
 <template>
-  <q-expansion-item group="sessions-group" class="q-py-sm" dense dense-toggle expand-icon-class="text-red-10">
+  <q-expansion-item group="ops-group" class="q-py-sm" 
+    :default-opened="expanded"
+    dense
+    dense-toggle 
+    expand-icon-class="text-red-10"
+  >
     <template v-slot:header>
       <q-item-section>
         {{ op[0] }}
@@ -68,6 +73,11 @@ const props = defineProps({
   op: {
     type: Object,
     required: true,
+  },
+  expanded: {
+    type: Boolean,
+    required: false,
+    default: false
   }
 });
 

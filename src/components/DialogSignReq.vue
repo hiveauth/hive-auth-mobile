@@ -9,6 +9,7 @@
         <q-list bordered style="max-height: 40vh" class="scroll">
             <operation-details v-for="op in sign_req_data.ops" :key="op"
               :op="op"
+              :expanded="showDetails"
               class="bg-grey-2"
             />
         </q-list>
@@ -82,6 +83,10 @@ const props = defineProps({
   },
   sign_req_data: {
     type: Object,
+    required: true,
+  },
+  showDetails: {
+    type: Boolean,
     required: true,
   },
   askWhitelist: {

@@ -91,8 +91,6 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n(), $t = t
 
 const PKSA_NAME = 'HiveAuth Mobile'
-const KEYTYPES_MPA = ['memo','posting','active'] // Types sorted by permission level - do not change it
-const KEYTYPES_PA = ['posting','active'] // Types sorted by permission level - do not change it
 const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
 
 const HAS_PROTOCOL = [0.8, 1.0]     // supported HAS protocol versions
@@ -106,68 +104,76 @@ const storeApp = useAppStore()
 const storeAccounts = useAccountsStore();
 const router = useRouter();
 
-const operations = [
-  { type:'account_create', key:'active'},
-  { type:'account_create_with_delegation', key:'active'},
-  { type:'account_update', key:'active'},
-  { type:'account_update2', key:'active'},
-  { type:'account_witness_proxy', key:'active'},
-  { type:'account_witness_vote', key:'active'},
-  { type:'cancel_transfer_from_savings', key:'active'},
-  { type:'challenge_authority', key:'active'},
-  { type:'change_recovery_account', key:'owner'},
-  { type:'claim_account', key:'active'},
-  { type:'claim_reward_balance', key:'posting'},
-  { type:'claim_reward_balance2', key:'posting'},
-  { type:'collateralized_convert', key:'active'},
-  { type:'comment', key:'posting'},
-  { type:'comment_options', key:'posting'},
-  { type:'convert', key:'active'},
-  { type:'create_claimed_account', key:'active'},
-  { type:'create_proposal', key:'posting'},
-  { type:'custom', key:'active'},
-  { type:'custom_binary', key:'posting'},
-  { type:'custom_json', key:'posting'},
-  { type:'decline_voting_rights', key:'owner'},
-  { type:'delegate_vesting_shares', key:'active'},
-  { type:'delete_comment', key:'posting'},
-  { type:'escrow_approve', key:'active'},
-  { type:'escrow_dispute', key:'active'},
-  { type:'escrow_release', key:'active'},
-  { type:'escrow_transfer', key:'active'},
-  { type:'feed_publish', key:'active'},
-  { type:'limit_order_cancel', key:'active'},
-  { type:'limit_order_create', key:'active'},
-  { type:'limit_order_create2', key:'active'},
-  { type:'pow', key:'active'},
-  { type:'pow2', key:'active'},
-  { type:'price', key:'active'},
-  { type:'prove_authority', key:'active'},
-  { type:'recover_account', key:'owner'},
-  { type:'recurrent_transfer', key:'active'},
-  { type:'remove_proposal', key:'posting'},
-  { type:'report_over_production', key:'active'},
-  { type:'request_account_recovery', key:'active'},
-  { type:'reset_account', key:'active'},
-  { type:'set_reset_account', key:'owner'},
-  { type:'set_withdraw_vesting_route', key:'active'},
-  { type:'smt_contribute', key:'active'},
-  { type:'smt_create', key:'active'},
-  { type:'smt_set_runtime_parameters', key:'active'},
-  { type:'smt_set_setup_parameters', key:'active'},
-  { type:'smt_setup', key:'active'},
-  { type:'smt_setup_emissions', key:'active'},
-  { type:'transfer', key:'active'},
-  { type:'transfer_from_savings', key:'active'},
-  { type:'transfer_to_savings', key:'active'},
-  { type:'transfer_to_vesting', key:'active'},
-  { type:'update_proposal', key:'posting'},
-  { type:'update_proposal_votes', key:'posting'},
-  { type:'vote', key:'posting'},
-  { type:'vote2', key:'posting'},
-  { type:'withdraw_vesting', key:'active'},
-  { type:'witness_set_properties', key:'active'},
-  { type:'witness_update', key:'active'},
+const KOWNER = 'owner'
+const KACTIVE = 'active'
+const KPOSTING = 'posting'
+const KMEMO = 'memo'
+
+const KEYTYPES_MPA = [KMEMO,KPOSTING,KACTIVE] // WARNING: sorted by permission level - do not change it
+const KEYTYPES_PA = [KPOSTING,KACTIVE]        // WARNING: sorted by permission level - do not change it
+
+const OPERATIONS = [
+  { type:'account_create', key:KACTIVE},
+  { type:'account_create_with_delegation', key:KACTIVE},
+  { type:'account_update', key:KACTIVE},
+  { type:'account_update2', key:KACTIVE},
+  { type:'account_witness_proxy', key:KACTIVE},
+  { type:'account_witness_vote', key:KACTIVE},
+  { type:'cancel_transfer_from_savings', key:KACTIVE},
+  { type:'challenge_authority', key:KACTIVE},
+  { type:'change_recovery_account', key:KOWNER},
+  { type:'claim_account', key:KACTIVE},
+  { type:'claim_reward_balance', key:KPOSTING},
+  { type:'claim_reward_balance2', key:KPOSTING},
+  { type:'collateralized_convert', key:KACTIVE},
+  { type:'comment', key:KPOSTING},
+  { type:'comment_options', key:KPOSTING},
+  { type:'convert', key:KACTIVE},
+  { type:'create_claimed_account', key:KACTIVE},
+  { type:'create_proposal', key:KPOSTING},
+  { type:'custom', key:KACTIVE},
+  { type:'custom_binary', key:KPOSTING},
+  { type:'custom_json', key:KPOSTING},
+  { type:'decline_voting_rights', key:KOWNER},
+  { type:'delegate_vesting_shares', key:KACTIVE},
+  { type:'delete_comment', key:KPOSTING},
+  { type:'escrow_approve', key:KACTIVE},
+  { type:'escrow_dispute', key:KACTIVE},
+  { type:'escrow_release', key:KACTIVE},
+  { type:'escrow_transfer', key:KACTIVE},
+  { type:'feed_publish', key:KACTIVE},
+  { type:'limit_order_cancel', key:KACTIVE},
+  { type:'limit_order_create', key:KACTIVE},
+  { type:'limit_order_create2', key:KACTIVE},
+  { type:'pow', key:KACTIVE},
+  { type:'pow2', key:KACTIVE},
+  { type:'price', key:KACTIVE},
+  { type:'prove_authority', key:KACTIVE},
+  { type:'recover_account', key:KOWNER},
+  { type:'recurrent_transfer', key:KACTIVE},
+  { type:'remove_proposal', key:KPOSTING},
+  { type:'report_over_production', key:KACTIVE},
+  { type:'request_account_recovery', key:KACTIVE},
+  { type:'reset_account', key:KACTIVE},
+  { type:'set_reset_account', key:KOWNER},
+  { type:'set_withdraw_vesting_route', key:KACTIVE},
+  { type:'smt_contribute', key:KACTIVE},
+  { type:'smt_create', key:KACTIVE},
+  { type:'smt_set_runtime_parameters', key:KACTIVE},
+  { type:'smt_set_setup_parameters', key:KACTIVE},
+  { type:'smt_setup', key:KACTIVE},
+  { type:'smt_setup_emissions', key:KACTIVE},
+  { type:'transfer', key:KACTIVE},
+  { type:'transfer_from_savings', key:KACTIVE},
+  { type:'transfer_to_savings', key:KACTIVE},
+  { type:'transfer_to_vesting', key:KACTIVE},
+  { type:'update_proposal', key:KPOSTING},
+  { type:'update_proposal_votes', key:KPOSTING},
+  { type:'vote', key:KPOSTING},
+  { type:'vote2', key:KPOSTING},
+  { type:'withdraw_vesting', key:KACTIVE},
+  { type:'witness_set_properties', key:KACTIVE},
+  { type:'witness_update', key:KACTIVE},
 ]
 
 let key_server: string | null = null
@@ -223,11 +229,11 @@ function getPrivateKey(name: string, type: string) {
   assert(account, `Unknown account ${name}`)
 
   switch (type) {
-    case 'posting':
+    case KPOSTING:
       return account.keys.posting;
-    case 'active':
+    case KACTIVE:
       return account.keys.active;
-    case 'memo':
+    case KMEMO:
       return account.keys.memo;
     default:
       throw new Error(`Invalid key type ${type}`);
@@ -295,13 +301,13 @@ async function getDecryptedChallenge(challenge: string, key: string) {
 async function checkKeys(account: IAccount) {
   const publicKeys = await dhiveClient.getPublicKeys(account.name);
   if (account.keys.active) {
-    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.active))==publicKeys.active,'active')
+    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.active))==publicKeys.active,KACTIVE)
   }
   if (account.keys.posting) {
-    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.posting))==publicKeys.posting,'posting')
+    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.posting))==publicKeys.posting,KPOSTING)
   }
   if (account.keys.memo) {
-    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.memo))==publicKeys.memo,'memo')
+    assert(dhiveClient.publicKeyFrom(dhiveClient.privateKeyFromString(account.keys.memo))==publicKeys.memo,KMEMO)
   }
 }
 
@@ -620,9 +626,9 @@ function checkTransaction(sign_req_data: ISignReqData, auth: IAccountAuth) {
 
   for (const op of (sign_req_data.ops as Op[])) {
     const opType = op[0]
-    const opInfo = operations.find(o => o.type == opType)
+    const opInfo = OPERATIONS.find(o => o.type == opType)
     assert(opInfo, `Unknown operation ${opType}`)
-    assert(opInfo.key!='owner', 'Transaction requires owner key')
+    assert(opInfo.key!=KOWNER, 'Transaction requires owner key')
 
     if (opType == 'custom_json' && op[1].required_auths.length > 0) {
       level = 1
@@ -717,6 +723,7 @@ async function handleSignReq(payload: ISignReq) {
           username: payload.account,
           auth: auth,
           sign_req_data: sign_req_data,
+          showDetails: (keyType==KACTIVE),
           askWhitelist: check.askWhitelist,
           opType: opType,
           expire: payload.expire,

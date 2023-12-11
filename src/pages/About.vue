@@ -18,7 +18,7 @@
       <q-item
         clickable
         v-ripple
-        @click="openLink('https://discord.gg/Tk5dkAgQPh')"
+        @click="openLink('https://discord.gg/VxtYPatjPG')"
       >
         <q-item-section top avatar>
           <q-avatar size="40px" class="q-mb-sm">
