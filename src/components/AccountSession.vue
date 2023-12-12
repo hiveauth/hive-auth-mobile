@@ -84,9 +84,10 @@ function onDeleteAuth() {
     color: 'red',
     persistent: true
   }).onOk(async () => {
-    props.account.auths = props.account.auths.filter(o => o.key != props.auth.key)
+    const account = props.account
+    account.auths = props.account.auths.filter(o => o.key != props.auth.key)
     storeAccounts.updateAccount(props.account)
-  }
+  })
 }
 
 function onDeleteWhitelist(op: string) {

@@ -2,7 +2,7 @@
   <q-item>
     <q-item-section avatar>
       <q-avatar>
-        <q-icon name="key" color="primary" size="1.25rem" />
+        <q-icon v-if="!keyMissing" name="key" color="primary" size="1.25rem" />
       </q-avatar>
     </q-item-section>
     <q-item-section>

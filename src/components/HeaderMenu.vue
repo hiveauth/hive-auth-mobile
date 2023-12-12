@@ -1,5 +1,21 @@
 <template>
   <q-list padding>
+    <div v-if="storeAccounts.lastAccountName != ''">
+      <q-item class="row justify-center q-mt-lg">
+        <q-avatar size="5rem">
+          <img :src="storeApp.getAvatar(storeAccounts.lastAccountName)"/>
+        </q-avatar>
+      </q-item>
+      <q-item class="row justify-center text-h6 q-pt-none">
+        @{{storeAccounts.lastAccountName}}
+      </q-item>
+    </div>
+    <q-item v-else class="row justify-center q-mt-lg">
+      <q-avatar size="5rem">
+          <img src="~assets/logo.svg"/>
+        </q-avatar>
+      </q-item>
+    <q-separator dark spaced />
     <q-item clickable v-ripple @click="onAccounts">
       <q-item-section avatar>
         <q-icon name="people" />

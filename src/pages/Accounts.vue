@@ -3,7 +3,6 @@
     <div class="row items-center q-my-md">
       <q-btn-dropdown class="col-10"
         no-caps
-        rounded
       >
         <template v-slot:label>
           <q-item-section avatar>
@@ -37,7 +36,6 @@
         color="primary"
         icon="add"
         dense
-        rounded
         push
         @click="onAddAccount"
       />
@@ -54,14 +52,14 @@
       <q-list bordered>
         <AccountKey
           :name="selectedAccount.name"
-          keyType="active"
-          :keyValue="selectedAccount.keys.active"
+          keyType="posting"
+          :keyValue="selectedAccount.keys.posting"
         />
         <q-separator />
         <AccountKey
           :name="selectedAccount.name"
-          keyType="posting"
-          :keyValue="selectedAccount.keys.posting"
+          keyType="active"
+          :keyValue="selectedAccount.keys.active"
         />
         <q-separator />
         <AccountKey
