@@ -92,7 +92,7 @@ function reset() {
 async function verifyCode() {
   const biometricsResult = await storeApp.performBiometrics();
   if (biometricsResult && storeApp.isValidPasscode(PIN.value)) {
-    await storeAccounts.read();
+    await storeAccounts.read(PIN.value);
     storeApp.unlockApp();
   } else {
     reset()
@@ -109,7 +109,7 @@ async function setPasscode() {
   try {
     await storeApp.setPasscodeToBiometrics(PIN.value);
     await storeApp.readPasscodeFromBiometrics();
-    await storeAccounts.read();
+    await storeAccounts.read(PIN.value);
     storeApp.unlockApp();
     router.push({name: "import-key"})
     $q.notify({

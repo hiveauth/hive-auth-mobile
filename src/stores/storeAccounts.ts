@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
+import CryptoJS from 'crypto-js';
 
 export interface IAccountKeys {
   posting?: string;
@@ -29,11 +30,16 @@ export interface IAccount {
   auths: IAccountAuth[];
 }
 
+const STORE_VERSION = 1
+let key = ""
+
 export const useAccountsStore = defineStore('storeAccounts', {
+
   state: () => ({
     accounts: [] as IAccount[],
     lastAccountName: '',
     lastAccountTab: '',
+    storeVersion: 0
   }),
   actions: {
     clean() {
@@ -42,12 +48,18 @@ export const useAccountsStore = defineStore('storeAccounts', {
       }
     },
 
-    async read() {
+    async read(pinCode: string) {
+      key = pinCode
       try {
-        await SecureStorage.setSynchronize(false);
+        await SecureStorage.setSynchronize(false)
 
-        const accounts = (await SecureStorage.get('accounts')) as string;
+        const storeVersion = (await SecureStorage.get('version')) as number
+
+        let accounts = (await SecureStorage.get('accounts')) as string
         if ( accounts && accounts.length > 0 ) {
+          if(storeVersion > 0) {
+            accounts = CryptoJS.AES.decrypt(accounts, key).toString(CryptoJS.enc.Utf8)
+          }
           this.accounts = (JSON.parse(accounts) as IAccount[]).filter(o => !Object.values(o.keys).every(el => el === undefined))
           this.clean()
         }
@@ -66,7 +78,8 @@ export const useAccountsStore = defineStore('storeAccounts', {
       try {
         this.clean()
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('accounts', JSON.stringify(this.accounts));
+        await SecureStorage.set('storeVersion', STORE_VERSION);
+        await SecureStorage.set('accounts', CryptoJS.AES.encrypt(JSON.stringify(this.accounts),key).toString())
         await SecureStorage.set('lastAccountName', this.lastAccountName);
         await SecureStorage.set('lastAccountTab', this.lastAccountTab);
       } catch (e) {
