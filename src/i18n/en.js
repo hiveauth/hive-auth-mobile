@@ -51,7 +51,8 @@ export default {
 			title: 'Remove Account',
 			message: 'Removing that key will also remove the account. Do you want to continue?',
 		},
-    deleted: 'The key has been removed',
+	account_deleted: 'The account has been removed',
+    key_deleted: 'The key has been removed',
 	},
 	account_session: {
 		expires: 'Expires',

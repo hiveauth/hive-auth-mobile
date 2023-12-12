@@ -37,11 +37,9 @@ const storeApp = useAppStore();
 const logs = ref(storeApp.logs)
 
 // functions
-async function copyKeyToClipboard(string: string) {
+async function copyKeyToClipboard(str: string) {
   try {
-    await Clipboard.write({
-      string: string,
-    });
+    await Clipboard.write({string: str});
     $q.notify({
       color: 'positive',
       position: 'bottom',

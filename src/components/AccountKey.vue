@@ -105,6 +105,15 @@ async function onDeleteKey() {
       }).onOk(async () => {
         storeAccounts.updateLastAccountName('')
         await storeAccounts.deleteAccount(account.name)
+        $q.notify({
+          color: 'warning',
+          position: 'bottom',
+          message: $t('accounts_key.account_deleted'),
+          icon: 'fa fa-trash-can',
+        });
+        if(storeAccounts.accounts.length==0) {
+          router.push({ name: 'import-key' });
+        }
       })
     } else {
       // Ask user to confirm key deletion
@@ -121,7 +130,7 @@ async function onDeleteKey() {
         $q.notify({
           color: 'positive',
           position: 'bottom',
-          message: $t('accounts_key.deleted'),
+          message: $t('accounts_key.key_deleted'),
           icon: 'fa fa-trash-can',
         });
       })

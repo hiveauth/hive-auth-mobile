@@ -30,8 +30,13 @@ export interface IAccount {
   auths: IAccountAuth[];
 }
 
-const STORE_VERSION = 1
-let key = ""
+const VERSION = 1
+const KEY_VERSION = 'version'
+const KEY_ACCOUNTS = 'accounts'
+const KEY_LASTACCOUNTNAME = 'lastAccountName'
+const KEY_LASTACCOUNTTAB = 'lastAccountTab'
+
+let encryptionKey = ""
 
 export const useAccountsStore = defineStore('storeAccounts', {
 
@@ -39,7 +44,6 @@ export const useAccountsStore = defineStore('storeAccounts', {
     accounts: [] as IAccount[],
     lastAccountName: '',
     lastAccountTab: '',
-    storeVersion: 0
   }),
   actions: {
     clean() {
@@ -49,25 +53,25 @@ export const useAccountsStore = defineStore('storeAccounts', {
     },
 
     async read(pinCode: string) {
-      key = pinCode
+      encryptionKey = pinCode
       try {
         await SecureStorage.setSynchronize(false)
 
-        const storeVersion = (await SecureStorage.get('version')) as number
+        const version = (await SecureStorage.get(KEY_VERSION)) as number
 
-        let accounts = (await SecureStorage.get('accounts')) as string
+        let accounts = (await SecureStorage.get(KEY_ACCOUNTS)) as string
         if ( accounts && accounts.length > 0 ) {
-          if(storeVersion > 0) {
-            accounts = CryptoJS.AES.decrypt(accounts, key).toString(CryptoJS.enc.Utf8)
+          if(version > 0) {
+            accounts = CryptoJS.AES.decrypt(accounts, encryptionKey).toString(CryptoJS.enc.Utf8)
           }
           this.accounts = (JSON.parse(accounts) as IAccount[]).filter(o => !Object.values(o.keys).every(el => el === undefined))
           this.clean()
         }
-        const lastAccountName = (await SecureStorage.get('lastAccountName')) as string;
+        const lastAccountName = (await SecureStorage.get(KEY_LASTACCOUNTNAME)) as string;
         if (lastAccountName && lastAccountName.length > 0) {
           this.lastAccountName = this.accounts.some(o => o.name ==lastAccountName) ? lastAccountName : this.accounts.length > 0 ? this.accounts[0].name : '';
         }
-        this.lastAccountTab = (await SecureStorage.get('lastAccountTab')) as string;
+        this.lastAccountTab = (await SecureStorage.get(KEY_LASTACCOUNTTAB)) as string;
       } catch (e) {
         console.error(`storeAccounts.read failed - ${(e as Error).message}`);
       }
@@ -78,10 +82,10 @@ export const useAccountsStore = defineStore('storeAccounts', {
       try {
         this.clean()
         await SecureStorage.setSynchronize(false);
-        await SecureStorage.set('storeVersion', STORE_VERSION);
-        await SecureStorage.set('accounts', CryptoJS.AES.encrypt(JSON.stringify(this.accounts),key).toString())
-        await SecureStorage.set('lastAccountName', this.lastAccountName);
-        await SecureStorage.set('lastAccountTab', this.lastAccountTab);
+        await SecureStorage.set(KEY_VERSION, VERSION);
+        await SecureStorage.set(KEY_ACCOUNTS, CryptoJS.AES.encrypt(JSON.stringify(this.accounts),encryptionKey).toString())
+        await SecureStorage.set(KEY_LASTACCOUNTNAME, this.lastAccountName);
+        await SecureStorage.set(KEY_LASTACCOUNTTAB, this.lastAccountTab);
       } catch (e) {
         console.error(`storeAccounts.write failed - ${(e as Error).message}. `);
       }
