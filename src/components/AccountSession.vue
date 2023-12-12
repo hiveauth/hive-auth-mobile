@@ -75,9 +75,18 @@ const props = defineProps({
 
 // functions
 function onDeleteAuth() {
-  const account = props.account
-  account.auths = props.account.auths.filter(o => o.key != props.auth.key)
-  storeAccounts.updateAccount(props.account)
+  // Ask user to confirm session deletion
+  $q.dialog({
+    title: $t('account_session.confirm_delete_session.title'),
+    message: $t('account_session.confirm_delete_session.message'),
+    cancel: true,
+    focus: 'cancel',
+    color: 'red',
+    persistent: true
+  }).onOk(async () => {
+    props.account.auths = props.account.auths.filter(o => o.key != props.auth.key)
+    storeAccounts.updateAccount(props.account)
+  }
 }
 
 function onDeleteWhitelist(op: string) {

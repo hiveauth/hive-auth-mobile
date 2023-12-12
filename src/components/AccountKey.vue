@@ -107,7 +107,7 @@ async function onDeleteKey() {
         await storeAccounts.deleteAccount(account.name)
       })
     } else {
-      // Ask user to confirm key deletation
+      // Ask user to confirm key deletion
       $q.dialog({
         title: $t('accounts_key.confirm_delete_key.title'),
         message: $t('accounts_key.confirm_delete_key.message'),

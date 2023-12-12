@@ -56,6 +56,10 @@ export default {
 	account_session: {
 		expires: 'Expires',
 		empty: 'No sessions found',
+		confirm_delete_session: {
+			title: 'Delete session',
+			message:'Are you sure you want to delete this session?'
+		},
 	  whilelists: {
 			title: 'Whitelisted operations',
 			deleted: 'Operation whitelist removed',
