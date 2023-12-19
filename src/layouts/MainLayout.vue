@@ -55,7 +55,7 @@
           <div v-if="storeApp.isHASConnected" class="text-grey-4">
             {{ $t('main_layout.connected') }}
           </div>
-          <div v-else class="text-red">
+          <div v-else class="text-red" clickable @click="onClickConnection()">
             {{ $t('main_layout.disconnected') }}
           </div>
         </div>
@@ -191,6 +191,10 @@ function dateISO(date: Date) {
 
 function onClickNode() {
   showNode.value = !showNode.value
+}
+
+function onClickConnection() {
+  checkConnection()
 }
 
 function hideEncryptedData(str: string) {
@@ -888,6 +892,7 @@ async function startWebsocket() {
     wsClient.onclose = async function (event) {
       // connection closed, discard the old websocket
       wsClient = null;
+      storeApp.isHASConnected = false;
       if (event.wasClean) {
         console.log('Websocket - Connection closed');
       } else {
@@ -967,6 +972,18 @@ function processQRDL(value: string) {
   }
 }
 
+function checkConnection() {
+  if (!wsClient) {
+    startWebsocket();
+  } else if (storeApp.resetWebsocket) {
+    // Websocket needs to be reset to re-register accounts
+    storeApp.resetWebsocket = false;
+    wsClient.close();
+    wsClient = null;
+    startWebsocket();
+  }
+}
+
 async function frequentChecker() {
   if (storeApp.isUnlocked) {
     // Retrieve any deeplink or scanned qrcode value
@@ -988,15 +1005,7 @@ async function frequentChecker() {
       storeApp.scanValue = '';
       processQRDL(qrcode.length > 0 ? qrcode : deeplink)
     }
-    if (!wsClient) {
-      startWebsocket();
-    } else if (storeApp.resetWebsocket) {
-      // Websocket needs to be reset to re-register accounts
-      storeApp.resetWebsocket = false;
-      wsClient.close();
-      wsClient = null;
-      startWebsocket();
-    }
+    checkConnection()
   } else {
     // App is locked
     if (wsClient!=null) {
