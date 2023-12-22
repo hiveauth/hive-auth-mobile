@@ -155,7 +155,7 @@ export interface IChallengeNack {
   pok: string
 }
 
-export interface iChallengeError {
+export interface IChallengeError {
   cmd: 'challenge_err'
   uuid: string
   error: string

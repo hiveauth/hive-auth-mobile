@@ -1,8 +1,8 @@
 {
   "name": "hive-auth-mobile",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "HiveAuth Mobile",
-  "author": "Sagar <sagar.devices@gmail.com>",
+  "author": "Arcange <arcange.public@gmail.com>",
   "private": true,
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^4.0.0",

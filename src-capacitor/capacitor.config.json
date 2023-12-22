@@ -1,12 +1,11 @@
 {
   "appId": "com.hiveauth.authsigner",
-  "appName": "AuthSigner",
+  "appName": "HiveAuth",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "www",
   "server": {
-    "androidScheme": "https",
-    "url": "http://192.168.129.57:9500"
+    "androidScheme": "https"
   },
   "plugins": {
     "CapacitorHttp": {
