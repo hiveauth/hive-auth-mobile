@@ -908,12 +908,6 @@ async function startWebsocket() {
     wsClient.onerror = function (error) {
       console.error(`[error] ${JSON.stringify(error)}`);
     };
-
-    // Not supported
-    // wsClient.on('pong', () => {
-    //   // HAS server is alive
-    //   tsHeartbeat = Date.now();
-    // });
   } finally {
     busy = false
   }

@@ -70,7 +70,6 @@
       hive.api
         .getAccountsAsync([account])
         .then(function (accounts) {
-          console.log('Accounts: ', accounts);
           const publicPosting = accounts[0].posting.key_auths[0][0];
           const publicActive = accounts[0].active.key_auths[0][0];
           const publicMemo = accounts[0].memo_key;
