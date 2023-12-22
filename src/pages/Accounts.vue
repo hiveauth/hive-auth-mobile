@@ -101,7 +101,6 @@ const storeAccounts = useAccountsStore();
 const { t } = useI18n(), $t = t;
 
 // computed
-const accounts = computed(() => storeAccounts.accounts)
 const selectedAccount = computed(() => { 
   if (storeAccounts.lastAccountName) {
     return storeAccounts.accounts.find(o => o.name==storeAccounts.lastAccountName) as IAccount
@@ -121,7 +120,7 @@ function onSelectAccount(name: string) {
 }
 
 function onAddAccount() {
-  router.push({name: "import-key"})
+  router.push({name: 'import-key'})
 }
 
 function onTabUpdate(value: string) {

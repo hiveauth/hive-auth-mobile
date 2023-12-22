@@ -36,7 +36,7 @@ const KEY_ACCOUNTS = 'accounts'
 const KEY_LASTACCOUNTNAME = 'lastAccountName'
 const KEY_LASTACCOUNTTAB = 'lastAccountTab'
 
-let encryptionKey = ""
+let encryptionKey = ''
 
 export const useAccountsStore = defineStore('storeAccounts', {
 

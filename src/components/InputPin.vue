@@ -111,7 +111,7 @@ async function setPasscode() {
     await storeApp.readPasscodeFromBiometrics();
     await storeAccounts.read(PIN.value);
     storeApp.unlockApp();
-    router.push({name: "import-key"})
+    router.push({name: '"import-key'})
     $q.notify({
       color: 'positive',
       position: 'bottom',
