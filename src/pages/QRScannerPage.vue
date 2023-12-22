@@ -1,104 +1,73 @@
 <template>
   <q-page>
-    <div v-if="!data.scanning" class="q-pa-lg">
-      <!-- <div class="row q-mt-lg">
-        <q-btn
-          class="col q-pt-sm q-pb-sm"
-          rounded
-          color="primary"
-          label="Scan QR Code"
-          @click="startScan()"
-        />
-      </div> -->
+    <div class="q-pa-lg">
     </div>
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+<script setup  lang="ts">
+import { defineComponent, onMounted, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
-import { useQrResultStore } from 'src/stores/qr-result-store';
-import { useHasPathStore } from 'src/stores/has-path';
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
+import { useAppStore } from 'src/stores/storeApp';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
-export default defineComponent({
-  setup() {
-    const $q = useQuasar();
-    const router = useRouter();
-    const hasQrResultStore = useQrResultStore();
-    const data = ref({
-      scanning: false,
-      scanResult: '',
-    });
+const $q = useQuasar()
+const { t } = useI18n(), $t = t
+const router = useRouter();
+const storeApp = useAppStore();
 
-    const startScan = async () => {
-      data.value.scanning = true;
-      try {
-        var permissionResult = await BarcodeScanner.checkPermission({
-          force: true,
-        });
-        if (
-          permissionResult.granted === true ||
-          permissionResult.restricted === true
-        ) {
-          BarcodeScanner.hideBackground();
-          const result = await BarcodeScanner.startScan();
-          data.value.scanning = false;
-          if (result.hasContent) {
-            $q.notify({
-              color: 'positive',
-              position: 'bottom',
-              message: `QR Result - ${result.content}`,
-              icon: 'camera',
-            });
-            hasQrResultStore.rawQRString = result.content;
-            data.value.scanResult = result.content;
-            router.replace('main-menu');
-          } else {
-            $q.notify({
-              color: 'negative',
-              position: 'bottom',
-              message: 'QR scan failed',
-              icon: 'camera',
-            });
-          }
-        } else {
-          data.value.scanning = false;
-          $q.notify({
-            color: 'negative',
-            position: 'bottom',
-            message: 'Camera Permissions denied',
-            icon: 'camera',
-          });
-        }
-      } catch (e) {
-        data.value.scanning = false;
+// functions
+async function startScan() {
+  try {
+    var permissionResult = await BarcodeScanner.checkPermission({force: true});
+    if (permissionResult.granted === true || permissionResult.restricted === true) {
+      BarcodeScanner.hideBackground();
+      const result = await BarcodeScanner.startScan();
+      if (result.hasContent) {
+        storeApp.scanValue = result.content;
+        router.back()
+      } else {
         $q.notify({
           color: 'negative',
           position: 'bottom',
-          message:
-            'Permissions denied or Error when getting camera permissions.',
+          message: $t('scan.error_scan'),
           icon: 'camera',
         });
       }
-    };
+    } else {
+      $q.notify({
+        color: 'negative',
+        position: 'bottom',
+        message: $t('scan.error_permission_denied'),
+        icon: 'camera',
+      });
+    }
+  } catch (e) {
+    $q.notify({
+      color: 'negative',
+      position: 'bottom',
+      message: e.message, //$t('scan.error_start_scan'),
+      icon: 'camera',
+    });
+  }
+};
 
-    return {
-      data,
-      startScan,
-    };
-  },
-  mounted() {
-    const store = useHasPathStore();
-    store.updateTo('qr-scanner', 'Scan QR Code');
-    console.log('At QR Scanner page');
-    this.startScan();
-  },
-  unmounted() {
-    BarcodeScanner.stopScan()
-  },
-});
+// hooks
+onMounted(() => {
+  storeApp.headerSubtitle = 'Scan QR Code'
+  startScan();
+})
+
+onUnmounted(() => {
+  BarcodeScanner.stopScan()
+})
+
 </script>
 
-<style scoped></style>
+<script lang="ts">
+export default defineComponent({
+  name: 'page-scan'
+});
+</script>

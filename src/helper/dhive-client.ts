@@ -1,7 +1,11 @@
 import { Client, PrivateKey } from '@hiveio/dhive';
-import { PublicKeysModel } from 'src/models/public-keys-model';
-import { CapacitorHttp } from '@capacitor/core';
 
+export interface IPublicKeys {
+  owner: string;
+  active: string;
+  posting: string;
+  memo: string;
+}
 const client = new Client([
   'https://api.hive.blog',
   'https://api.deathwing.me',
@@ -22,38 +26,18 @@ function publicKeyFrom(privateKey: PrivateKey): string {
   return privateKey.createPublic().toString();
 }
 
-async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
+async function getPublicKeys(username: string): Promise<IPublicKeys> {
   try {
-    // const options = {
-    //   url: 'https://api.hive.blog',
-    //   headers: {
-    //     accept: 'application/json, text/plain, */*',
-    //     'content-type': 'application/json',
-    //   },
-    //   data: {
-    //     id: 4,
-    //     jsonrpc: '2.0',
-    //     method: 'condenser_api.get_accounts',
-    //     params: [[username]],
-    //   },
-    // };
-    // console.log('Getting user public keys');
-    // const response = await CapacitorHttp.request({
-    //   ...options,
-    //   method: 'POST',
-    // });
-    // console.log('Response is - ' + JSON.stringify(response));
-    // const account = response.data.result;
     const account = await client.database.getAccounts([username]);
-    if (account.length === 0) {
+    if (account.length == 0) {
       throw new Error(`User '${username}' not found.`);
     }
-    console.log('Got user info');
     return {
+      owner: account[0].owner.key_auths[0][0],
       active: account[0].active.key_auths[0][0],
       memo: account[0].memo_key,
       posting: account[0].posting.key_auths[0][0],
-    } as PublicKeysModel;
+    } as IPublicKeys;
   } catch (error) {
     console.error('Error occurred while retrieving user public keys:', error);
     throw error;
@@ -63,6 +47,6 @@ async function getUserPublicKeys(username: string): Promise<PublicKeysModel> {
 export default {
   privateKeyFromString,
   publicKeyFrom,
-  getUserPublicKeys,
+  getPublicKeys,
   client,
 };

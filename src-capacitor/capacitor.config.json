@@ -1,6 +1,6 @@
 {
   "appId": "com.hiveauth.authsigner",
-  "appName": "AuthSigner",
+  "appName": "HiveAuth",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "www",

@@ -3,8 +3,7 @@ src-capacitor/android/app/store
 
 src/data/keys.json
 src/data/storage.json
-.env
-
+.env*
 .DS_Store
 .thumbs.db
 node_modules
