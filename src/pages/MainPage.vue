@@ -25,17 +25,15 @@
 </template>
 
 <script setup>
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from 'src/stores/storeApp';
-import { useAccountsStore } from 'src/stores/storeAccounts';
 import { useI18n } from 'vue-i18n'
 
 import InputPin from 'components/InputPin.vue';
 
 const router = useRouter();
 const storeApp = useAppStore();
-const storeAccounts = useAccountsStore();
 const { t } = useI18n(), $t = t
 
 // functions

@@ -3,7 +3,7 @@
   "version": "0.1.28",
   "description": "HiveAuth Mobile",
   "productName": "HiveAuth",
-  "author": "Sagar <sagar.devices@gmail.com>",
+  "author": "Arcange <arcange.public@gmail.com>",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",

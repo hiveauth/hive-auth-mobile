@@ -56,7 +56,6 @@ import { useAccountsStore } from 'src/stores/storeAccounts';
 import { KeyRole, PrivateKey } from '@hiveio/dhive';
 
 import DialogScan from 'components/DialogScan.vue';
-import { idText } from 'typescript';
 
 const $q = useQuasar();
 const router = useRouter();

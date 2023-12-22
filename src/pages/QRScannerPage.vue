@@ -26,7 +26,6 @@ async function startScan() {
       BarcodeScanner.hideBackground();
       const result = await BarcodeScanner.startScan();
       if (result.hasContent) {
-        // console.log(`SCAN: ${result.content}`)
         storeApp.scanValue = result.content;
         router.back()
       } else {

@@ -43,7 +43,7 @@
         </q-item-section>
         <q-item-section>
           <q-item-label>Github</q-item-label>
-          <q-item-label caption>Follow Us on Github</q-item-label>
+          <q-item-label caption>Follow us on Github</q-item-label>
         </q-item-section>
       </q-item>
 
@@ -61,7 +61,7 @@
 
         <q-item-section>
           <q-item-label>Telegram</q-item-label>
-          <q-item-label caption>Join Us on Telegram</q-item-label>
+          <q-item-label caption>Join us on Telegram</q-item-label>
         </q-item-section>
       </q-item>
 
@@ -78,7 +78,7 @@
 
         <q-item-section>
           <q-item-label>Twitter</q-item-label>
-          <q-item-label caption>Follow Us on Twitter</q-item-label>
+          <q-item-label caption>Follow us on Twitter</q-item-label>
         </q-item-section>
       </q-item>
       -->

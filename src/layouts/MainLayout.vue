@@ -94,10 +94,7 @@ const PKSA_NAME = 'HiveAuth Mobile'
 const DEFAULT_HAS_SERVER = 'wss://hive-auth.arcange.eu';
 
 const HAS_PROTOCOL = [0.8, 1.0]     // supported HAS protocol versions
-const PING_RATE = 60 * 1000 			  // 1 minute
-const PING_TIMEOUT = 5 * PING_RATE  // 5 minutes
-
-const HAS_SUPPORT_V08 = true  // TODO: remove protocol v0.8 support
+const HAS_SUPPORT_V08 = true        // TODO: remove protocol v0.8 support
 
 const $q = useQuasar();
 const storeApp = useAppStore()
@@ -709,7 +706,6 @@ async function handleSignReq(payload: ISignReq) {
     const check = checkTransaction(sign_req_data, auth)
 
     // Check if the PKSA stores the requested private key
-    //const key_private = getPrivateKey(payload.account, sign_req_data.key_type);
     const keyType = KEYTYPES_PA[check.level]
     const key_private = getPrivateKey(payload.account, keyType);
     assert(key_private,`Private ${keyType} key is missing`)
