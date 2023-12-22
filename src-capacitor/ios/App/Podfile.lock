@@ -5,19 +5,25 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (5.0.6):
     - Capacitor
+  - CapacitorAppLauncher (5.0.6):
+    - Capacitor
   - CapacitorClipboard (5.0.6):
     - Capacitor
   - CapacitorCommunityBarcodeScanner (4.0.1):
     - Capacitor
   - CapacitorCordova (5.2.0)
+  - CapacitorNativeBiometric (0.0.1):
+    - Capacitor
 
 DEPENDENCIES:
   - "AparajitaCapacitorSecureStorage (from `../../node_modules/@aparajita/capacitor-secure-storage`)"
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCommunityBarcodeScanner (from `../../node_modules/@capacitor-community/barcode-scanner`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - CapacitorNativeBiometric (from `../../node_modules/capacitor-native-biometric`)
 
 EXTERNAL SOURCES:
   AparajitaCapacitorSecureStorage:
@@ -26,21 +32,27 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../node_modules/@capacitor/app"
+  CapacitorAppLauncher:
+    :path: "../../node_modules/@capacitor/app-launcher"
   CapacitorClipboard:
     :path: "../../node_modules/@capacitor/clipboard"
   CapacitorCommunityBarcodeScanner:
     :path: "../../node_modules/@capacitor-community/barcode-scanner"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorNativeBiometric:
+    :path: "../../node_modules/capacitor-native-biometric"
 
 SPEC CHECKSUMS:
   AparajitaCapacitorSecureStorage: 9bb3406cb4c3713979ca1885764032e557266242
   Capacitor: ee9a51af1f4b63e86c2c8b9938b1f8286c203e2c
   CapacitorApp: 024e1b1bea5f883d79f6330d309bc441c88ad04a
+  CapacitorAppLauncher: 5a9f06c13c6b4f5d65b550a07128ef04f3a216b3
   CapacitorClipboard: 77edf49827ea21da2a9c05c690a4a6a4d07199c4
   CapacitorCommunityBarcodeScanner: 7feb206489c8555a8ca0c74c57ddf49ead774eb8
   CapacitorCordova: 225d4817e9673b8dbcef8d9a3ccbd37f1f1c26cd
+  CapacitorNativeBiometric: b47637a8cd349bdac014424bb4ddcae9ee5d4919
 
-PODFILE CHECKSUM: e8dfba5a3ac262337489d7b95d961ffcc255479e
+PODFILE CHECKSUM: a36c810e525c109ccc298a2bd5990eb35117acc8
 
 COCOAPODS: 1.11.3

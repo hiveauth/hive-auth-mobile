@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B3B9C4B2B06679C00A44031 /* PluginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3B9C4A2B06679C00A44031 /* PluginViewController.swift */; };
+		1B3B9C4E2B0668B600A44031 /* HiveAuthSignerCustomPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3B9C4D2B0668B600A44031 /* HiveAuthSignerCustomPlugin.swift */; };
+		1B8170E82B0BD63500EAE83A /* HiveAuthSignerCustomPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B8170E72B0BD63500EAE83A /* HiveAuthSignerCustomPlugin.m */; };
+		1BAD5BFB2B0BCCF90054D38D /* HiveAuth in Resources */ = {isa = PBXBuildFile; fileRef = 1BAD5BFA2B0BCCF90054D38D /* HiveAuth */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -18,6 +22,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1B3B9C4A2B06679C00A44031 /* PluginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginViewController.swift; sourceTree = "<group>"; };
+		1B3B9C4D2B0668B600A44031 /* HiveAuthSignerCustomPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveAuthSignerCustomPlugin.swift; sourceTree = "<group>"; };
+		1B8170E62B0BD63400EAE83A /* App-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "App-Bridging-Header.h"; sourceTree = "<group>"; };
+		1B8170E72B0BD63500EAE83A /* HiveAuthSignerCustomPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HiveAuthSignerCustomPlugin.m; sourceTree = "<group>"; };
+		1BAD5BFA2B0BCCF90054D38D /* HiveAuth */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HiveAuth; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +53,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1B3B9C4C2B0668A300A44031 /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				1B3B9C4D2B0668B600A44031 /* HiveAuthSignerCustomPlugin.swift */,
+				1B8170E72B0BD63500EAE83A /* HiveAuthSignerCustomPlugin.m */,
+				1B8170E62B0BD63400EAE83A /* App-Bridging-Header.h */,
+			);
+			path = Plugins;
+			sourceTree = "<group>";
+		};
 		27E2DDA53C4D2A4D1A88CE4A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -73,8 +92,11 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				1B3B9C4C2B0668A300A44031 /* Plugins */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
+				1BAD5BFA2B0BCCF90054D38D /* HiveAuth */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				1B3B9C4A2B06679C00A44031 /* PluginViewController.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -127,7 +149,7 @@
 				TargetAttributes = {
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
-						LastSwiftMigration = 1100;
+						LastSwiftMigration = 1500;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -160,6 +182,7 @@
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
+				1BAD5BFB2B0BCCF90054D38D /* HiveAuth in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -208,6 +231,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				1B3B9C4E2B0668B600A44031 /* HiveAuthSignerCustomPlugin.swift in Sources */,
+				1B8170E82B0BD63500EAE83A /* HiveAuthSignerCustomPlugin.m in Sources */,
+				1B3B9C4B2B06679C00A44031 /* PluginViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +371,7 @@
 			baseConfigurationReference = FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 58LRY57FMK;
@@ -356,6 +383,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hiveauth.authsigner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "App/Plugins/App-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -366,6 +395,7 @@
 			baseConfigurationReference = AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 58LRY57FMK;
@@ -376,6 +406,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hiveauth.authsigner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "App/Plugins/App-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
