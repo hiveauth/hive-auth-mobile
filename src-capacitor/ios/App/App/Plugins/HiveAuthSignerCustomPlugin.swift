@@ -32,8 +32,6 @@ public class HiveAuthSignerCustomPlugin: CAPPlugin {
             let privateKey = call.getString("privateKey"),
             let publicKey = call.getString("publicKey"),
             let memo = call.getString("memo"),
-//            let accountName = call.getString("accountName"),
-//            let userKey = call.getString("userKey"),
             let challenge = call.getString("challenge"),
             let key = call.getString("key")
         else { return }
@@ -85,9 +83,5 @@ public class HiveAuthSignerCustomPlugin: CAPPlugin {
                     .evaluateJavaScript("getPublicKey('\(privateKey)', '\(callId)');")
             }
         }
-
-//        else if method == "getDeepLinkData" {
-//            // TO-DO: - How do we do this? 🤷‍♂️
-//        }
     }
 }
