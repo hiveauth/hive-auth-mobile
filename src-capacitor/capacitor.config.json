@@ -1,5 +1,5 @@
 {
-  "appId": "com.hiveauth.authsigner",
+  "appId": "com.hiveauth.mobile",
   "appName": "HiveAuth",
   "bundledWebRuntime": false,
   "npmClient": "npm",
