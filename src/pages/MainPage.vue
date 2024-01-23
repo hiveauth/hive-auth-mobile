@@ -1,6 +1,6 @@
 <template>
   <q-page class="background">
-    <div v-if="$q.platform.is.ios" class="q-mt-lg" class="q-mt-lg"></div>
+    <div v-if="$q.platform.is.ios" class="q-mt-lg"></div>
     <q-btn v-if="storeApp.isUnlocked" style="color: #e21438"
         flat
         rounded
