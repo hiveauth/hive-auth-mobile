@@ -1,6 +1,7 @@
 <template>
   <q-page class="background">
-    <q-btn  v-if="storeApp.isUnlocked" style="color: #e21438"
+    <div v-if="$q.platform.is.ios" class="q-mt-lg" class="q-mt-lg"></div>
+    <q-btn v-if="storeApp.isUnlocked" style="color: #e21438"
         flat
         rounded
         size="lg"
@@ -29,6 +30,7 @@ import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from 'src/stores/storeApp';
 import { useI18n } from 'vue-i18n'
+import { useQuasar } from 'quasar'
 
 import InputPin from 'components/InputPin.vue';
 
