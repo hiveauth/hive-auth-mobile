@@ -1,7 +1,7 @@
 <template>
   <q-page class="background">
-    <div v-if="$q.platform.is.ios" class="q-mt-xl"></div>
-    <q-btn v-if="storeApp.isUnlocked" style="color: #e21438"
+    <q-btn v-if="storeApp.isUnlocked" style="color: #e21438" 
+        :class='$q.platform.is.ios ? "q-mt-xl" : ""'
         flat
         rounded
         size="lg"
@@ -42,7 +42,6 @@ const { t } = useI18n(), $t = t
 function toggleMenu () {
   storeApp.menuOpen = !storeApp.menuOpen
 }
-
 </script>
 
 <script>
