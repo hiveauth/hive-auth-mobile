@@ -38,7 +38,7 @@
       <router-view />
     </q-page-container>
 
-    <q-footer v-if="storeApp.isUnlocked">
+    <q-footer v-if="storeApp.isUnlocked" :class='$q.platform.is.ios ? "q-mb-xl" : "q-mb-xl"'>
       <q-toolbar>
         <q-btn
           flat

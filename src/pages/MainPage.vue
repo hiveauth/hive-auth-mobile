@@ -1,7 +1,7 @@
 <template>
   <q-page class="background">
     <q-btn v-if="storeApp.isUnlocked" style="color: #e21438" 
-        :class='$q.platform.is.ios ? "q-mt-xl" : ""'
+        :class='$q.platform.is.ios ? "q-mt-xl" : "q-mt-xl"'
         flat
         rounded
         size="lg"
